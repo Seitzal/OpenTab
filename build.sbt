@@ -7,7 +7,7 @@ version := "1.0-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-.settings(PlayKeys.playDefaultPort := 5000)
+.settings(PlayKeys.playDefaultPort := 8080)
 
 scalaVersion := "2.13.0"
 
