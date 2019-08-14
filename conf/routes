@@ -1,5 +1,7 @@
 
-GET     /                           controllers.HomeController.index
-GET     /hello/*name                controllers.HomeController.hello(name: String)
+GET     /                           eu.seitzal.opentab.controllers.TemplateController.renderIndex()
+GET     /login                      eu.seitzal.opentab.controllers.TemplateController.renderLogin()
+
+POST    /login/process              eu.seitzal.opentab.controllers.AuthController.processLogin()
 
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

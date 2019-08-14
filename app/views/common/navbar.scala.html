@@ -1,0 +1,15 @@
+@(config: Map[String, String])
+<nav class="navbar navbar-expand-xl bg-dark navbar-dark sticky-top">
+  <a class="navbar-brand" href="@config("location")">
+    @config("apptitle")
+  </a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="collapsibleNavbar">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item">
+        <a class="nav-link" id="nl1" href="#">Login</a>
+      </li>
+  </div>
+</nav>

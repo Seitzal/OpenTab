@@ -1,1 +1,1 @@
-web:  target/universal/stage/bin/playtest
+web:  target/universal/stage/bin/opentab
