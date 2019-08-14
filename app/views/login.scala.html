@@ -1,15 +1,12 @@
 @import common._
 @import helper._
+@import eu.seitzal.opentab.shortcuts._
 
 @(config: Map[String, String], context: Map[String, String])(implicit request: RequestHeader)
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css">
-    <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
-    <link rel="shortcut icon" type="image/png" href="@routes.Assets.versioned("images/favicon.png")">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    @common.head()
     <title>@config("apptitle") - Login</title>
   </head>
   <body>
@@ -22,7 +19,7 @@
         </p>
       </div>
       <div class="card-body">
-        <form action="./login/process" method="post">
+        <form action="" method="post">
           <div class="form-group">
             <label for="username">Username</label>
             <input type="text" name="username" id="username" class="form-control">
@@ -42,6 +39,7 @@
         <a href="./resetpw" class="card-link">Forgot&nbsp;Password?</a>
       </div>
     </div>
+    @common.scripts()
     <script src="@routes.Assets.versioned("javascripts/main.js")" type="text/javascript"></script>
   </body>
 </html>

@@ -2,6 +2,7 @@
 GET     /                           eu.seitzal.opentab.controllers.TemplateController.renderIndex()
 GET     /login                      eu.seitzal.opentab.controllers.TemplateController.renderLogin()
 
-POST    /login/process              eu.seitzal.opentab.controllers.AuthController.processLogin()
+POST    /login                      eu.seitzal.opentab.controllers.AuthController.login(origin: Option[String])
+GET     /logout                     eu.seitzal.opentab.controllers.AuthController.logout()
 
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

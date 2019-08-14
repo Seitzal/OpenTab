@@ -20,10 +20,10 @@ class TemplateController @Inject()
 
   val jdbcExecutionContext = actorSystem.dispatchers.lookup("jdbc-execution-context")
 
-  val config = Map("apptitle" -> "OpenTab Alpha", "location" -> "./")
+  val config = Map("apptitle" -> "OpenTab Alpha", "location" -> ".")
 
   def renderIndex() = Action.async { implicit request: Request[AnyContent] =>
-    Future(Ok(views.html.index()))
+    Future(Ok(views.html.index(config, Map())))
   }
 
   def renderLogin() = Action.async { implicit request: Request[AnyContent] =>

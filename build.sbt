@@ -14,7 +14,6 @@ scalaVersion := "2.13.0"
 scalacOptions += "-target:jvm-1.8"
 javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 
-
 libraryDependencies += guice
 libraryDependencies += jdbc
 libraryDependencies += "org.mariadb.jdbc" % "mariadb-java-client" % "2.4.3"
