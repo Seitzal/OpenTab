@@ -21,6 +21,7 @@ object Tab {
     val query = connection.prepareStatement(queryText)
     query.setInt(1, id)
     val queryResult = query.executeQuery()
+    connection.close()
     if (queryResult.next()) {
       val id = queryResult.getInt("id")
       val name = queryResult.getString("name")
@@ -36,6 +37,7 @@ object Tab {
     val queryText = "SELECT * FROM tabs"
     val query = connection.prepareStatement(queryText)
     val queryResult = query.executeQuery()
+    connection.close()
     def iter(tabs: List[Tab]) : List[Tab] =
       if (queryResult.next()) {
         val id = queryResult.getInt("id")

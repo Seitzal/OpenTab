@@ -23,7 +23,7 @@ class TemplateController @Inject()(
   implicit def database = db
   implicit def config = cfg
 
-  val jdbcExecutionContext = 
+  val jdbcExecutionContext =
     actorSystem.dispatchers.lookup("jdbc-execution-context")
 
   def renderIndex() = Action.async { implicit request: Request[AnyContent] =>

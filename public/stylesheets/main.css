@@ -1,3 +1,7 @@
 span.waves-input-wrapper {
   width: 100%;
 }
+
+a.blocklink {
+  display: block;
+}

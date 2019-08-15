@@ -34,12 +34,35 @@ class AuthController @Inject()(
     val query = connection.prepareStatement(queryText)
     query.setString(1, username)
     val queryResult = query.executeQuery()
+    connection.close()
     if (queryResult.next()) {
       val retrievedHash = queryResult.getString("passwd")
       if (BCrypt.checkpw(password, retrievedHash))
         Option(queryResult.getInt("id"))
       else None
     } else throw new NotFoundException("user", "name", username)
+  }
+
+  def registerKey(key: String, userid: Int): Unit = {
+    val connection = db.getConnection()
+    val queryText = 
+      "INSERT INTO api_keys (val, expires, userid) VALUES (?, ?, ?)"
+    val query = connection.prepareStatement(queryText)
+    query.setString(1, key)
+    query.setLong(2, timestamp() + config.get[Int]("api.keyLife"))
+    query.setInt(3, userid)
+    query.executeUpdate()
+    connection.close()
+  }
+
+  def unregisterKey(key: String): Unit = {
+    val connection = db.getConnection()
+    val queryText = 
+      "DELETE FROM api_keys WHERE val = ?"
+    val query = connection.prepareStatement(queryText)
+    query.setString(1, key)
+    query.executeUpdate()
+    connection.close()
   }
 
   def login(origin: Option[String]) = Action.async(parse.formUrlEncoded) {
@@ -51,9 +74,12 @@ class AuthController @Inject()(
           case (Some(username), Some(password)) => {
             verifyUser(username(0), password(0)) match {
               case Some(userid) => {
+                val key = Keygen.newTempKey
+                registerKey(key, userid)
                 val session = List(
                   "userid" -> userid.toString,
-                  "username" -> username(0))
+                  "username" -> username(0),
+                  "api_key" -> key)
                 origin.map(str => URLDecoder.decode(str, "utf-8")) match {
                 case Some(url) => 
                   Redirect(location + url).withSession(session: _*)
@@ -76,7 +102,9 @@ class AuthController @Inject()(
   }
 
   def logout = Action.async { implicit request: Request[AnyContent] =>
+    implicit val ec = jdbcExecutionContext
     Future {
+      request.session.get("api_key").map(unregisterKey)
       Redirect("/").withNewSession
     }
   }

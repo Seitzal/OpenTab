@@ -22,6 +22,7 @@ package object permissions {
     query.setInt(1, userid)
     query.setInt(2, userid)
     val queryResult = query.executeQuery()
+    connection.close()
     if (queryResult.next()) {
       val view    = queryResult.getBoolean("p_view")
       val results = queryResult.getBoolean("p_results")

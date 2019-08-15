@@ -13,7 +13,31 @@
   </head>
   <body>
     @common.navbar(config)
-    @common.scripts()
+    <div class="col-md-10 m-auto">
+      <div class="container-fluid p-2 m-md-2">
+        @if(loggedIn) {
+          <h3>Welcome, @request.session.get("username")!</h3>
+        } else {
+          <h3>Welcome, Guest!</h3>
+        }
+      </div>
+      <div id="accordion">
+        <div class="card">
+          <div class="card-header p-0">
+            <a class="blocklink p-3 card-link" data-toggle="collapse" href="#collapseOne">
+              Your tabs
+            </a>
+          </div>
+          <div id="collapseOne" class="collapse show" data-parent="#accordion">
+            <div id="container_tabselect" class="card-body p-0">
+              <div class="spinner-border text-primary m-3"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    @common.scripts(config)
     <script src="@routes.Assets.versioned("javascripts/main.js")" type="text/javascript"></script>
+    <script src="@routes.Assets.versioned("javascripts/index.js")" type="text/javascript"></script>
   </body>
 </html>

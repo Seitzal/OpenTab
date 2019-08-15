@@ -47,10 +47,11 @@ class RESTController @Inject()(
     val query = connection.prepareStatement(queryText)
     query.setString(1, key)
     val queryResult = query.executeQuery()
+    connection.close()
     if (queryResult.next()) {
       val expires = queryResult.getLong("expires")
       val temporary = expires != 0
-      val expired = temporary && expires >= timestamp()
+      val expired = temporary && expires < timestamp()
       val userid  = queryResult.getInt("userid")
       KeyData(true, temporary, expired, expires, userid) 
     } else {
@@ -58,17 +59,10 @@ class RESTController @Inject()(
     }
   }
 
-  val keyReads = (JsPath \ "api_key").readNullable[String]
-
-  def parseBody(body: AnyContent) = {
-    body.asJson.flatMap(data => data.as[Option[String]](keyReads))
-      .map(verifyKey)
-  }
-
   def getAllTabs = Action.async { implicit request: Request[AnyContent] =>
     implicit val ec = jdbcExecutionContext
     Future {
-      val auth = parseBody(request.body)
+      val auth = request.headers.get("Authorization").map(verifyKey)
       val tabs = models.Tab.getAll(database)
       auth match {
         case Some(keyData) => {
@@ -95,9 +89,9 @@ class RESTController @Inject()(
   def remoteVerifyKey = Action.async { implicit request: Request[AnyContent] =>
     implicit val ec = jdbcExecutionContext
     Future {
-      parseBody(request.body) match {
+      request.headers.get("Authorization").map(verifyKey) match {
         case Some(keyData) => Ok(json.write(keyData)).as("application/json")
-        case None => BadRequest("No API key found in request body.")
+        case None => BadRequest("No API key found in authorization header.")
       }
     } recover {
         case ex: Throwable => InternalServerError(ex.getMessage)
