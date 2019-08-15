@@ -17,28 +17,28 @@ import java.net.URLDecoder
 import eu.seitzal.opentab.exceptions._
 
 @Singleton
-class AuthController @Inject()
-    (actorSystem: ActorSystem, db: Database, cc: ControllerComponents)
-    (implicit ec: ExecutionContext)
-    extends AbstractController(cc) {
+class AuthController @Inject()(
+  actorSystem: ActorSystem,
+  db: Database,
+  cc: ControllerComponents)(
+  implicit ec: ExecutionContext)
+  extends AbstractController(cc) {
 
-  val jdbcExecutionContext = actorSystem.dispatchers.lookup("jdbc-execution-context")
+  val jdbcExecutionContext =
+    actorSystem.dispatchers.lookup("jdbc-execution-context")
 
-  def verifyUser(username: String, password: String) : Option[Int] = {
+  def verifyUser(username: String, password: String): Option[Int] = {
     val connection = db.getConnection()
-    val stmt = connection.prepareStatement("SELECT * FROM users WHERE username = ?")
-    stmt.setString(1, username)
-    val rs = stmt.executeQuery()
-    if (rs.next()) {
-      val retrievedHash = rs.getString("passwd")
-      if(BCrypt.checkpw(password, retrievedHash)) {
-        Option(rs.getInt("id"))
-      } else {
-        None
-      }
-    } else {
-      throw new UserNotFoundException(username)
-    }
+    val queryText = "SELECT * FROM users WHERE username = ?"
+    val query = connection.prepareStatement(queryText)
+    query.setString(1, username)
+    val queryResult = query.executeQuery()
+    if (queryResult.next()) {
+      val retrievedHash = queryResult.getString("passwd")
+      if (BCrypt.checkpw(password, retrievedHash))
+        Option(queryResult.getInt("id"))
+      else None
+    } else throw new UserNotFoundException(username)
   }
 
   def login(origin: Option[String]) = Action.async(parse.formUrlEncoded) {
@@ -50,9 +50,12 @@ class AuthController @Inject()
           case (Some(username), Some(password)) => {
             verifyUser(username(0), password(0)) match {
               case Some(userid) => {
+                val newSession = List(
+                  "userid" -> userid.toString,
+                  "username" -> username(0))
                 origin.map(str => URLDecoder.decode(str, "utf-8")) match {
-                case Some(url) => Redirect(url).withSession("userid" -> userid.toString, "username" -> username(0))
-                case None      => Redirect("/").withSession("userid" -> userid.toString, "username" -> username(0))
+                case Some(url) => Redirect(url).withSession(newSession: _*)
+                case None      => Redirect("/").withSession(newSession: _*)
                 }
               }
               case None => Redirect("login?origin=" + origin)
@@ -60,9 +63,11 @@ class AuthController @Inject()
           }
           case _ => BadRequest("400 Bad Request: Invalid form data.")
         }
-      }.recover {
-        case ex: UserNotFoundException  => NotFound("404 Not found: " + ex.getMessage)
-        case ex: Throwable              => InternalServerError("503 Internal server error: " + ex.getMessage)
+      } recover {
+        case ex: UserNotFoundException =>
+          NotFound("404 Not found: " + ex.getMessage)
+        case ex: Throwable =>
+          InternalServerError("503 Internal server error: " + ex.getMessage)
       }
     }
   }
