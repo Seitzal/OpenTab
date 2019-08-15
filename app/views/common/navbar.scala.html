@@ -1,10 +1,14 @@
 @import java.net.URLEncoder
+@import common._
+@import helper._
+@import play.api.Configuration
+@import eu.seitzal.opentab._
 @import eu.seitzal.opentab.shortcuts._
 
-@(config: Map[String, String])(implicit request: RequestHeader)
+@(config: Configuration)(implicit request: RequestHeader)
 <nav class="navbar navbar-expand-xl bg-dark navbar-dark sticky-top">
-  <a class="navbar-brand" href="./">
-    @config("apptitle")
+  <a class="navbar-brand" href="@location(config)">
+    @config.get[String]("apptitle")
   </a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
     <span class="navbar-toggler-icon"></span>
@@ -16,17 +20,17 @@
     <ul class="navbar-nav">
       @if(loggedIn) {
         <li class="nav-item">
-          <a class="nav-link" id="nl1" href="account">@request.session("username")</a>
+          <a class="nav-link" id="nl1" href="@location(config)/account">@request.session("username")</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" id="nl1" href="logout">Sign Out</a>
+          <a class="nav-link" id="nl1" href="@location(config)/logout">Sign Out</a>
         </li>
       } else {
         <li class="nav-item">
-          <a class="nav-link" id="nl1" href="login?origin=@URLEncoder.encode(request.uri, "utf-8")">Sign In</a>
+          <a class="nav-link" id="nl1" href="@location(config)/login?origin=@URLEncoder.encode(request.uri, "utf-8")">Sign In</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" id="nl1" href="register">Create Account</a>
+          <a class="nav-link" id="nl1" href="@location(config)register">Create Account</a>
         </li>
       }
     </ul>

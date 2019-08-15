@@ -1,13 +1,15 @@
 @import common._
 @import helper._
+@import play.api.Configuration
+@import eu.seitzal.opentab._
 @import eu.seitzal.opentab.shortcuts._
 
-@(config: Map[String, String], context: Map[String, String])(implicit request: RequestHeader)
+@(config: Configuration)(implicit request: RequestHeader)
 <!DOCTYPE html>
 <html lang="en">
   <head>
     @common.head()
-    <title>@config("apptitle")</title>
+    <title>@config.get[String]("apptitle")</title>
   </head>
   <body>
     @common.navbar(config)

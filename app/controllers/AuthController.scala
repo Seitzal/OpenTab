@@ -1,28 +1,29 @@
 package eu.seitzal.opentab.controllers
 
-import javax.inject._
+import eu.seitzal.opentab._
+import shortcuts._
+import upickle.{default => json}
 
+import javax.inject._
 import play.api._
 import play.api.mvc._
-
 import play.api.db.Database
-
 import akka.actor.ActorSystem
 import scala.concurrent.{Future, ExecutionContext}
-
 import org.mindrot.jbcrypt.BCrypt
-
 import java.net.URLDecoder
-
-import eu.seitzal.opentab.exceptions._
 
 @Singleton
 class AuthController @Inject()(
   actorSystem: ActorSystem,
+  cfg: Configuration,
   db: Database,
   cc: ControllerComponents)(
   implicit ec: ExecutionContext)
   extends AbstractController(cc) {
+
+  implicit def database = db
+  implicit def config = cfg
 
   val jdbcExecutionContext =
     actorSystem.dispatchers.lookup("jdbc-execution-context")
@@ -38,7 +39,7 @@ class AuthController @Inject()(
       if (BCrypt.checkpw(password, retrievedHash))
         Option(queryResult.getInt("id"))
       else None
-    } else throw new UserNotFoundException(username)
+    } else throw new NotFoundException("user", "name", username)
   }
 
   def login(origin: Option[String]) = Action.async(parse.formUrlEncoded) {
@@ -50,12 +51,14 @@ class AuthController @Inject()(
           case (Some(username), Some(password)) => {
             verifyUser(username(0), password(0)) match {
               case Some(userid) => {
-                val newSession = List(
+                val session = List(
                   "userid" -> userid.toString,
                   "username" -> username(0))
                 origin.map(str => URLDecoder.decode(str, "utf-8")) match {
-                case Some(url) => Redirect(url).withSession(newSession: _*)
-                case None      => Redirect("/").withSession(newSession: _*)
+                case Some(url) => 
+                  Redirect(location + url).withSession(session: _*)
+                case None =>
+                  Redirect(location).withSession(session: _*)
                 }
               }
               case None => Redirect("login?origin=" + origin)
@@ -64,7 +67,7 @@ class AuthController @Inject()(
           case _ => BadRequest("400 Bad Request: Invalid form data.")
         }
       } recover {
-        case ex: UserNotFoundException =>
+        case ex: NotFoundException =>
           NotFound("404 Not found: " + ex.getMessage)
         case ex: Throwable =>
           InternalServerError("503 Internal server error: " + ex.getMessage)

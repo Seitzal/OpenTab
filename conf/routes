@@ -5,4 +5,7 @@ GET     /login                      eu.seitzal.opentab.controllers.TemplateContr
 POST    /login                      eu.seitzal.opentab.controllers.AuthController.login(origin: Option[String])
 GET     /logout                     eu.seitzal.opentab.controllers.AuthController.logout()
 
+GET     /api/tabs                   eu.seitzal.opentab.controllers.RESTController.getAllTabs()
+GET     /api/verifykey              eu.seitzal.opentab.controllers.RESTController.remoteVerifyKey()
+
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

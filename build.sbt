@@ -18,6 +18,7 @@ libraryDependencies += guice
 libraryDependencies += jdbc
 libraryDependencies += "org.mariadb.jdbc" % "mariadb-java-client" % "2.4.3"
 libraryDependencies += "de.svenkubiak" % "jBCrypt" % "0.4"
+libraryDependencies += "com.lihaoyi" %% "upickle" % "0.7.5"
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3" % Test
 
 // Adds additional packages into Twirl

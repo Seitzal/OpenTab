@@ -1,19 +1,21 @@
 @import common._
 @import helper._
+@import play.api.Configuration
+@import eu.seitzal.opentab._
 @import eu.seitzal.opentab.shortcuts._
 
-@(config: Map[String, String], context: Map[String, String])(implicit request: RequestHeader)
+@(config: Configuration)(implicit request: RequestHeader)
 <!DOCTYPE html>
 <html lang="en">
   <head>
     @common.head()
-    <title>@config("apptitle") - Login</title>
+    <title>@config.get[String]("apptitle") - Sign in</title>
   </head>
   <body>
     @common.navbar(config)
     <div class="card col-md-6 col-lg-4 mx-auto m-4 p-0">
       <div class="card-header">
-        <h1>Login</h1>
+        <h1>Sign in to @config.get[String]("apptitle")</h1>
         <p class="lead text-primary">
         <!-- TODO: display contextual message (e.g. session expired) -->
         </p>
@@ -31,12 +33,12 @@
             <div class="invalid-feedback">Incorrect password.</div>
           </div>
           @CSRF.formField
-          <input type="submit" value="Login" class="btn btn-primary btn-block">
+          <input type="submit" value="Sign in" class="btn btn-primary btn-block">
         </form>
       </div>
       <div class="card-footer">
-        <a href="./register" class="card-link">Create&nbsp;Account</a>
-        <a href="./resetpw" class="card-link">Forgot&nbsp;Password?</a>
+        <a href="@location(config)/register" class="card-link">Create&nbsp;Account</a>
+        <a href="@location(config)/resetpw" class="card-link">Forgot&nbsp;Password?</a>
       </div>
     </div>
     @common.scripts()
