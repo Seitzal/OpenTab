@@ -11,9 +11,6 @@ import play.api.mvc._
 import play.api.db.Database
 import akka.actor.ActorSystem
 import scala.concurrent.{Future, ExecutionContext}
-import play.api.libs.json._
-import play.api.libs.json.Reads._
-import play.api.libs.functional.syntax._
 
 @Singleton
 class RESTController @Inject()(

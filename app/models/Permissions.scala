@@ -14,13 +14,16 @@ package object permissions {
     setup: Boolean,
     own: Boolean)
 
-  private def readEntry(userid: Int, tabid: Int)
+  private def readEntry(userid: Int, tabid: Int, attempt: Int = 1)
                        (implicit database: Database) : Entry = {
+    if (attempt > 4) {
+      throw new Throwable("Internal authorization error.")
+    }
     val connection = database.getConnection()
     val queryText = "SELECT * FROM permissions WHERE userid = ? AND tabid = ?"
     val query = connection.prepareStatement(queryText)
     query.setInt(1, userid)
-    query.setInt(2, userid)
+    query.setInt(2, tabid)
     val queryResult = query.executeQuery()
     connection.close()
     if (queryResult.next()) {
@@ -30,14 +33,21 @@ package object permissions {
       val own     = queryResult.getBoolean("p_own")
       Entry(view, results, setup, own)
     } else {
-      val queryText = "INSERT INTO permissions " +
-        "(userid, tabid, p_view, p_results, p_setup, p_own) " +
-        "VALUES (?, ?, 0, 0, 0, 0)"
+      val connection = database.getConnection()
+      val queryText =
+        "INSERT INTO permissions " +
+        "(userid, tabid, p_view, p_results, p_setup, p_own) " + {
+          if (Tab(tabid).owner == userid || User(userid).isAdmin)
+            "VALUES (?, ?, 1, 1, 1, 1)"
+          else
+            "VALUES (?, ?, 0, 0, 0, 0)"
+        }
       val query = connection.prepareStatement(queryText)
       query.setInt(1, userid)
-      query.setInt(2, userid)
+      query.setInt(2, tabid)
       query.executeUpdate()
-      Entry(false, false, false, false)
+      connection.close()
+      readEntry(userid, tabid, attempt + 1)
     }
   }
 

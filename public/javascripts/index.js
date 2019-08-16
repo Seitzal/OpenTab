@@ -9,7 +9,7 @@ $("#container_tabselect").ready(() => {
 })
 
 function renderTabs(tabs) {
-  let buffer = '<table class="table table-hover"><tbody>';
+  let buffer = '<table class="table table-hover m-0"><tbody>';
   tabs.forEach(tab => {
     buffer += `
       <tr>
