@@ -82,12 +82,12 @@ class AuthController @Inject()(
                   "api_key" -> key)
                 origin.map(str => URLDecoder.decode(str, "utf-8")) match {
                 case Some(url) => 
-                  Redirect(location + url).withSession(session: _*)
+                  Redirect(url).withSession(session: _*)
                 case None =>
                   Redirect(location).withSession(session: _*)
                 }
               }
-              case None => Redirect("login?origin=" + origin)
+              case None => Redirect("login?origin=" + origin.getOrElse(location))
             }
           }
           case _ => BadRequest("400 Bad Request: Invalid form data.")

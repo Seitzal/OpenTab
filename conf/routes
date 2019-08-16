@@ -1,11 +1,48 @@
+########################################################################################################################
+# Routes for the template controller
+########################################################################################################################
 
 GET     /                           eu.seitzal.opentab.controllers.TemplateController.renderIndex()
+
 GET     /login                      eu.seitzal.opentab.controllers.TemplateController.renderLogin()
 
+GET     /tab/:tabid                 eu.seitzal.opentab.controllers.TemplateController.renderTabIndex(tabid: Int)
+GET     /tab/:tabid/                eu.seitzal.opentab.controllers.TemplateController.renderTabIndex(tabid: Int)
+
+GET     /tab/:tabid/teams           eu.seitzal.opentab.controllers.TemplateController.renderTeams(tabid: Int)
+
+########################################################################################################################
+# Routes for the authentication controller
+########################################################################################################################
+
 POST    /login                      eu.seitzal.opentab.controllers.AuthController.login(origin: Option[String])
+
 GET     /logout                     eu.seitzal.opentab.controllers.AuthController.logout()
 
+########################################################################################################################
+# Routes for the REST API controller
+########################################################################################################################
+
 GET     /api/tabs                   eu.seitzal.opentab.controllers.RESTController.getAllTabs()
+
+GET     /api/tab/:tabid             eu.seitzal.opentab.controllers.RESTController.getTab(tabid: Int)
+
+GET     /api/tab/:tabid/teams       eu.seitzal.opentab.controllers.RESTController.getAllTeams(tabid: Int)
+
+GET     /api/team                   eu.seitzal.opentab.controllers.RESTController.getTeam(id: Int)
++nocsrf
+POST    /api/team                   eu.seitzal.opentab.controllers.RESTController.createTeam()
++nocsrf
+DELETE  /api/team                   eu.seitzal.opentab.controllers.RESTController.deleteTeam(id: Int)
++nocsrf
+PATCH   /api/team                   eu.seitzal.opentab.controllers.RESTController.updateTeam(id: Int)
++nocsrf
+PATCH   /api/team/toggle            eu.seitzal.opentab.controllers.RESTController.toggleTeam(id: Int)
+
 GET     /api/verifykey              eu.seitzal.opentab.controllers.RESTController.remoteVerifyKey()
+
+########################################################################################################################
+# Route for static assets
+########################################################################################################################
 
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

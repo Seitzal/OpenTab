@@ -2,6 +2,7 @@ package eu.seitzal.opentab.controllers
 
 import eu.seitzal.opentab._
 import shortcuts._
+import models._
 import models.permissions._
 import upickle.{default => json}
 
@@ -56,11 +57,23 @@ class RESTController @Inject()(
     }
   }
 
+  def remoteVerifyKey = Action.async { implicit request: Request[AnyContent] =>
+    implicit val ec = jdbcExecutionContext
+    Future {
+      request.headers.get("Authorization").map(verifyKey) match {
+        case Some(keyData) => Ok(json.write(keyData)).as("application/json")
+        case None => BadRequest("No API key found in authorization header.")
+      }
+    } recover {
+        case ex: Throwable => InternalServerError(ex.getMessage)
+    }
+  }
+
   def getAllTabs = Action.async { implicit request: Request[AnyContent] =>
     implicit val ec = jdbcExecutionContext
     Future {
       val auth = request.headers.get("Authorization").map(verifyKey)
-      val tabs = models.Tab.getAll(database)
+      val tabs = Tab.getAll(database)
       auth match {
         case Some(keyData) => {
           if (!keyData.found)
@@ -83,15 +96,219 @@ class RESTController @Inject()(
     }
   }
 
-  def remoteVerifyKey = Action.async { implicit request: Request[AnyContent] =>
+  def getTab(tabid: Int) =  Action.async { implicit request: Request[AnyContent] =>
     implicit val ec = jdbcExecutionContext
     Future {
-      request.headers.get("Authorization").map(verifyKey) match {
-        case Some(keyData) => Ok(json.write(keyData)).as("application/json")
-        case None => BadRequest("No API key found in authorization header.")
+      val auth = request.headers.get("Authorization").map(verifyKey)
+      val tab = Tab(tabid)
+      auth match {
+        case Some(keyData) => {
+          if (!keyData.found)
+            Unauthorized("Invalid API key")
+          else if (keyData.expired)
+            Unauthorized("API key has expired")
+          else if (tab.isPublic || userCanSeeTab(keyData.userid, tab))
+            Ok(json.write(tab)).as("application/json")
+          else
+            Forbidden("Permission denied")
+        }
+        case None => {
+          if (tab.isPublic)
+            Ok(json.write(tab)).as("application/json")
+          else
+            Unauthorized("Authorization required")
+        }
       }
     } recover {
+      case ex: NotFoundException => NotFound(ex.getMessage)
+      case ex: Throwable => InternalServerError(ex.getMessage)
+    }
+  }
+
+  def getAllTeams(tabid: Int) = Action.async {
+    implicit request: Request[AnyContent] => {
+      implicit val ec = jdbcExecutionContext
+      Future {
+        val auth = request.headers.get("Authorization").map(verifyKey)
+        val tab = Tab(tabid)
+        val teams = Team.getAll(tabid)
+        auth match {
+          case Some(keyData) => {
+            if (!keyData.found)
+              Unauthorized("Invalid API key")
+            else if (keyData.expired)
+              Unauthorized("API key has expired")
+            else if (tab.isPublic || userCanSeeTab(keyData.userid, tab))
+              Ok(json.write(teams)).as("application/json")
+            else
+              Forbidden("Permission denied")
+          }
+          case None => {
+            if (tab.isPublic)
+              Ok(json.write(teams)).as("application/json")
+            else
+              Unauthorized("Authorization required")
+          }
+        }
+      } recover {
+        case ex: NotFoundException => NotFound(ex.getMessage)
         case ex: Throwable => InternalServerError(ex.getMessage)
+      }
+    }
+  }
+
+  def getTeam(id: Int) = Action.async {implicit request: Request[AnyContent] =>
+    implicit val ec = jdbcExecutionContext
+    Future {
+      val auth = request.headers.get("Authorization").map(verifyKey)
+      val team = Team(id)
+      val tab = Tab(team.tabid)
+      auth match {
+        case Some(keyData) => {
+          if (!keyData.found)
+            Unauthorized("Invalid API key")
+          else if (keyData.expired)
+            Unauthorized("API key has expired")
+          else if (tab.isPublic || userCanSeeTab(keyData.userid, tab))
+            Ok(json.write(team)).as("application/json")
+          else
+            Forbidden("Permission denied")
+        }
+        case None => {
+          if (tab.isPublic)
+            Ok(json.write(team)).as("application/json")
+          else
+            Unauthorized("Authorization required")
+        }
+      }
+    } recover {
+      case ex: NotFoundException => NotFound(ex.getMessage)
+      case ex: Throwable => InternalServerError(ex.getMessage)
+    }
+  }
+
+  def deleteTeam(id: Int) = Action.async {implicit request: Request[AnyContent] =>
+    implicit val ec = jdbcExecutionContext
+    Future {
+      val auth = request.headers.get("Authorization").map(verifyKey)
+      val team = Team(id)
+      val tab = Tab(team.tabid)
+      auth match {
+        case Some(keyData) => {
+          if (!keyData.found)
+            Unauthorized("Invalid API key")
+          else if (keyData.expired)
+            Unauthorized("API key has expired")
+          else if (userCanSetupTab(keyData.userid, tab)) {
+            team.delete()
+            NoContent
+          } else
+            Forbidden("Permission denied")
+        }
+        case None => Unauthorized("Authorization required")
+      }
+    } recover {
+      case ex: NotFoundException => NotFound(ex.getMessage)
+      case ex: Throwable => InternalServerError(ex.getMessage)
+    }
+  }
+
+  def updateTeam(id: Int) = Action.async(parse.formUrlEncoded) {
+    implicit request: Request[Map[String,Seq[String]]] => {
+      implicit val ec = jdbcExecutionContext
+      Future {
+        val auth = request.headers.get("Authorization").map(verifyKey)
+        val team = Team(id)
+        val tab = Tab(team.tabid)
+        auth match {
+          case Some(keyData) => {
+            if (!keyData.found)
+              Unauthorized("Invalid API key")
+            else if (keyData.expired)
+              Unauthorized("API key has expired")
+            else if (userCanSetupTab(keyData.userid, tab)) {
+              val formData = request.body
+              val newteam = team.update(
+                formData.get("name").map(seq => seq(0)),
+                formData.get("delegation").map(seq => seq(0)),
+                formData.get("status").map(seq => seq(0).toInt))
+              Ok(json.write(newteam)).as("application/json")
+            } else
+              Forbidden("Permission denied")
+          }
+          case None => Unauthorized("Authorization required")
+        }
+      } recover {
+        case ex: NotFoundException => NotFound(ex.getMessage)
+        case ex: Throwable => InternalServerError(ex.getMessage)
+      }
+    }
+  }
+
+  def createTeam() = Action.async(parse.formUrlEncoded) {
+    implicit request: Request[Map[String,Seq[String]]] => {
+      implicit val ec = jdbcExecutionContext
+      Future {
+        val auth = request.headers.get("Authorization").map(verifyKey)
+        val formData = request.body
+        auth match {
+          case Some(keyData) => {
+            if (!keyData.found)
+              Unauthorized("Invalid API key")
+            else if (keyData.expired)
+              Unauthorized("API key has expired")
+            else formData.get("tabid").map(seq => Tab(seq(0).toInt)) match {
+              case Some(tab) => {
+                if (userCanSetupTab(keyData.userid, tab.id)) {
+                  val nameOpt = formData.get("name").map(seq => seq(0))
+                  val delegOpt = formData.get("delegation").map(seq => seq(0))
+                  val statusOpt = formData.get("status").map(seq => seq(0).toInt)
+                  (nameOpt, delegOpt, statusOpt) match {
+                    case (Some(name), Some(deleg), Some(status)) => {
+                      val newteam = Team.create(tab.id, name, deleg, status)
+                      Ok(json.write(newteam)).as("application/json")
+                    }
+                    case _ => BadRequest("Invalid post data")
+                  }
+                } else {
+                  Forbidden("Permission denied")
+                }
+              }
+              case None => BadRequest("No tab ID specified")
+            }
+          }
+          case None => Unauthorized("Authorization required")
+        }
+      } recover {
+        case ex: NotFoundException => NotFound(ex.getMessage)
+        case ex: Throwable => InternalServerError(ex.getMessage)
+      }
+    }
+  }
+
+  def toggleTeam(id: Int) = Action.async {implicit request: Request[AnyContent] =>
+    implicit val ec = jdbcExecutionContext
+    Future {
+      val auth = request.headers.get("Authorization").map(verifyKey)
+      val team = Team(id)
+      val tab = Tab(team.tabid)
+      auth match {
+        case Some(keyData) => {
+          if (!keyData.found)
+            Unauthorized("Invalid API key")
+          else if (keyData.expired)
+            Unauthorized("API key has expired")
+          else if (userCanSetupTab(keyData.userid, tab)) {
+            val newteam = team.toggleActive()
+            Ok(json.write(newteam)).as("application/json")
+          } else
+            Forbidden("Permission denied")
+        }
+        case None => Unauthorized("Authorization required")
+      }
+    } recover {
+      case ex: NotFoundException => NotFound(ex.getMessage)
+      case ex: Throwable => InternalServerError(ex.getMessage)
     }
   }
 

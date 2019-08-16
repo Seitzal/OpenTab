@@ -1,16 +1,21 @@
-@import eu.seitzal.opentab.shortcuts._
+@import eu.seitzal.opentab._
 @import play.api.Configuration
+@import shortcuts._
+@import models.Tab
 
-@(config: Configuration)(implicit request: RequestHeader)
+@(config: Configuration, tab: Option[Tab] = None)(implicit request: RequestHeader)
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.4/umd/popper.min.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.8/js/mdb.min.js"></script>
-@if(loggedIn) {
-  <script>
-    api_key = '@request.session.get("api_key").getOrElse("")'
-  </script>
+<script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
+@if(config.get[String]("theme") == "material") {
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.8/js/mdb.min.js"></script>
 }
-<script>
-  app_location = '@location(config)'
-</script>
+@if(loggedIn) {
+  <script>api_key = '@request.session.get("api_key").getOrElse("")'</script>
+}
+@if(tab.isDefined) {
+  <script>tabid = parseInt('@tab.get.id')</script>
+}
+<script>app_location = '@location(config)'</script>

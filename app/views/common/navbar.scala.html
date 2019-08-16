@@ -3,9 +3,10 @@
 @import helper._
 @import play.api.Configuration
 @import eu.seitzal.opentab._
-@import eu.seitzal.opentab.shortcuts._
+@import shortcuts._
+@import models.Tab
 
-@(config: Configuration)(implicit request: RequestHeader)
+@(config: Configuration, tab: Option[Tab] = None)(implicit request: RequestHeader)
 <nav class="navbar navbar-expand-xl bg-dark navbar-dark sticky-top">
   <a class="navbar-brand" href="@location(config)">
     @config.get[String]("brand")
@@ -15,22 +16,29 @@
   </button>
   <div class="collapse navbar-collapse" id="collapsibleNavbar">
     <ul class="navbar-nav mr-auto">
-      
+      @if(tab.isDefined) {
+        <li class="nav-item">
+          <a class="nav-link text-secondary" href="@location(config)/tab/@tab.get.id">@tab.get.name</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="@location(config)/tab/@tab.get.id/teams">Teams</a>
+        </li>
+      }
     </ul>
     <ul class="navbar-nav">
       @if(loggedIn) {
         <li class="nav-item">
-          <a class="nav-link" id="nl1" href="@location(config)/account">@request.session("username")</a>
+          <a class="nav-link" href="@location(config)/account">@request.session("username")</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" id="nl1" href="@location(config)/logout">Sign Out</a>
+          <a class="nav-link" href="@location(config)/logout">Sign Out</a>
         </li>
       } else {
         <li class="nav-item">
-          <a class="nav-link" id="nl1" href="@location(config)/login?origin=@URLEncoder.encode(request.uri, "utf-8")">Sign In</a>
+          <a class="nav-link" href="@location(config)/login?origin=@URLEncoder.encode(request.uri, "utf-8")">Sign In</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" id="nl1" href="@location(config)register">Create Account</a>
+          <a class="nav-link" href="@location(config)register">Create Account</a>
         </li>
       }
     </ul>

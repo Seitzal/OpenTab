@@ -5,3 +5,25 @@ span.waves-input-wrapper {
 a.blocklink {
   display: block;
 }
+
+#table_editteams, #table_editteams td,th {
+  border-collapse: collapse;
+}
+
+table.dataTable.no-footer {
+  border-bottom: 1px solid #dee2e6;
+}
+
+.dataTables_filter {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.dataTables_filter label {
+  margin-bottom: 0;
+}
+
+.navbar .nav-link {
+  padding-left: 5px;
+  border-radius: 4px;
+} 

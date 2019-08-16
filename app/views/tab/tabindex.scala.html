@@ -1,0 +1,21 @@
+@import common._
+@import helper._
+@import play.api.Configuration
+@import play.api.db.Database
+@import eu.seitzal.opentab._
+@import shortcuts._
+@import models.Tab
+
+@(tab: Tab, config: Configuration, db: Database)(implicit request: RequestHeader)
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    @common.head(config)
+    <title>@tab.name - @config.get[String]("apptitle")</title>
+  </head>
+  <body>
+    @common.navbar(config, Some(tab))
+    @common.scripts(config, Some(tab))
+    <script src="@routes.Assets.versioned("javascripts/main.js")" type="text/javascript"></script>
+  </body>
+</html>

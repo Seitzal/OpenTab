@@ -59,4 +59,28 @@ package object permissions {
                    (implicit database: Database) : Boolean =
     readEntry(userid, tab.id).view || tab.isPublic
 
+  def userCanSeeTab(user: User, tabid: Int)
+                   (implicit database: Database) : Boolean =
+    readEntry(user.id, tabid).view || Tab(tabid).isPublic
+
+  def userCanSeeTab(user: User, tab: Tab)
+                   (implicit database: Database) : Boolean =
+    readEntry(user.id, tab.id).view || tab.isPublic
+
+  def userCanSetupTab(userid: Int, tabid: Int)
+                     (implicit database: Database) : Boolean =
+    readEntry(userid, tabid).setup
+
+  def userCanSetupTab(userid: Int, tab: Tab)
+                     (implicit database: Database) : Boolean =
+    readEntry(userid, tab.id).setup
+
+  def userCanSetupTab(user: User, tabid: Int)
+                     (implicit database: Database) : Boolean =
+    readEntry(user.id, tabid).setup
+
+  def userCanSetupTab(user: User, tab: Tab)
+                     (implicit database: Database) : Boolean =
+    readEntry(user.id, tab.id).setup
+
 }

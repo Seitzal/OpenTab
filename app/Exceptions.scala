@@ -5,5 +5,13 @@ final case class NotFoundException(
   propertyName: String,
   propertyValue: String) 
   extends Exception(
-    "No " + what + "with " + propertyName + " \"" + propertyValue + 
-      "\" exists in database.")
+    "No " + what + " with " + propertyName + " \"" + propertyValue + 
+      "\" exists in database")
+
+final case class ExistsAlreadyException(
+  what: String,
+  propertyName: String,
+  propertyValue: String)
+  extends Exception(
+    "There is already a " + what + " with " + propertyName + " \"" + 
+      propertyValue + "\"")
