@@ -10,7 +10,13 @@ case class Tab (
   id: Int,
   name: String,
   owner: Int,
-  isPublic: Boolean) {}
+  isPublic: Boolean) {
+
+  def teams(implicit database: Database) = Team.getAll(id)
+
+  def speakers(implicit database: Database) = Speaker.getAll(id) 
+
+  }
 
 object Tab {
 

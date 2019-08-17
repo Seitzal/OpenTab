@@ -82,6 +82,10 @@ case class Team (
     Team(id, tabid, name, delegation, status, isActive)
   }
 
+  def tab(implicit database: Database) = Tab(tabid)
+
+  def speakers(implicit database: Database) = Speaker.getAllOnTeam(id)
+
 }
 
 object Team {
@@ -106,6 +110,26 @@ object Team {
     } else {
       throw new NotFoundException("team", "ID", id.toString)
     }
+  }
+
+  def getAll(tabid: Int)(implicit database: Database): List[Team] = {
+    val connection = database.getConnection()
+    val queryText = "SELECT * FROM teams WHERE tabid = ?"
+    val query = connection.prepareStatement(queryText)
+    query.setInt(1, tabid)
+    val queryResult = query.executeQuery()
+    connection.close()
+    def iter(teams: List[Team]) : List[Team] =
+      if (queryResult.next()) {
+        val id = queryResult.getInt("id")
+      val tabid = queryResult.getInt("tabid")
+      val name = queryResult.getString("name")
+      val delegation = queryResult.getString("delegation")
+      val status = queryResult.getInt("langstatus")
+      val isActive = queryResult.getBoolean("active")
+      iter(Team(id, tabid, name, delegation, status, isActive) :: teams)
+      } else teams.reverse
+    iter(Nil)
   }
 
   def create(
@@ -153,27 +177,6 @@ object Team {
           "Error during team creation. Most likely a database failure")
       }
     }
-  }
-
-  def getAll(tabid: Int)(implicit database: Database): List[Team] = {
-    val connection = database.getConnection()
-    val queryText = "SELECT * FROM teams WHERE tabid = ?"
-    val query = connection.prepareStatement(queryText)
-    query.setInt(1, tabid)
-    val queryResult = query.executeQuery()
-    connection.close()
-    def iter(teams: List[Team]) : List[Team] =
-      if (queryResult.next()) {
-        val id = queryResult.getInt("id")
-      val tabid = queryResult.getInt("tabid")
-      val name = queryResult.getString("name")
-      val delegation = queryResult.getString("delegation")
-      val status = queryResult.getInt("langstatus")
-      val isActive = queryResult.getBoolean("active")
-      Team(id, tabid, name, delegation, status, isActive)
-        iter(Team(id, tabid, name, delegation, status, isActive) :: teams)
-      } else teams.reverse
-    iter(Nil)
   }
 
 }

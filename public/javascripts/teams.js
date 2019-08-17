@@ -10,7 +10,7 @@ $("#btn_editteam_submit").click(event => {event.preventDefault(); editTeam()});
 function loadTeams() {
   $.ajax ({
     type    : "GET",
-    url     : app_location + "/api/tab/" + tabid + "/teams",
+    url     : app_location + "/api/tab/teams?id=" + tabid,
     headers : {"Authorization" : api_key},
     async   : true,
     success : displayTeams
