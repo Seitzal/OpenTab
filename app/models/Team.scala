@@ -16,10 +16,14 @@ case class Team (
 
   def delete()(implicit database: Database): Unit = {
     val connection = database.getConnection()
-    val queryText = "DELETE FROM teams WHERE id = ?"
+    val queryText = "DELETE FROM speakers WHERE teamid = ?"
     val query = connection.prepareStatement(queryText)
     query.setInt(1, id)
     query.executeUpdate()
+    val queryText2 = "DELETE FROM teams WHERE id = ?"
+    val query2 = connection.prepareStatement(queryText2)
+    query2.setInt(1, id)
+    query2.executeUpdate()
     connection.close()
   }
 

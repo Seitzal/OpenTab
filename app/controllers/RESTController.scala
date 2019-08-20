@@ -437,7 +437,7 @@ class RESTController @Inject()(
                   Forbidden("Permission denied")
                 }
               }
-              case None => BadRequest("No tab ID specified")
+              case None => BadRequest("No valid team id specified")
             }
           }
           case None => Unauthorized("Authorization required")

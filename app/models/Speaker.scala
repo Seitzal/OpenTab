@@ -188,15 +188,15 @@ object Speaker {
       query2.setInt(1, tabid)
       query2.setString(2, firstName)
       query2.setString(3, lastName)
-      val queryResult = query2.executeQuery()
+      val query2Result = query2.executeQuery()
       connection.close()
-      if (queryResult.next()) {
-        val id = queryResult.getInt("id")
-        val tabid = queryResult.getInt("tabid")
-        val teamid = queryResult.getInt("tabid")
-        val firstName = queryResult.getString("firstname")
-        val lastName = queryResult.getString("lastname")
-        val status = queryResult.getInt("langstatus")
+      if (query2Result.next()) {
+        val id = query2Result.getInt("id")
+        val tabid = query2Result.getInt("tabid")
+        val teamid = query2Result.getInt("teamid")
+        val firstName = query2Result.getString("firstname")
+        val lastName = query2Result.getString("lastname")
+        val status = query2Result.getInt("langstatus")
         Speaker(id, tabid, teamid, firstName, lastName, status)
       } else {
         throw new Throwable(
