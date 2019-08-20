@@ -12,115 +12,126 @@
 <html lang="en">
   <head>
     @common.head(config)
-    <title>Teams - @tab.name - @config.get[String]("apptitle")</title>
+    <title>Speakers - @tab.name - @config.get[String]("apptitle")</title>
   </head>
   <body>
     @common.navbar(config, Some(tab))
     <ul class="nav nav-tabs mt-1 mb-1">
       @if(loggedIn && userCanSetupTab(sessionUserId, tab.id)(db)) {
         <li class="nav-item">
-          <a class="nav-link active" data-toggle="tab" href="#tab_editteams">View/Edit Teams</a>
+          <a class="nav-link active" data-toggle="tab" href="#tab_editspeakers">View/Edit Speakers</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" data-toggle="tab" href="#tab_teamranking">Team Ranking</a>
+          <a class="nav-link" data-toggle="tab" href="#tab_speakerranking">Speaker Ranking</a>
         </li>
       } else {
         <li class="nav-item">
-          <a class="nav-link active" data-toggle="tab" href="#tab_teamranking">Team Ranking</a>
+          <a class="nav-link active" data-toggle="tab" href="#tab_speakerranking">Speaker Ranking</a>
         </li>
       }
       <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#tab_teamranking_esl">ESL Team Ranking</a>
+        <a class="nav-link" data-toggle="tab" href="#tab_speakerranking_esl">ESL Speaker Ranking</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#tab_teamranking_efl">EFL Team Ranking</a>
+        <a class="nav-link" data-toggle="tab" href="#tab_speaerranking_efl">EFL Speaker Ranking</a>
       </li>
     </ul>
 
     <div class="tab-content">
       @if(loggedIn && userCanSetupTab(sessionUserId, tab.id)(db)) {
-        <div class="tab-pane container-fluid active" id="tab_editteams">
-          <div id="accordion_editteams">
+        <div class="tab-pane container-fluid active" id="tab_editspeakers">
+          <div id="accordion_editspeakers">
             <div class="card">
               <div class="card-header p-1">
-                <a class="card-link blocklink" data-toggle="collapse" href="#card1_editteams">
+                <a class="card-link blocklink" data-toggle="collapse" href="#card1_editspeakers">
                   Add New
                 </a>
               </div>
-              <div id="card1_editteams" class="collapse show" data-parent="#accordion_editteams">
+              <div id="card1_editspeakers" class="collapse show" data-parent="#accordion_editspeakers">
                 <div class="card-body">
                   <form class="form-inline">
                     <div class="input-group m-1">
                       <div class="input-group-prepend">
-                        <span class="input-group-text">Name</span>
+                        <span class="input-group-text">First Name</span>
                       </div>
-                      <input id="input_addteam_name" type="text" class="form-control" size="20">
+                      <input id="input_addspeaker_firstname" type="text" class="form-control" size="20">
                     </div>
                     <div class="input-group m-1">
                       <div class="input-group-prepend">
-                        <span class="input-group-text">Delegation</span>
+                        <span class="input-group-text">Last Name</span>
                       </div>
-                      <input id="input_addteam_deleg" type="text" class="form-control" size="20">
+                      <input id="input_addspeaker_lastname" type="text" class="form-control" size="20">
+                    </div>
+                    <div class="input-group m-1">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text">Team</span>
+                      </div>
+                      <select id="input_addspeaker_team" class="custom-select">
+                      </select>
                     </div>
                     <div class="input-group m-1">
                       <div class="input-group-prepend">
                         <span class="input-group-text">Status</span>
                       </div>
-                      <select id="input_addteam_lstatus" class="custom-select">
+                      <select id="input_addspeaker_lstatus" class="custom-select">
                         <option value="1" selected>EPL</option>
                         <option value="2">ESL</option>
                         <option value="3">EFL</option>
                       </select>
                     </div>
-                    <input type="submit" value="Submit" id="btn_addteam_submit" class="btn btn-primary m-1">
+                    <input type="submit" value="Submit" id="btn_addspeaker_submit" class="btn btn-primary m-1" disabled>
                   </form>
                 </div>
               </div>
             </div>
           </div>
-          <div id="container_table_editteams" class="table-responsive-lg mt-1">
+          <div id="container_table_editspeakers" class="table-responsive-lg mt-1">
           </div>
         </div>
       }
 
-      <div class="tab-pane container-fluid fade" id="tab_teamranking">
+      <div class="tab-pane container-fluid fade" id="tab_speakerranking">
         ...
       </div>
 
-      <div class="tab-pane container-fluid fade" id="tab_teamranking_esl">
+      <div class="tab-pane container-fluid fade" id="tab_speakerranking_esl">
         ...
       </div>
 
-      <div class="tab-pane container-fluid fade" id="tab_teamranking_efl">
+      <div class="tab-pane container-fluid fade" id="tab_speakerranking_efl">
         ...
       </div>
     </div>
   
     @if(loggedIn && userCanSetupTab(sessionUserId, tab.id)(db)) {
-      <div class="modal" id="modal_editteam">
+      <div class="modal" id="modal_editspeaker">
         <div class="modal-dialog modal-dialog-centered modal-dialogue-scrollable">
           <div class="modal-content">
             <form>
               <div class="modal-header">
-                <h4 class="modal-title">Edit Team</h4>
+                <h4 class="modal-title">Edit Speaker</h4>
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
               </div>
               <div class="modal-body">
                   <div class="form-group">
-                    <label for="input_editteam_id">ID:</label>
-                    <input type="text" class="form-control" id="input_editteam_id" readonly>
+                    <label for="input_editspeaker_id">ID:</label>
+                    <input type="text" class="form-control" id="input_editspeaker_id" readonly>
                   </div>
                   <div class="form-group">
-                    <label for="input_editteam_name">Name:</label>
-                    <input type="text" class="form-control" id="input_editteam_name">
+                    <label for="input_editspeaker_id">Team:</label>
+                    <input type="text" class="form-control" id="input_editspeaker_team" readonly>
                   </div>
                   <div class="form-group">
-                    <label for="input_editteam_deleg">Delegation:</label>
-                    <input type="text" class="form-control" id="input_editteam_deleg">
+                    <label for="input_editspeaker_firstname">First Name:</label>
+                    <input type="text" class="form-control" id="input_editspeaker_firstname">
                   </div>
                   <div class="form-group">
-                    <label for="input_editteam_lstatus">Language Status:</label>
-                    <select id="input_editteam_lstatus" class="custom-select">
+                    <label for="input_editspeaker_lastname">Last Name:</label>
+                    <input type="text" class="form-control" id="input_editspeaker_lastname">
+                  </div>
+                  <div class="form-group">
+                    <label for="input_editspeaker_lstatus">Language Status:</label>
+                    <select id="input_editspeaker_lstatus" class="custom-select">
                       <option value="1">EPL</option>
                       <option value="2">ESL</option>
                       <option value="3">EFL</option>
@@ -128,7 +139,7 @@
                   </div>
               </div>
               <div class="modal-footer">
-                <input id="btn_editteam_submit" type="submit" value="Update" class="btn btn-primary">
+                <input id="btn_editspeaker_submit" type="submit" value="Update" class="btn btn-primary">
                 <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
               </div>
             </form>
@@ -139,6 +150,6 @@
 
     @common.scripts(config, Some(tab))
     <script src="@routes.Assets.versioned("javascripts/main.js")" type="text/javascript"></script>
-    <script src="@routes.Assets.versioned("javascripts/teams.js")" type="text/javascript"></script>
+    <script src="@routes.Assets.versioned("javascripts/speakers.js")" type="text/javascript"></script>
   </body>
 </html>

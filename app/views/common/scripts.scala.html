@@ -14,6 +14,8 @@
 }
 @if(loggedIn) {
   <script>api_key = '@request.session.get("api_key").getOrElse("")'</script>
+} else {
+  <script>api_key = undefined</script>
 }
 @if(tab.isDefined) {
   <script>tabid = parseInt('@tab.get.id')</script>

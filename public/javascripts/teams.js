@@ -7,6 +7,8 @@ $("#container_table_editteams").ready(loadTeams);
 $("#btn_addteam_submit").click(event => {event.preventDefault(); addTeam()});
 $("#btn_editteam_submit").click(event => {event.preventDefault(); editTeam()});
 
+$("#navitem_teams").addClass("text-light");
+
 function loadTeams() {
   $.ajax ({
     type    : "GET",
@@ -79,25 +81,11 @@ function displayTeams(data) {
   $(".btn_team_delete").click(deleteTeam);
   $(".btn_team_toggle").click(toggleTeam);
   $(".btn_team_edit").click(showModalEditTeam);
-  $('[data-toggle="popover"]').popover();
 }
 
-function storeTableStateEditTeam() {
+function storeTableStateEditTeams() {
   ordering_editteams = dtable_editteams.order();
   searchterm_editteams = dtable_editteams.search();
-}
-
-function parseLangStatus(langstatus) {
-  switch(langstatus) {
-    case 1:
-      return '<td class="text-body table-primary">EPL</td>';
-    case 2:
-      return '<td class="text-body table-info">ESL</td>';
-    case 3:
-      return '<td class="text-body table-success">EFL</td>';
-    default:
-      return '<td class="text-body table-secondary">Unknown</td>';
-  }
 }
 
 function addTeam() {
@@ -127,7 +115,7 @@ function addTeam() {
 }
 
 function callbackAddTeam() {
-  storeTableStateEditTeam();
+  storeTableStateEditTeams();
   $("#input_addteam_name").val("");
   loadTeams();
 }
@@ -143,7 +131,7 @@ function deleteTeam(event) {
 }
 
 function callbackDeleteTeam() {
-  storeTableStateEditTeam();
+  storeTableStateEditTeams();
   loadTeams();
 }
 
@@ -184,7 +172,7 @@ function editTeam() {
 }
 
 function callbackEditTeam() {
-  storeTableStateEditTeam();
+  storeTableStateEditTeams();
   $("#modal_editteam").modal("hide");
   loadTeams();
 }
