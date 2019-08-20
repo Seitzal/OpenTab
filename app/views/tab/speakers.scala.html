@@ -7,7 +7,7 @@
 @import models.Tab
 @import models.permissions._
 
-@(tab: Tab, config: Configuration, db: Database)(implicit request: RequestHeader)
+@(tab: Tab, config: Configuration, db: Database, team: Option[String])(implicit request: RequestHeader)
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -40,6 +40,12 @@
     <div class="tab-content">
       @if(loggedIn && userCanSetupTab(sessionUserId, tab.id)(db)) {
         <div class="tab-pane container-fluid active" id="tab_editspeakers">
+          @if(team.isDefined) {
+            <div class="alert alert-info">
+              <strong>Showing speakers on team @team.get</strong> 
+              [ <a href="@location(config)/tab/@tab.id/speakers" class="alert-link">show all?</a> ]
+            </div>
+          }
           <div id="accordion_editspeakers">
             <div class="card">
               <div class="card-header p-1">

@@ -37,7 +37,7 @@ function displayTeams(data) {
     if (teams[i].active == 1) {
       table += "<tr>";
     } else {
-      table += '<tr class="bg-secondary text-light">';
+      table += '<tr class="bg-suspended">';
     }
     table += "<td>" + teams[i].id + "</td>";
     if (teams[i].active == 1) {
@@ -47,14 +47,15 @@ function displayTeams(data) {
     }
     table += "<td>" + teams[i].delegation + "</td>";
     table += parseLangStatus(teams[i].status);
-    table += '<td class="p-1 bg-light">';
-    table += '<button type="button" class="btn btn-outline-secondary btn_team_edit ml-1"  data-teamindex="' + i + '">Edit</button>';
+    table += '<td class="p-1">';
+    table += '<button type="button" class="btn btn-sm btn-outline-secondary btn_team_edit m-1"  data-teamindex="' + i + '">Edit</button>';
+    table += '<a target="_blank" class="btn  btn-sm btn-outline-secondary btn_team_showspeakers m-1"  href="' + encodeURI(app_location + "/tab/" + tabid + "/speakers?team=" + teams[i].name) + '">Speakers</a>';
     if (teams[i].active == 1) {
-      table += '<button type="button" class="btn btn-outline-secondary btn_team_toggle ml-1" data-teamid="' + teams[i].id + '">Suspend</button>';
+      table += '<button type="button" class="btn  btn-sm btn-outline-secondary btn_team_toggle m-1" data-teamid="' + teams[i].id + '">Suspend</button>';
     } else {
-      table += '<button type="button" class="btn btn-secondary btn_team_toggle ml-1" data-teamid="' + teams[i].id + '">Activate&nbsp;</button>';
+      table += '<button type="button" class="btn  btn-sm btn-secondary btn_team_toggle m-1" data-teamid="' + teams[i].id + '">Activate&nbsp;</button>';
     }
-    table += '<button type="button" class="btn btn-danger btn_team_delete ml-1" data-teamid="' + teams[i].id + '">Delete</button>';
+    table += '<button type="button" class="btn  btn-sm btn-danger btn_team_delete m-1" data-teamid="' + teams[i].id + '">Delete</button>';
     table += "</td>";
     table += "</tr>";
   }

@@ -3,6 +3,7 @@ let teams = undefined;
 let dtable_editspeakers = undefined;
 let ordering_editspeakers = undefined;
 let searchterm_editspeakers = undefined;
+let teamfilter = url_get("team");
 
 $("#container_table_editspeakers").ready(loadSpeakers);
 $("#input_addspeaker_team").ready(loadTeams);
@@ -25,7 +26,8 @@ function displayTeams(data) {
   teams = data
   for (i = 0; i < teams.length; i++) {
     let option = '<option value="' + teams[i].id + '">' + teams[i].name + '</option>';
-    $("#input_addspeaker_team").append(option);
+    if (teamfilter == undefined || teams[i].name == teamfilter)
+      $("#input_addspeaker_team").append(option);
   }
   $("#btn_addspeaker_submit").removeAttr("disabled");
 }
@@ -64,9 +66,9 @@ function displaySpeakers(data) {
     table += "<td>" + speakers[i].team + "</td>";
     table += "<td>" + speakers[i].delegation + "</td>";
     table += parseLangStatus(speakers[i].status);
-    table += '<td class="p-1 bg-light">';
-    table += '<button type="button" class="btn btn-outline-secondary btn_speaker_edit ml-1"  data-speakerindex="' + i + '">Edit</button>';
-    table += '<button type="button" class="btn btn-danger btn_speaker_delete ml-1" data-speakerid="' + speakers[i].id + '">Delete</button>';
+    table += '<td class="p-1">';
+    table += '<button type="button" class="btn btn-sm btn-outline-secondary btn_speaker_edit m-1"  data-speakerindex="' + i + '">Edit</button>';
+    table += '<button type="button" class="btn btn-sm btn-danger btn_speaker_delete m-1" data-speakerid="' + speakers[i].id + '">Delete</button>';
     table += "</td>";
     table += "</tr>";
   }
@@ -90,6 +92,11 @@ function displaySpeakers(data) {
     dtableOptions["search"] = searchterm_editspeakers;
   }
   dtable_editspeakers = $('#table_editspeakers').DataTable(dtableOptions);
+  if (teamfilter != undefined) {
+    dtable_editspeakers.column(3).search(teamfilter).draw();
+  } else {
+    dtable_editspeakers.column(3).search("").draw();
+  }
   $(".btn_speaker_delete").click(deleteSpeaker);
   $(".btn_speaker_edit").click(showModalEditSpeaker);
 }

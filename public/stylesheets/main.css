@@ -26,4 +26,8 @@ table.dataTable.no-footer {
 .navbar .nav-link {
   padding-left: 5px;
   border-radius: 4px;
-} 
+}
+
+.bg-suspended {
+  background-color: lightgrey;
+}

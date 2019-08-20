@@ -101,17 +101,17 @@ class TemplateController @Inject()(
     }
   }
 
-  def renderSpeakers(tabid: Int) = Action.async { 
+  def renderSpeakers(tabid: Int, team : Option[String]) = Action.async { 
     implicit request: Request[AnyContent] => {
       implicit val ec = jdbcExecutionContext
       Future {
         val tab = Tab(tabid)
         if (tab.isPublic) {
-          Ok(views.html.tab.speakers(tab, config, db))
+          Ok(views.html.tab.speakers(tab, config, db, team))
         } else request.session.get("userid").map(_.toInt) match {
           case Some(uid) => {
             if (userCanSeeTab(uid, tab)) {
-              Ok(views.html.tab.speakers(tab, config, db))
+              Ok(views.html.tab.speakers(tab, config, db, team))
             } else {
               Forbidden("403 Forbidden: Permission denied")
             }
