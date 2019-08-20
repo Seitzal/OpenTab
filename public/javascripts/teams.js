@@ -117,6 +117,7 @@ function addTeam() {
 function callbackAddTeam() {
   storeTableStateEditTeams();
   $("#input_addteam_name").val("");
+  $("#input_addteam_name").focus();
   loadTeams();
 }
 

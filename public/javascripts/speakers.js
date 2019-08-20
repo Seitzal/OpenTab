@@ -129,6 +129,7 @@ function callbackAddSpeaker() {
   storeTableStateEditSpeakers();
   $("#input_addspeaker_firstname").val("");
   $("#input_addspeaker_lastname").val("");
+  $("#input_addspeaker_firstname").focus();
   loadSpeakers();
 }
 
