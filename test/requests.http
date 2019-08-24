@@ -1,0 +1,125 @@
+
+# Environment variables to set: "host", "key"
+
+################################################################################
+# Global endpoints
+################################################################################
+
+### Verify API key
+GET     {{host}}/api/verifykey
+Authorization: {{key}}
+
+### Get list of public tabs
+GET     {{host}}/api/tabs
+
+### Get list of tabs
+GET     {{host}}/api/tabs
+Authorization: {{key}}
+
+################################################################################
+# Tab-level endpoints
+################################################################################
+
+@tabid = 8
+
+### Get tab
+GET     {{host}}/api/tab
+          ?id={{tabid}}
+Authorization: {{key}}
+
+### Get all teams on tab
+GET     {{host}}/api/tab/teams
+          ?id={{tabid}}
+Authorization: {{key}}
+
+### Get all speakers on tab
+GET     {{host}}/api/tab/speakers
+          ?id={{tabid}}
+Authorization: {{key}}
+
+### Get random pairings
+GET     {{host}}/api/tab/generate-pairings/random
+          ?id={{tabid}}
+Authorization: {{key}}
+
+################################################################################
+# Team-level endpoints
+################################################################################
+
+@teamid = 70
+
+### Get team
+GET     {{host}}/api/team
+          ?id={{teamid}}
+Authorization: {{key}}
+
+### Create team
+POST    {{host}}/api/team
+Content-Type: application/x-www-form-urlencoded
+Authorization: {{key}}
+
+tabid={{tabid}}
+&name=Mordor A
+&delegation=Mordor
+&status=2
+
+### Delete team
+DELETE  {{host}}/api/team
+          ?id={{teamid}}
+Authorization: {{key}}
+
+### Update team
+PATCH   {{host}}/api/team
+          ?id={{teamid}}
+Content-Type: application/x-www-form-urlencoded
+Authorization: {{key}}
+
+name=Mordor 1
+&delegation=Mordor
+&status=3
+
+### Toggle team
+PATCH   {{host}}/api/team/toggle
+          ?id={{teamid}}
+Authorization: {{key}}
+
+### Get speakers on team
+GET     {{host}}/api/team/speakers
+          ?id={{teamid}}
+Authorization: {{key}}
+
+################################################################################
+# Speaker-level endpoints
+################################################################################
+
+@speakerid = 73
+
+### Get speaker
+GET     {{host}}/api/speaker
+          ?id={{speakerid}}
+Authorization: {{key}}
+
+### Create speaker
+POST    {{host}}/api/speaker
+Content-Type: application/x-www-form-urlencoded
+Authorization: {{key}}
+
+teamid={{teamid}}
+&firstname=Sauron
+&lastname=Gorthaur
+&status=3
+
+### Delete speaker
+DELETE  {{host}}/api/speaker
+          ?id={{speakerid}}
+Authorization: {{key}}
+
+### Update speaker
+PATCH   {{host}}/api/speaker
+          ?id={{speakerid}}
+Content-Type: application/x-www-form-urlencoded
+Authorization: {{key}}
+
+firstname=Some
+&lastname=Dude
+&status=1
