@@ -1,9 +1,13 @@
-@import eu.seitzal.opentab._
+@import common._
+@import helper._
 @import play.api.Configuration
+@import play.api.db.Database
+@import eu.seitzal.opentab._
 @import shortcuts._
 @import models.Tab
+@import models.permissions._
 
-@(config: Configuration, tab: Option[Tab] = None)(implicit request: RequestHeader)
+@(config: Configuration, db : Option[Database], tab: Option[Tab] = None)(implicit request: RequestHeader)
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.4/umd/popper.min.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
@@ -13,11 +17,16 @@
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.8/js/mdb.min.js"></script>
 }
 @if(loggedIn) {
-  <script>api_key = '@request.session.get("api_key").getOrElse("")'</script>
+  <script>api_key = '@request.session.get("api_key").getOrElse("")';</script>
 } else {
-  <script>api_key = undefined</script>
+  <script>api_key = undefined;</script>
 }
 @if(tab.isDefined) {
-  <script>tabid = parseInt('@tab.get.id')</script>
+  <script>tabid = parseInt('@tab.get.id');</script>
 }
-<script>app_location = '@location(config)'</script>
+@if(tab.isDefined && loggedIn && userCanSetupTab(sessionUserId, tab.get.id)(db.get)) {
+  <script>let canSetup = true;</script>
+} else {
+  <script>let canSetup = false;</script>
+}
+<script>app_location = '@location(config)';</script>

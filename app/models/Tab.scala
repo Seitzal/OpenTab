@@ -14,7 +14,13 @@ case class Tab (
 
   def teams(implicit database: Database) = Team.getAll(id)
 
-  def speakers(implicit database: Database) = Speaker.getAll(id) 
+  def speakers(implicit database: Database) = Speaker.getAll(id)
+
+  def round(roundNumber: Int)(implicit database: Database) = Round(id, roundNumber)
+
+  def rounds(implicit database: Database) = Round.getAll(id)
+
+  def addRound(implicit database: Database) = Round.add(id)
 
   }
 

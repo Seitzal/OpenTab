@@ -534,4 +534,123 @@ class RESTController @Inject()(
     }
   }
 
+  def getRound(tabid: Int, roundnumber: Int) = Action.async {
+    implicit request: Request[AnyContent] => {
+      implicit val ec = jdbcExecutionContext
+      Future {
+        val auth = request.headers.get("Authorization").map(verifyKey)
+        val tab = Tab(tabid)
+        val round = tab.round(roundnumber)
+        auth match {
+          case Some(keyData) => {
+            if (!keyData.found)
+              Unauthorized("Invalid API key")
+            else if (keyData.expired)
+              Unauthorized("API key has expired")
+            else if (tab.isPublic || userCanSeeTab(keyData.userid, tab))
+              Ok(json.write(round)).as("application/json")
+            else
+              Forbidden("Permission denied")
+          }
+          case None => {
+            if (tab.isPublic)
+              Ok(json.write(round)).as("application/json")
+            else
+              Unauthorized("Authorization required")
+          }
+        }
+      } recover {
+        case ex: NotFoundException => NotFound(ex.getMessage)
+        case ex: Throwable => InternalServerError(ex.getMessage)
+      }
+    }
+  }
+
+  def getRounds(tabid: Int) = Action.async {
+    implicit request: Request[AnyContent] => {
+      implicit val ec = jdbcExecutionContext
+      Future {
+        val auth = request.headers.get("Authorization").map(verifyKey)
+        val tab = Tab(tabid)
+        val rounds = tab.rounds
+        auth match {
+          case Some(keyData) => {
+            if (!keyData.found)
+              Unauthorized("Invalid API key")
+            else if (keyData.expired)
+              Unauthorized("API key has expired")
+            else if (tab.isPublic || userCanSeeTab(keyData.userid, tab))
+              Ok(json.write(rounds)).as("application/json")
+            else
+              Forbidden("Permission denied")
+          }
+          case None => {
+            if (tab.isPublic)
+              Ok(json.write(rounds)).as("application/json")
+            else
+              Unauthorized("Authorization required")
+          }
+        }
+      } recover {
+        case ex: NotFoundException => NotFound(ex.getMessage)
+        case ex: Throwable => InternalServerError(ex.getMessage)
+      }
+    }
+  }
+
+  def addRound(tabid: Int) = Action.async {
+    implicit request: Request[AnyContent] => {
+      implicit val ec = jdbcExecutionContext
+      Future {
+        val auth = request.headers.get("Authorization").map(verifyKey)
+        val tab = Tab(tabid)
+        auth match {
+          case Some(keyData) => {
+            if (!keyData.found)
+              Unauthorized("Invalid API key")
+            else if (keyData.expired)
+              Unauthorized("API key has expired")
+            else if (userCanSetupTab(keyData.userid, tab)) {
+              val round = tab.addRound
+              Ok(json.write(round)).as("application/json")
+            } else
+              Forbidden("Permission denied")
+          }
+          case None => Unauthorized("Authorization required")
+        }
+      } recover {
+        case ex: NotFoundException => NotFound(ex.getMessage)
+        case ex: Throwable => InternalServerError(ex.getMessage)
+      }
+    }
+  }
+
+  def deleteRound(tabid: Int, roundNumber: Int) = Action.async {
+    implicit request: Request[AnyContent] => {
+      implicit val ec = jdbcExecutionContext
+      Future {
+        val auth = request.headers.get("Authorization").map(verifyKey)
+        val tab = Tab(tabid)
+        auth match {
+          case Some(keyData) => {
+            if (!keyData.found)
+              Unauthorized("Invalid API key")
+            else if (keyData.expired)
+              Unauthorized("API key has expired")
+            else if (userCanSetupTab(keyData.userid, tab)) {
+              val round = tab.round(roundNumber)
+              round.delete()
+              NoContent
+            } else
+              Forbidden("Permission denied")
+          }
+          case None => Unauthorized("Authorization required")
+        }
+      } recover {
+        case ex: NotFoundException => NotFound(ex.getMessage)
+        case ex: Throwable => InternalServerError(ex.getMessage)
+      }
+    }
+  }
+
 }

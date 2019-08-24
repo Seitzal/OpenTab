@@ -6,7 +6,7 @@ final case class NotFoundException(
   propertyValue: String) 
   extends Exception(
     "No " + what + " with " + propertyName + " \"" + propertyValue + 
-      "\" exists in database")
+      "\" exists")
 
 final case class ExistsAlreadyException(
   what: String,

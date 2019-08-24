@@ -7,7 +7,7 @@
 @import models.Tab
 
 @(config: Configuration, tab: Option[Tab] = None)(implicit request: RequestHeader)
-<nav class="navbar navbar-expand-xl bg-dark navbar-dark sticky-top">
+<nav class="navbar navbar-expand-lg bg-dark navbar-dark sticky-top">
   <a class="navbar-brand" href="@location(config)">
     @config.get[String]("brand")
   </a>
@@ -25,6 +25,9 @@
         </li>
         <li class="nav-item">
           <a class="nav-link" id="navitem_speakers" href="@location(config)/tab/@tab.get.id/speakers">Speakers</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="navitem_rounds" href="@location(config)/tab/@tab.get.id/rounds">Rounds</a>
         </li>
       }
     </ul>

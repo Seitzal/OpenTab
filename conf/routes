@@ -14,6 +14,8 @@ GET     /tab/:tabid/teams           eu.seitzal.opentab.controllers.TemplateContr
 
 GET     /tab/:tabid/speakers        eu.seitzal.opentab.controllers.TemplateController.renderSpeakers(tabid: Int, team: Option[String])
 
+GET     /tab/:tabid/rounds          eu.seitzal.opentab.controllers.TemplateController.renderRounds(tabid: Int)
+
 ########################################################################################################################
 # Routes for the authentication controller
 ########################################################################################################################
@@ -33,6 +35,14 @@ GET     /api/tab                            eu.seitzal.opentab.controllers.RESTC
 GET     /api/tab/teams                      eu.seitzal.opentab.controllers.RESTController.getAllTeams(id: Int)
 
 GET     /api/tab/speakers                   eu.seitzal.opentab.controllers.RESTController.getAllSpeakers(id: Int)
+
+GET     /api/tab/rounds                     eu.seitzal.opentab.controllers.RESTController.getRounds(id: Int)
+
+GET     /api/round                          eu.seitzal.opentab.controllers.RESTController.getRound(tabid: Int, roundnumber: Int)
++nocsrf
+POST    /api/round                          eu.seitzal.opentab.controllers.RESTController.addRound(tabid: Int)
++nocsrf
+DELETE  /api/round                          eu.seitzal.opentab.controllers.RESTController.deleteRound(tabid: Int, roundnumber: Int)
 
 GET     /api/tab/generate-pairings/random   eu.seitzal.opentab.controllers.RESTController.getRandomPairings(id: Int)
 

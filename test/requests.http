@@ -1,9 +1,9 @@
 
 # Environment variables to set: "host", "key"
 
-################################################################################
+############################################################
 # Global endpoints
-################################################################################
+############################################################
 
 ### Verify API key
 GET     {{host}}/api/verifykey
@@ -16,11 +16,11 @@ GET     {{host}}/api/tabs
 GET     {{host}}/api/tabs
 Authorization: {{key}}
 
-################################################################################
+############################################################
 # Tab-level endpoints
-################################################################################
+############################################################
 
-@tabid = 8
+@tabid = 2
 
 ### Get tab
 GET     {{host}}/api/tab
@@ -37,14 +37,20 @@ GET     {{host}}/api/tab/speakers
           ?id={{tabid}}
 Authorization: {{key}}
 
+### Get all rounds on tab
+GET     {{host}}/api/tab/rounds
+          ?id={{tabid}}
+Authorization: {{key}}
+
+
 ### Get random pairings
 GET     {{host}}/api/tab/generate-pairings/random
           ?id={{tabid}}
 Authorization: {{key}}
 
-################################################################################
+############################################################
 # Team-level endpoints
-################################################################################
+############################################################
 
 @teamid = 70
 
@@ -88,11 +94,11 @@ GET     {{host}}/api/team/speakers
           ?id={{teamid}}
 Authorization: {{key}}
 
-################################################################################
+############################################################
 # Speaker-level endpoints
-################################################################################
+############################################################
 
-@speakerid = 73
+@speakerid = 74
 
 ### Get speaker
 GET     {{host}}/api/speaker
@@ -123,3 +129,27 @@ Authorization: {{key}}
 firstname=Some
 &lastname=Dude
 &status=1
+
+############################################################
+# Round-level endpoints
+############################################################
+
+@roundnumber = 1
+
+### Get round
+GET     {{host}}/api/round
+          ?tabid={{tabid}}
+          &roundnumber={{roundnumber}}
+Authorization: {{key}}
+
+### Add round
+POST    {{host}}/api/round
+          ?tabid={{tabid}}
+Authorization: {{key}}
+
+### Delete round
+DELETE  {{host}}/api/round
+          ?tabid={{tabid}}
+          &roundnumber={{roundnumber}}
+Authorization: {{key}}
+

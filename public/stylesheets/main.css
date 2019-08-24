@@ -31,3 +31,10 @@ table.dataTable.no-footer {
 .bg-suspended {
   background-color: lightgrey;
 }
+
+#table_rounds td {
+  padding: .25rem;
+  text-align: center;
+  vertical-align: middle;
+}
+
