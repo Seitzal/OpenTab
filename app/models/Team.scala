@@ -90,6 +90,40 @@ case class Team (
 
   def speakers(implicit database: Database) = Speaker.getAllOnTeam(id)
 
+  private var previousOpponentsCache: Option[List[Team]] = None
+
+  def previousOpponents(implicit database: Database): List[Team] =
+    previousOpponentsCache match {
+      case Some(list) => list
+      case None => {
+        previousOpponentsCache = Option {
+          Pairing.getAllForTeam(this).map(pairing =>
+            if (pairing.teamidPro == this.id) 
+              Team(pairing.teamidOpp)
+            else
+              Team(pairing.teamidPro)
+          )
+        }
+        previousOpponents
+      }
+    }
+  
+  private var sideTendencyCache: Option[Int] = None
+
+  def sideTendency(implicit database: Database): Int =
+  sideTendencyCache match {
+    case Some(tendency) => tendency
+    case None => {
+      sideTendencyCache = Option {
+        Pairing.getAllForTeam(this).map(pairing =>
+          if (pairing.teamidPro == this.id) 1
+          else -1
+        ).sum
+      }
+      sideTendency
+    }
+  }
+
 }
 
 object Team {

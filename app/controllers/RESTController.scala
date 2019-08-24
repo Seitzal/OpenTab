@@ -27,6 +27,9 @@ class RESTController @Inject()(
 
   val jdbcExecutionContext = 
     actorSystem.dispatchers.lookup("jdbc-execution-context")
+
+  val pairingExecutionContext = 
+    actorSystem.dispatchers.lookup("pairing-execution-context")
   
   case class KeyData(
     found: Boolean,
@@ -504,6 +507,30 @@ class RESTController @Inject()(
         case ex: NotFoundException => NotFound(ex.getMessage)
         case ex: Throwable => InternalServerError(ex.getMessage)
       }
+    }
+  }
+
+  def getRandomPairings(tabid: Int) = Action.async{ implicit request: Request[AnyContent] =>
+    implicit val ec = pairingExecutionContext
+    Future {
+      val auth = request.headers.get("Authorization").map(verifyKey)
+      val tab = Tab(tabid)
+      auth match {
+        case Some(keyData) => {
+          if (!keyData.found)
+            Unauthorized("Invalid API key")
+          else if (keyData.expired)
+            Unauthorized("API key has expired")
+          else if (userCanSetupTab(keyData.userid, tab)) {
+            Ok(json.write(RandomPairings(tab))).as("application/json")
+          } else
+            Forbidden("Permission denied")
+        }
+        case None => Unauthorized("Authorization required")
+      }
+    } recover {
+      case ex: NotFoundException => NotFound(ex.getMessage)
+      case ex: Throwable => InternalServerError(ex.getMessage)
     }
   }
 

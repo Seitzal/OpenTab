@@ -26,35 +26,37 @@ GET     /logout                     eu.seitzal.opentab.controllers.AuthControlle
 # Routes for the REST API controller
 ########################################################################################################################
 
-GET     /api/tabs                   eu.seitzal.opentab.controllers.RESTController.getAllTabs()
+GET     /api/tabs                           eu.seitzal.opentab.controllers.RESTController.getAllTabs()
 
-GET     /api/tab                    eu.seitzal.opentab.controllers.RESTController.getTab(id: Int)
+GET     /api/tab                            eu.seitzal.opentab.controllers.RESTController.getTab(id: Int)
 
-GET     /api/tab/teams              eu.seitzal.opentab.controllers.RESTController.getAllTeams(id: Int)
+GET     /api/tab/teams                      eu.seitzal.opentab.controllers.RESTController.getAllTeams(id: Int)
 
-GET     /api/tab/speakers           eu.seitzal.opentab.controllers.RESTController.getAllSpeakers(id: Int)
+GET     /api/tab/speakers                   eu.seitzal.opentab.controllers.RESTController.getAllSpeakers(id: Int)
 
-GET     /api/team                   eu.seitzal.opentab.controllers.RESTController.getTeam(id: Int)
-+nocsrf
-POST    /api/team                   eu.seitzal.opentab.controllers.RESTController.createTeam()
-+nocsrf
-DELETE  /api/team                   eu.seitzal.opentab.controllers.RESTController.deleteTeam(id: Int)
-+nocsrf
-PATCH   /api/team                   eu.seitzal.opentab.controllers.RESTController.updateTeam(id: Int)
-+nocsrf
-PATCH   /api/team/toggle            eu.seitzal.opentab.controllers.RESTController.toggleTeam(id: Int)
+GET     /api/tab/generate-pairings/random   eu.seitzal.opentab.controllers.RESTController.getRandomPairings(id: Int)
 
-GET     /api/team/speakers          eu.seitzal.opentab.controllers.RESTController.getAllSpeakersOnTeam(id: Int)
+GET     /api/team                           eu.seitzal.opentab.controllers.RESTController.getTeam(id: Int)
++nocsrf
+POST    /api/team                           eu.seitzal.opentab.controllers.RESTController.createTeam()
++nocsrf
+DELETE  /api/team                           eu.seitzal.opentab.controllers.RESTController.deleteTeam(id: Int)
++nocsrf
+PATCH   /api/team                           eu.seitzal.opentab.controllers.RESTController.updateTeam(id: Int)
++nocsrf
+PATCH   /api/team/toggle                    eu.seitzal.opentab.controllers.RESTController.toggleTeam(id: Int)
 
-GET     /api/speaker                eu.seitzal.opentab.controllers.RESTController.getSpeaker(id: Int)
-+nocsrf
-POST    /api/speaker                eu.seitzal.opentab.controllers.RESTController.createSpeaker()
-+nocsrf
-DELETE  /api/speaker                eu.seitzal.opentab.controllers.RESTController.deleteSpeaker(id: Int)
-+nocsrf
-PATCH   /api/speaker                eu.seitzal.opentab.controllers.RESTController.updateSpeaker(id: Int)
+GET     /api/team/speakers                  eu.seitzal.opentab.controllers.RESTController.getAllSpeakersOnTeam(id: Int)
 
-GET     /api/verifykey              eu.seitzal.opentab.controllers.RESTController.remoteVerifyKey()
+GET     /api/speaker                        eu.seitzal.opentab.controllers.RESTController.getSpeaker(id: Int)
++nocsrf
+POST    /api/speaker                        eu.seitzal.opentab.controllers.RESTController.createSpeaker()
++nocsrf
+DELETE  /api/speaker                        eu.seitzal.opentab.controllers.RESTController.deleteSpeaker(id: Int)
++nocsrf
+PATCH   /api/speaker                        eu.seitzal.opentab.controllers.RESTController.updateSpeaker(id: Int)
+
+GET     /api/verifykey                      eu.seitzal.opentab.controllers.RESTController.remoteVerifyKey()
 
 ########################################################################################################################
 # Route for static assets
