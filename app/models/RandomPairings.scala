@@ -16,24 +16,24 @@ object RandomPairings {
     val pool = random.shuffle(tab.teams.filter(_.active)).toBuffer
     val acc = new ArrayBuffer[(String, String)]
 
-    val crit2  = List(ruleset.charAt('0'), ruleset.charAt('1'))
-    val crit3 = ruleset.charAt('0')
+    val crit2  = List(ruleset.charAt(0), ruleset.charAt(1))
+    val crit3 = ruleset.charAt(0)
 
     // First pass: Avoid all three criteria
     def rule1(i : Int) : Boolean = 
-      pool(0).previousOpponents.contains(pool(i).name) ||
+      pool(0).previousOpponents.contains(pool(i)) ||
       pool(0).delegation == pool(i).delegation ||
       pool(0).sideTendency * pool(i).sideTendency > 0
 
     // Second pass: Avoid two criteria
     def rule2(i : Int) : Boolean =
-      (crit2.contains('r') && pool(0).previousOpponents.contains(pool(i).name)) ||
+      (crit2.contains('r') && pool(0).previousOpponents.contains(pool(i))) ||
       (crit2.contains('d') && pool(0).delegation == pool(i).delegation) ||
       (crit2.contains('s') && pool(0).sideTendency * pool(i).sideTendency > 0)
 
     // Third pass: Avoid one criterion
     def rule3(i : Int) : Boolean = 
-      (crit3 == 'r' && pool(0).previousOpponents.contains(pool(i).name)) ||
+      (crit3 == 'r' && pool(0).previousOpponents.contains(pool(i))) ||
       (crit3 == 'd' && pool(0).delegation == pool(i).delegation) ||
       (crit3 == 's' && pool(0).sideTendency * pool(i).sideTendency > 0)
 
@@ -100,9 +100,9 @@ object RandomPairings {
     }
 
     if (bye)
-      (pairings, Some(pool(0)))
+      Draw(pairings, Some(pool(0)))
     else
-      (pairings, None)
+      Draw(pairings, None)
   }
 
 }

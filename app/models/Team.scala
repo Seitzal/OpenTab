@@ -97,12 +97,15 @@ case class Team (
       case Some(list) => list
       case None => {
         previousOpponentsCache = Option {
-          Pairing.getAllForTeam(this).map(pairing =>
-            if (pairing.teamidPro == this.id) 
-              Team(pairing.teamidOpp)
-            else
-              Team(pairing.teamidPro)
-          )
+          Pairing.getAllForTeam(this)
+            .filter(pairing =>
+              pairing.teamidPro > 0 && pairing.teamidOpp > 0
+            ).map(pairing =>
+              if (pairing.teamidPro == this.id)
+                Team(pairing.teamidOpp)
+              else
+                Team(pairing.teamidPro)
+            )
         }
         previousOpponents
       }
@@ -127,6 +130,8 @@ case class Team (
 }
 
 object Team {
+
+  class Bye(tabid: Int) extends Team(-tabid, tabid, "BYE", "BYE", -1, true)
 
   implicit val rw: json.ReadWriter[Team] = json.macroRW
 

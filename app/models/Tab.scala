@@ -20,7 +20,9 @@ case class Tab (
 
   def rounds(implicit database: Database) = Round.getAll(id)
 
-  def addRound(implicit database: Database) = Round.add(id)
+  def addRound()(implicit database: Database) = Round.add(id)
+
+  def bye = new Team.Bye(id)
 
   }
 

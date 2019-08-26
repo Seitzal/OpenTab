@@ -611,7 +611,7 @@ class RESTController @Inject()(
             else if (keyData.expired)
               Unauthorized("API key has expired")
             else if (userCanSetupTab(keyData.userid, tab)) {
-              val round = tab.addRound
+              val round = tab.addRound()
               Ok(json.write(round)).as("application/json")
             } else
               Forbidden("Permission denied")

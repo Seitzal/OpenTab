@@ -13,6 +13,7 @@ case class Round(
   finished: Boolean) {
 
     def delete()(implicit database: Database): Unit = {
+      Pairing.deleteAllForRound(tabid, roundNumber)
       val connection = database.getConnection()
       if (locked) throw new Exception("Can't delete a locked round!")
       val queryText = "DELETE FROM rounds WHERE tabid = ? AND roundno >= ?"
@@ -20,9 +21,25 @@ case class Round(
       query.setInt(1, tabid)
       query.setInt(2, roundNumber)
       query.executeUpdate()
+      connection.close()
     }
 
     def pairings(implicit database: Database) = Pairing.getAllForRound(tabid, roundNumber)
+
+    def setDraw(draw: Draw)(implicit database: Database): Unit = {
+      Pairing.deleteAllForRound(tabid, roundNumber)
+      val tab = Tab(tabid)
+      val pairings = draw.teamOnBye match {
+        case Some (teamOnBye) => {
+          if (teamOnBye.sideTendency > 0)
+            (tab.bye, teamOnBye) :: draw.pairings
+          else
+            (teamOnBye, tab.bye) :: draw.pairings
+        }
+        case None => draw.pairings
+      }
+      pairings.map(p => Pairing.create(tabid, roundNumber, p._1.id, p._2.id))
+    }
 
 }
 
@@ -43,6 +60,7 @@ object Round {
     query.setInt(1, tabid)
     query.setInt(2, roundNumber)
     query.executeUpdate()
+    connection.close()
     Round(tabid, roundNumber)
   }
 
