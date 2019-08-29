@@ -1,6 +1,7 @@
 package eu.seitzal.opentab.controllers
 
 import eu.seitzal.opentab._
+import auth._
 import shortcuts._
 import upickle.{default => json}
 
@@ -10,7 +11,6 @@ import play.api.mvc._
 import play.api.db.Database
 import akka.actor.ActorSystem
 import scala.concurrent.{Future, ExecutionContext}
-import org.mindrot.jbcrypt.BCrypt
 import java.net.URLDecoder
 
 @Singleton
@@ -27,43 +27,6 @@ class AuthController @Inject()(
 
   val jdbcExecutionContext =
     actorSystem.dispatchers.lookup("jdbc-execution-context")
-
-  def verifyUser(username: String, password: String): Option[Int] = {
-    val connection = db.getConnection()
-    val queryText = "SELECT * FROM users WHERE username = ?"
-    val query = connection.prepareStatement(queryText)
-    query.setString(1, username)
-    val queryResult = query.executeQuery()
-    connection.close()
-    if (queryResult.next()) {
-      val retrievedHash = queryResult.getString("passwd")
-      if (BCrypt.checkpw(password, retrievedHash))
-        Option(queryResult.getInt("id"))
-      else None
-    } else throw new NotFoundException("user", "name", username)
-  }
-
-  def registerKey(key: String, userid: Int): Unit = {
-    val connection = db.getConnection()
-    val queryText = 
-      "INSERT INTO api_keys (val, expires, userid) VALUES (?, ?, ?)"
-    val query = connection.prepareStatement(queryText)
-    query.setString(1, key)
-    query.setLong(2, timestamp() + config.get[Int]("api.keyLife"))
-    query.setInt(3, userid)
-    query.executeUpdate()
-    connection.close()
-  }
-
-  def unregisterKey(key: String): Unit = {
-    val connection = db.getConnection()
-    val queryText = 
-      "DELETE FROM api_keys WHERE val = ?"
-    val query = connection.prepareStatement(queryText)
-    query.setString(1, key)
-    query.executeUpdate()
-    connection.close()
-  }
 
   def login(origin: Option[String]) = Action.async(parse.formUrlEncoded) {
     implicit request: Request[Map[String,Seq[String]]] => {
