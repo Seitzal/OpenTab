@@ -4,11 +4,13 @@ import eu.seitzal.opentab._
 import shortcuts._
 import models._
 import auth._
+
 import upickle.{default => json}
 
 import javax.inject._
 import play.api._
 import play.api.mvc._
+import play.api.routing._
 import play.api.db.Database
 import akka.actor.ActorSystem
 import scala.concurrent.{Future, ExecutionContext}
@@ -623,5 +625,32 @@ class RESTController @Inject()(
       }
     }
   }
+
+  def jsRouter() = Action.async { implicit request => Future {
+    Ok(
+      JavaScriptReverseRouter("routes")(
+        routes.javascript.RESTController.remoteVerifyKey,
+        routes.javascript.RESTController.getAllTabs,
+        routes.javascript.RESTController.getTab,
+        routes.javascript.RESTController.getAllTeams,
+        routes.javascript.RESTController.getTeam,
+        routes.javascript.RESTController.createTeam,
+        routes.javascript.RESTController.deleteTeam,
+        routes.javascript.RESTController.updateTeam,
+        routes.javascript.RESTController.toggleTeam,
+        routes.javascript.RESTController.getAllSpeakers,
+        routes.javascript.RESTController.getAllSpeakersOnTeam,
+        routes.javascript.RESTController.getSpeaker,
+        routes.javascript.RESTController.createSpeaker,
+        routes.javascript.RESTController.deleteSpeaker,
+        routes.javascript.RESTController.updateSpeaker,
+        routes.javascript.RESTController.getRandomPairings,
+        routes.javascript.RESTController.getRound,
+        routes.javascript.RESTController.getRounds,
+        routes.javascript.RESTController.addRound,
+        routes.javascript.RESTController.deleteRound
+      )
+    ).as(http.MimeTypes.JAVASCRIPT)
+  }}
 
 }

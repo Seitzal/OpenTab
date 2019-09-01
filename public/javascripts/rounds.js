@@ -5,13 +5,11 @@ $("#tbody_rounds").ready(loadRounds);
 $("#navitem_rounds").addClass("text-light");
 
 function loadRounds() {
-  $.ajax ({
-    type    : "GET",
-    url     : app_location + "/api/tab/rounds?id=" + tabid,
-    headers : {"Authorization" : api_key},
-    async   : true,
-    success : displayRounds
-  });
+  let req = rc.getRounds(tabid);
+  req.headers = {"Authorization" : api_key};
+  req.success = displayRounds;
+  req.error = () => alert("Error loading rounds");
+  $.ajax (req);
 }
 
 function displayRounds(data) {

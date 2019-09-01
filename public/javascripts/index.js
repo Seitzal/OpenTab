@@ -1,11 +1,10 @@
 $("#container_tabselect").ready(() => {
-  $.ajax ({
-    type    : "GET",
-    url     : app_location + "/api/tabs",
-    headers : (typeof api_key === 'undefined') ? {} : {"Authorization" : api_key},
-    async   : true,
-    success : renderTabs
-  });
+  let req = rc.getAllTabs();
+  if (typeof api_key !== 'undefined')
+    req.headers = {"Authorization" : api_key};
+  req.success = renderTabs;
+  req.error = loadTabsFailure;
+  $.ajax (req);
 })
 
 function renderTabs(tabs) {
@@ -20,4 +19,9 @@ function renderTabs(tabs) {
   });
   buffer += '</tbody></table>';
   $("#container_tabselect").html(buffer);
+}
+
+function loadTabsFailure(jqXHR, textStatus, errorThrown) {
+  let errMsg = '<div class="m-2 text-danger">Error loading tabs</div>';
+  $("#container_tabselect").html(errMsg);
 }

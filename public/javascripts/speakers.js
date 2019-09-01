@@ -13,13 +13,11 @@ $("#btn_editspeaker_submit").click(event => {event.preventDefault(); editSpeaker
 $("#navitem_speakers").addClass("text-light");
 
 function loadTeams() {
-  $.ajax ({
-    type    : "GET",
-    url     : app_location + "/api/tab/teams?id=" + tabid,
-    headers : {"Authorization" : api_key},
-    async   : true,
-    success : displayTeams
-  });
+  let req = rc.getAllTeams(tabid);
+  req.headers = {"Authorization" : api_key};
+  req.success = displayTeams;
+  req.error = () => alert("Error loading teams");
+  $.ajax(req);
 }
 
 function displayTeams(data) {
@@ -33,13 +31,11 @@ function displayTeams(data) {
 }
 
 function loadSpeakers() {
-  $.ajax ({
-    type    : "GET",
-    url     : app_location + "/api/tab/speakers?id=" + tabid,
-    headers : {"Authorization" : api_key},
-    async   : true,
-    success : displaySpeakers
-  });
+  let req = rc.getAllSpeakers(tabid);
+  req.headers = {"Authorization" : api_key};
+  req.success = displaySpeakers;
+  req.error = () => alert("Error loading speakers");
+  $.ajax(req);
 }
 
 function displaySpeakers(data) {
@@ -116,43 +112,35 @@ function addSpeaker() {
   } else if (lastname == "") {
     $("#input_addspeaker_lastname").addClass("is-invalid");
   } else {
-    $.ajax ({
-      type    : "POST",
-      url     : app_location + "/api/speaker",
-      headers : {"Authorization" : api_key},
-      data    : {
-        teamid      : teamid,
-        firstname   : firstname,
-        lastname    : lastname,
-        status      : status
-      },
-      async   : true,
-      success : callbackAddSpeaker
-    });
+    let req = rc.createSpeaker();
+    req.headers = {"Authorization" : api_key};
+    req.data = {
+      teamid      : teamid,
+      firstname   : firstname,
+      lastname    : lastname,
+      status      : status
+    };
+    req.success = () => {
+      storeTableStateEditSpeakers();
+      $("#input_addspeaker_firstname").val("");
+      $("#input_addspeaker_lastname").val("");
+      $("#input_addspeaker_firstname").focus();
+      loadSpeakers();
+    };
+    req.error = () => alert("Error adding speaker");
+    $.ajax(req);
   }
 }
 
-function callbackAddSpeaker() {
-  storeTableStateEditSpeakers();
-  $("#input_addspeaker_firstname").val("");
-  $("#input_addspeaker_lastname").val("");
-  $("#input_addspeaker_firstname").focus();
-  loadSpeakers();
-}
-
 function deleteSpeaker(event) {
-  $.ajax ({
-    type    : "DELETE",
-    url     : app_location + "/api/speaker?id=" + $(event.target).data("speakerid"),
-    headers : {"Authorization" : api_key},
-    async   : true,
-    success : callbackDeleteSpeaker
-  });
-}
-
-function callbackDeleteSpeaker() {
-  storeTableStateEditSpeakers();
-  loadSpeakers();
+  let req = rc.deleteSpeaker($(event.target).data("speakerid"));
+  req.headers = {"Authorization" : api_key};
+  req.success = () => {
+    storeTableStateEditSpeakers();
+    loadSpeakers();
+  };
+  req.error = () => alert("Error removing speaker");
+  $.ajax(req);
 }
 
 function showModalEditSpeaker(event) {
@@ -176,23 +164,19 @@ function editSpeaker() {
   } else if (lastname == "") {
     $("#input_editspeaker_lastname").addClass("is-invalid");
   } else {
-    $.ajax ({
-      type    : "PATCH",
-      url     : app_location + "/api/speaker?id=" + id,
-      headers : {"Authorization" : api_key},
-      data    : {
-        firstname   : firstname,
-        lastname    : lastname,
-        status      : status
-      },
-      async   : true,
-      success : callbackEditSpeaker
-    });
+    let req = rc.updateSpeaker(id);
+    req.headers = {"Authorization" : api_key};
+    req.data = {
+      firstname   : firstname,
+      lastname    : lastname,
+      status      : status
+    };
+    req.success = () => {
+      storeTableStateEditSpeakers();
+      $("#modal_editspeaker").modal("hide");
+      loadSpeakers();
+    };
+    req.error = () => alert("Error updating speaker");
+    $.ajax(req);
   }
-}
-
-function callbackEditSpeaker() {
-  storeTableStateEditSpeakers();
-  $("#modal_editspeaker").modal("hide");
-  loadSpeakers();
 }

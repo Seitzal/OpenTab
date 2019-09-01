@@ -1,9 +1,10 @@
 package eu.seitzal.opentab.controllers
 
 import eu.seitzal.opentab._
-import models._
-import permissions._
 import shortcuts._
+import models._
+import auth._
+
 import upickle.{default => json}
 
 import java.net.URLEncoder

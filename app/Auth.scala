@@ -68,6 +68,24 @@ package object auth {
     connection.close()
   }
 
+  def verifyKey(key: String)(implicit db: Database): KeyData = {
+    val connection = db.getConnection()
+    val queryText = "SELECT * FROM api_keys WHERE val = ?"
+    val query = connection.prepareStatement(queryText)
+    query.setString(1, key)
+    val queryResult = query.executeQuery()
+    connection.close()
+    if (queryResult.next()) {
+      val expires = queryResult.getLong("expires")
+      val temporary = expires != 0
+      val expired = temporary && expires < timestamp()
+      val userid  = queryResult.getInt("userid")
+      KeyData(true, temporary, expired, expires, userid) 
+    } else {
+      KeyData(false, false, false, 0L, 0)
+    }
+  }
+
   private def readPermissionsEntry(userid: Int, tabid: Int, attempt: Int = 1)
                        (implicit database: Database) : PermissionsEntry = {
     if (attempt > 4) {
@@ -136,23 +154,5 @@ package object auth {
   def userCanSetupTab(user: User, tab: Tab)
                      (implicit database: Database) : Boolean =
     readPermissionsEntry(user.id, tab.id).setup
-
-  def verifyKey(key: String)(implicit db: Database): KeyData = {
-    val connection = db.getConnection()
-    val queryText = "SELECT * FROM api_keys WHERE val = ?"
-    val query = connection.prepareStatement(queryText)
-    query.setString(1, key)
-    val queryResult = query.executeQuery()
-    connection.close()
-    if (queryResult.next()) {
-      val expires = queryResult.getLong("expires")
-      val temporary = expires != 0
-      val expired = temporary && expires < timestamp()
-      val userid  = queryResult.getInt("userid")
-      KeyData(true, temporary, expired, expires, userid) 
-    } else {
-      KeyData(false, false, false, 0L, 0)
-    }
-  }
 
 }

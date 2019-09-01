@@ -1,8 +1,10 @@
 package eu.seitzal.opentab.controllers
 
 import eu.seitzal.opentab._
-import auth._
 import shortcuts._
+import models._
+import auth._
+
 import upickle.{default => json}
 
 import javax.inject._

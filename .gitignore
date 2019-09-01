@@ -1,6 +1,9 @@
 logs
 target
 project/target
+.bloop
+.metals
+project/.bloop
 /.idea
 /.idea_modules
 /.classpath

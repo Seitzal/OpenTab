@@ -1,3 +1,5 @@
+const rc = routes.eu.seitzal.opentab.controllers.RESTController;
+
 function parseLangStatus(langstatus) {
   switch(langstatus) {
     case 1:

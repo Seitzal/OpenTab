@@ -28,6 +28,8 @@ GET     /logout                     eu.seitzal.opentab.controllers.AuthControlle
 # Routes for the REST API controller
 ########################################################################################################################
 
+GET     /api/routes.js                      eu.seitzal.opentab.controllers.RESTController.jsRouter()
+
 GET     /api/tabs                           eu.seitzal.opentab.controllers.RESTController.getAllTabs()
 
 GET     /api/tab                            eu.seitzal.opentab.controllers.RESTController.getTab(id: Int)

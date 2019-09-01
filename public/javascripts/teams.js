@@ -10,13 +10,11 @@ $("#btn_editteam_submit").click(event => {event.preventDefault(); editTeam()});
 $("#navitem_teams").addClass("text-light");
 
 function loadTeams() {
-  $.ajax ({
-    type    : "GET",
-    url     : app_location + "/api/tab/teams?id=" + tabid,
-    headers : {"Authorization" : api_key},
-    async   : true,
-    success : displayTeams
-  });
+  let req = rc.getAllTeams(tabid);
+  req.headers = {"Authorization" : api_key};
+  req.success = displayTeams;
+  req.error = () => alert("Error loading teams");
+  $.ajax(req);
 }
 
 function displayTeams(data) {
@@ -99,42 +97,33 @@ function addTeam() {
   if (name == "") {
     $("#input_addteam_name").addClass("is-invalid");
   } else {
-    $.ajax ({
-      type    : "POST",
-      url     : app_location + "/api/team",
-      headers : {"Authorization" : api_key},
-      data    : {
-        tabid       : tabid,
-        name        : name,
-        delegation  : dele,
-        status      : status
-      },
-      async   : true,
-      success : callbackAddTeam
-    });
+    let req = rc.createTeam();
+    req.headers = {"Authorization" : api_key};
+    req.data = {
+      tabid       : tabid,
+      name        : name,
+      delegation  : dele,
+      status      : status};
+    req.success = () => {
+      storeTableStateEditTeams();
+      $("#input_addteam_name").val("");
+      $("#input_addteam_name").focus();
+      loadTeams();
+    }
+    req.error = () => alert("Error creating team");
+    $.ajax(req);
   }
 }
 
-function callbackAddTeam() {
-  storeTableStateEditTeams();
-  $("#input_addteam_name").val("");
-  $("#input_addteam_name").focus();
-  loadTeams();
-}
-
 function deleteTeam(event) {
-  $.ajax ({
-    type    : "DELETE",
-    url     : app_location + "/api/team?id=" + $(event.target).data("teamid"),
-    headers : {"Authorization" : api_key},
-    async   : true,
-    success : callbackDeleteTeam
-  });
-}
-
-function callbackDeleteTeam() {
-  storeTableStateEditTeams();
-  loadTeams();
+  let req = rc.deleteTeam($(event.target).data("teamid"));
+  req.headers = {"Authorization" : api_key};
+  req.success = () => {
+    storeTableStateEditTeams();
+    loadTeams();
+  };
+  req.error = () => alert("Error deleting team");
+  $.ajax(req);
 }
 
 function showModalEditTeam(event) {
@@ -158,33 +147,30 @@ function editTeam() {
   if (name == "") {
     $("#input_editteam_name").addClass("is-invalid");
   } else {
-    $.ajax ({
-      type    : "PATCH",
-      url     : app_location + "/api/team?id=" + id,
-      headers : {"Authorization" : api_key},
-      data    : {
-        name        : name,
-        delegation  : dele,
-        status      : status
-      },
-      async   : true,
-      success : callbackEditTeam
-    });
+    let req = rc.updateTeam(id);
+    req.headers = {"Authorization" : api_key};
+    req.data = {
+      name        : name,
+      delegation  : dele,
+      status      : status
+    };
+    req.success = () => {
+      storeTableStateEditTeams();
+      $("#modal_editteam").modal("hide");
+      loadTeams();
+    };
+    req.error = () => alert("Error updating team");
+    $.ajax(req);
   }
 }
 
-function callbackEditTeam() {
-  storeTableStateEditTeams();
-  $("#modal_editteam").modal("hide");
-  loadTeams();
-}
-
 function toggleTeam() {
-  $.ajax ({
-    type    : "PATCH",
-    url     : app_location + "/api/team/toggle?id=" + $(event.target).data("teamid"),
-    headers : {"Authorization" : api_key},
-    async   : true,
-    success : callbackDeleteTeam
-  });
+  let req = rc.toggleTeam($(event.target).data("teamid"));
+  req.headers = {"Authorization" : api_key};
+  req.success = () => {
+    storeTableStateEditTeams();
+    loadTeams();
+  };
+  req.error = () => alert("Error toggling team");
+  $.ajax(req);
 }
