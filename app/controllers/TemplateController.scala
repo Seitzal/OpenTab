@@ -158,4 +158,33 @@ class TemplateController @Inject()(
     }
   }
 
+  def renderRoundSetup(tabid: Int, roundNumber: Int) = Action.async { 
+    implicit request: Request[AnyContent] => {
+      implicit val ec = jdbcExecutionContext
+      Future {
+        val tab = Tab(tabid)
+        val round = tab.round(roundNumber)
+        request.session.get("userid").map(_.toInt) match {
+          case Some(uid) => {
+            if (userCanSetupTab(uid, tab)) {
+              Ok(views.html.tab.roundsetup(tab, round, config, db))
+            } else {
+              Forbidden("403 Forbidden: Permission denied")
+            }
+          }
+          case None =>
+            Redirect(location + "/login?origin=" + 
+              URLEncoder.encode(
+                location + "/tab/" + tabid + "/round/" + roundNumber + "/setup",
+                "utf-8"))
+        }
+      } recover {
+        case ex: NotFoundException => 
+          NotFound("404 Not Found: " + ex.getMessage)
+        case ex: Throwable => 
+          InternalServerError("503 Internal Server Error: " + ex.getMessage)
+      }
+    }
+  }
+
 }

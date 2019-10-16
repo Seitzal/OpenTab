@@ -2,19 +2,21 @@
 # Routes for the template controller
 ########################################################################################################################
 
-GET     /                           eu.seitzal.opentab.controllers.TemplateController.renderIndex()
+GET     /                                       eu.seitzal.opentab.controllers.TemplateController.renderIndex()
 
-GET     /login                      eu.seitzal.opentab.controllers.TemplateController.renderLogin()
+GET     /login                                  eu.seitzal.opentab.controllers.TemplateController.renderLogin()
 
-GET     /tab/:tabid                 eu.seitzal.opentab.controllers.TemplateController.renderTabIndex(tabid: Int)
+GET     /tab/:tabid                             eu.seitzal.opentab.controllers.TemplateController.renderTabIndex(tabid: Int)
 
-GET     /tab/:tabid/                eu.seitzal.opentab.controllers.TemplateController.renderTabIndex(tabid: Int)
+GET     /tab/:tabid/                            eu.seitzal.opentab.controllers.TemplateController.renderTabIndex(tabid: Int)
 
-GET     /tab/:tabid/teams           eu.seitzal.opentab.controllers.TemplateController.renderTeams(tabid: Int)
+GET     /tab/:tabid/teams                       eu.seitzal.opentab.controllers.TemplateController.renderTeams(tabid: Int)
 
-GET     /tab/:tabid/speakers        eu.seitzal.opentab.controllers.TemplateController.renderSpeakers(tabid: Int, team: Option[String])
+GET     /tab/:tabid/speakers                    eu.seitzal.opentab.controllers.TemplateController.renderSpeakers(tabid: Int, team: Option[String])
 
-GET     /tab/:tabid/rounds          eu.seitzal.opentab.controllers.TemplateController.renderRounds(tabid: Int)
+GET     /tab/:tabid/rounds                      eu.seitzal.opentab.controllers.TemplateController.renderRounds(tabid: Int)
+
+GET     /tab/:tabid/round/:roundnumber/setup    eu.seitzal.opentab.controllers.TemplateController.renderRoundSetup(tabid: Int, roundnumber: Int)
 
 ########################################################################################################################
 # Routes for the authentication controller

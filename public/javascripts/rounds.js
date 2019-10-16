@@ -38,7 +38,7 @@ function displayRounds(data) {
       } else {
         tbodycontent += '<td class="bg-warning w-25">Unlocked</td>';
         if (canSetup) {
-          tbodycontent += '<td><button class="btn btn-primary btn-block">Set Up</button></td>'
+          tbodycontent += '<td><a class="btn btn-primary btn-block" href="' + encodeURI(app_location + "/tab/" + tabid + "/round/" + rounds[i].roundNumber + "/setup") + '">Set Up</a></td>'
           tbodycontent += '<td><button class="btn btn-success btn-block">Lock</button></td>'
           tbodycontent += '<td><button class="btn btn-danger btn-block btn_round_delete" data-roundno="' + rounds[i].roundNumber + '">Delete</button></td>';
         } else tbodycontent += '<td></td><td></td><td></td>';
