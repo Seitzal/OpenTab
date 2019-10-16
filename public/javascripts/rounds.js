@@ -1,6 +1,7 @@
 let rounds = undefined;
 
 $("#tbody_rounds").ready(loadRounds);
+$("#btn-addround").click(addRound);
 
 $("#navitem_rounds").addClass("text-light");
 
@@ -39,11 +40,28 @@ function displayRounds(data) {
         if (canSetup) {
           tbodycontent += '<td><button class="btn btn-primary btn-block">Set Up</button></td>'
           tbodycontent += '<td><button class="btn btn-success btn-block">Lock</button></td>'
-          tbodycontent += '<td><button class="btn btn-danger btn-block">Delete</button></td>';
+          tbodycontent += '<td><button class="btn btn-danger btn-block btn_round_delete" data-roundno="' + rounds[i].roundNumber + '">Delete</button></td>';
         } else tbodycontent += '<td></td><td></td><td></td>';
       }
       tbodycontent += '</tr>';
     }
   }
   $("#tbody_rounds").html(tbodycontent);
+  $(".btn_round_delete").click(deleteRound);
+}
+
+function addRound() {
+  let req = rc.addRound(tabid);
+  req.headers = {"Authorization" : api_key};
+  req.success = loadRounds;
+  req.error = () => alert("Error adding round");
+  $.ajax (req);
+}
+
+function deleteRound(event) {
+  let req = rc.deleteRound(tabid, $(event.target).data("roundno"));
+  req.headers = {"Authorization" : api_key};
+  req.success = loadRounds;
+  req.error = () => alert("Error deleting round");
+  $.ajax(req);
 }
