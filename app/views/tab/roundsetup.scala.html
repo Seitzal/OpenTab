@@ -15,25 +15,26 @@
     <title>Round @round.roundNumber - @tab.name - @config.get[String]("apptitle")</title>
   </head>
   <body>
-    @common.navbar(config, Some(tab))
-    <div class="m-3">
-      <h3>Pairings for Round @round.roundNumber</h3>
-    </div>
-    <div class="m-3">
-      <button class="btn btn-primary" id="btn_randompair">Pair randomly</button>
-      <button class="btn btn-primary" id="btn_powerpair">Power-pair</button>
-      <button  class="btn btn-warning" id="btn_clear">Reset</button>
-      <span class="ml-3"></span>
-      <button class="btn btn-success" id="btn_save">Save & Exit</button>
-      <button class="btn btn-success" id="btn_lock">Save & Lock</button>
-      <button class="btn btn-danger" id="btn_cancel">Cancel</button>
+    <div class="sticky-top bg-white">
+      @common.navbar(config, Some(tab))
+      <div class="m-3">
+        <h3>Pairings for Round @round.roundNumber</h3>
+      </div>
+      <div class="m-3">
+        <button class="btn btn-primary" id="btn_randompair">Pair randomly</button>
+        <button class="btn btn-primary" id="btn_powerpair">Power-pair</button>
+        <button  class="btn btn-warning" id="btn_clear">Reset</button>
+        <span class="ml-3"></span>
+        <button class="btn btn-success" id="btn_save">Save & Exit</button>
+        <button class="btn btn-success" id="btn_lock">Save & Lock</button>
+        <button class="btn btn-danger" id="btn_cancel">Cancel</button>
+      </div>
+      <div class="card m-3">
+        <div class="card-header">Unassigned Teams</div>
+        <div class="card-body" id="box_unassigned" ondrop="dropUnassigned(event, this)" ondragover="allowDrop(event)"></div>
+      </div>
     </div>
     <div class="card m-3">
-      <div class="card-header">Unassigned Teams</div>
-      <div class="card-body" id="box_unassigned" ondrop="dropUnassigned(event, this)" ondragover="allowDrop(event)"></div>
-    </div>
-    <div class="card m-3">
-      <div class="card-header">Pairings</div>
       <div class="card-body p-0" id="box_pairings"></div>
     </div>
     @common.scripts(config, Some(db), Some(tab))

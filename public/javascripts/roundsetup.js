@@ -106,7 +106,7 @@ function renderDraw() {
           <th class="font-weight-normal">Opposition</th>
         </tr>
       </thead>
-      <tbody>`;
+      <tbody id="table_pairings_body">`;
   for (r = 0; r < draw.pairings.length; r++) {
     table +=
       '<tr>' +
@@ -120,7 +120,7 @@ function renderDraw() {
       '</td>' +
       '</tr>';
   }
-  if (draw.teamOnBye != {}) {
+  if (draw.teamOnBye[0] != undefined) {
     table += 
       '<tr>' +
       '<td class="td_pro" ondrop="drop(event, this)" ondragover="allowDrop(event)">' + 
@@ -136,4 +136,31 @@ function renderDraw() {
       </tbody>
     </table>`;
   $("#box_pairings").html(table);
+}
+
+function checkDraw() {
+  if ($("#box_unassigned").children().length != 0) {
+    return false;
+  }
+  let rows = $("#table_pairings_body").children();
+  let newPairings = [];
+  let newByeTeam = [];
+  for(i = 0; i < rows.length; i++) {
+    let row = rows[i];
+    if (row.children[0].children[0].id == "byetag") {
+      let byeTeamId = row.children[1].children[0].dataset["teamid"];
+      newByeTeam.push(teams.filter(team => team.id == byeTeamId)[0]);
+    } else if (row.children[1].children[0].id == "byetag") {
+      let byeTeamId = row.children[0].children[0].dataset["teamid"];
+      newByeTeam.push(teams.filter(team => team.id == byeTeamId)[0]);
+    } else {
+      let proTeamId = row.children[0].children[0].dataset["teamid"];
+      let oppTeamId = row.children[1].children[0].dataset["teamid"];
+      let proTeam = teams.filter(team => team.id == proTeamId)[0];
+      let oppTeam = teams.filter(team => team.id == oppTeamId)[0];
+      newPairings.push([proTeam, oppTeam]);
+    }
+  }
+  draw = {pairings : newPairings, teamOnBye : newByeTeam};
+  return true;
 }
