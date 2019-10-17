@@ -38,3 +38,11 @@ table.dataTable.no-footer {
   vertical-align: middle;
 }
 
+.teamtag, #byetag {
+  display: inline-block !important;
+}
+
+#table_pairings td {
+  padding: 0;
+}
+

@@ -1,0 +1,139 @@
+let draw = undefined;
+let teams = undefined;
+let pairings = undefined;
+let emptyBox = undefined;
+
+$("#navitem_rounds").addClass("text-light");
+$("#box_pairings").ready(loadTeams);
+$("#btn_clear").click(() => {
+  initTable();
+  initTeams();
+});
+$("#btn_randompair").click(getDrawRandom);
+
+function allowDrop(ev) {
+  ev.preventDefault();
+}
+
+function drag(ev, el) {
+  emptyBox = el.parentElement;
+  ev.dataTransfer.setData("text", ev.target.id);
+
+}
+
+function dropUnassigned(ev, el) {
+  ev.preventDefault();
+  var data = ev.dataTransfer.getData("text");
+  el.appendChild(document.getElementById(data));
+  emptyBox = undefined;
+}
+
+function drop(ev, el) {
+  ev.preventDefault();
+  var data = ev.dataTransfer.getData("text");
+  if (el.firstChild) {
+    emptyBox.appendChild(el.firstChild);
+  }
+  el.appendChild(document.getElementById(data));
+}
+
+function loadTeams() {
+  let req = rc.getAllTeams(tabid);
+  req.headers = {"Authorization" : api_key};
+  req.success = data => {
+    teams = data.filter(team => team.active); 
+    initTable();
+    initTeams();
+  };
+  req.error = () => alert("Error loading teams");
+  $.ajax(req);
+}
+
+function initTable() {
+  let table = `
+    <table id="table_pairings" class="table table-hover table-bordered m-0">
+      <thead class="thead-light">
+        <tr>
+          <th class="font-weight-normal">Proposition</th>
+          <th class="font-weight-normal">Opposition</th>
+        </tr>
+      </thead>
+      <tbody>`;
+  for (i = 0; i < teams.length; i += 2) {
+    table += `
+      <tr>
+        <td class="td_pro" ondrop="drop(event, this)" ondragover="allowDrop(event)">&nbsp;</td>
+        <td class="td_opp" ondrop="drop(event, this)" ondragover="allowDrop(event)">&nbsp;</td>
+      </tr>`;
+  }
+  table += `
+      </tbody>
+    </table>`;
+  $("#box_pairings").html(table);
+}
+
+function initTeams() {
+  let tags = '';
+  for (i = 0; i < teams.length; i++) {
+    tags += '<span class="teamtag border bg-light rounded m-1 p-1"  draggable="true" ondragstart="drag(event, this)" ' +
+    'id=tt_"' + teams[i].id + '" data-teamid="' + teams[i].id + '">' + teams[i].name + '</span>';
+  }
+  if (teams.length % 2 == 1) {
+    tags += '<span id="byetag" class="border bg-warning rounded m-1 p-1" draggable="true" ondragstart="drag(event, this)">' +
+    'BYE</span>';
+  }
+  $("#box_unassigned").html(tags);
+}
+
+function getDrawRandom() {
+  let req = rc.getRandomPairings(tabid);
+  req.headers = {"Authorization" : api_key};
+  req.success = data => {
+    draw = data;
+    renderDraw();
+  };
+  req.error = () => alert("Error loading draw");
+  $.ajax(req);
+}
+
+function renderDraw() {
+  $("#box_unassigned").empty();
+  let table = `
+    <table id="table_pairings" class="table table-hover table-bordered m-0">
+      <thead class="thead-light">
+        <tr>
+          <th class="font-weight-normal">Proposition</th>
+          <th class="font-weight-normal">Opposition</th>
+        </tr>
+      </thead>
+      <tbody>`;
+  for (r = 0; r < draw.pairings.length; r++) {
+    table +=
+      '<tr>' +
+      '<td class="td_pro" ondrop="drop(event, this)" ondragover="allowDrop(event)">' + 
+      '<span class="teamtag border bg-light rounded m-1 p-1"  draggable="true" ondragstart="drag(event, this)" ' +
+      'id=tt_"' + draw.pairings[r][0].id + '" data-teamid="' + draw.pairings[r][0].id + '">' + draw.pairings[r][0].name + '</span>' +
+      '</td>' +
+      '<td class="td_opp" ondrop="drop(event, this)" ondragover="allowDrop(event)">' + 
+      '<span class="teamtag border bg-light rounded m-1 p-1"  draggable="true" ondragstart="drag(event, this)" ' +
+      'id=tt_"' + draw.pairings[r][1].id + '" data-teamid="' + draw.pairings[r][1].id + '">' + draw.pairings[r][1].name + '</span>' +
+      '</td>' +
+      '</tr>';
+  }
+  if (draw.teamOnBye != {}) {
+    table += 
+      '<tr>' +
+      '<td class="td_pro" ondrop="drop(event, this)" ondragover="allowDrop(event)">' + 
+      '<span class="teamtag border bg-light rounded m-1 p-1"  draggable="true" ondragstart="drag(event, this)" ' +
+      'id=tt_"' + draw.teamOnBye[0].id + '" data-teamid="' + draw.teamOnBye[0].id + '">' + draw.teamOnBye[0].name + '</span>' +
+      '</td>' +
+      '<td class="td_opp" ondrop="drop(event, this)" ondragover="allowDrop(event)">' + 
+      '<span id="byetag" class="border bg-warning rounded m-1 p-1" draggable="true" ondragstart="drag(event, this)">BYE</span>' +
+      '</td>' +
+      '</tr>';
+  }
+  table += `
+      </tbody>
+    </table>`;
+  $("#box_pairings").html(table);
+}
