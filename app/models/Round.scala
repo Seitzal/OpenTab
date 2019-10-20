@@ -13,9 +13,10 @@ case class Round(
   finished: Boolean) {
 
   def delete()(implicit database: Database): Unit = {
-    Pairing.deleteAllForRound(tabid, roundNumber)
     val connection = database.getConnection()
     if (locked) throw new Exception("Can't delete a locked round!")
+    for (r <- Tab(tabid).rounds if r.roundNumber >= roundNumber)
+      Pairing.deleteAllForRound(tabid, r.roundNumber)
     val queryText = "DELETE FROM rounds WHERE tabid = ? AND roundno >= ?"
     val query = connection.prepareStatement(queryText)
     query.setInt(1, tabid)
@@ -83,6 +84,8 @@ case class Round(
   }
 
   def lock()(implicit database: Database) : Unit = {
+    if (locked)
+      throw new Exception("Round is already locked")
     for (i <- 1 until roundNumber) {
       if (!Round(tabid, i).locked) {
         throw new Exception("Cannot lock a round while previous rounds are still open")
@@ -95,6 +98,28 @@ case class Round(
     val queryText = 
       "UPDATE rounds " +
       "SET locked = 1 " +
+      "WHERE tabid = ? AND roundno = ?"
+    val query = connection.prepareStatement(queryText)
+    query.setInt(1, tabid)
+    query.setInt(2, roundNumber)
+    query.executeUpdate()
+    connection.close()
+  }
+
+  def unlock()(implicit database: Database) : Unit = {
+    if (!locked)
+      throw new Exception("Round is already open")
+    if (finished)
+      throw new Exception("Cannot unlock a round that has been marked as finished")
+    val allRounds = Round.getAll(tabid)
+    for(i <- roundNumber + 1 to allRounds.length) {
+      if (Round(tabid, i).locked)
+        throw new Exception("Cannot unlock a round while any subsequent rounds are locked")
+    }
+    val connection = database.getConnection()
+    val queryText = 
+      "UPDATE rounds " +
+      "SET locked = 0 " +
       "WHERE tabid = ? AND roundno = ?"
     val query = connection.prepareStatement(queryText)
     query.setInt(1, tabid)

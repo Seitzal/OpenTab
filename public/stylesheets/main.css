@@ -44,5 +44,6 @@ table.dataTable.no-footer {
 
 #table_pairings td {
   padding: 0;
+  height: 40px;
 }
 
