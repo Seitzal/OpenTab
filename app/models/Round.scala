@@ -24,7 +24,28 @@ case class Round(
       connection.close()
     }
 
-    def pairings(implicit database: Database) = Pairing.getAllForRound(tabid, roundNumber)
+    def pairings(implicit database: Database) = 
+      Pairing.getAllForRound(tabid, roundNumber)
+
+    def draw(implicit database: Database) =
+      pairings.partition(p => p.teamidPro < 0 || p.teamidOpp < 0) match {
+        case (Nil, Nil) => {
+          throw new Exception("Round has not been drawn yet")
+        }
+        case (byeEntry :: byeTail, otherEntries) => {
+          if (byeEntry.teamidPro < 0) {
+            Draw(
+              otherEntries.map(entry => (entry.pro, entry.opp)), 
+              Some(byeEntry.opp))
+          } else {
+            Draw(otherEntries.map(entry => (entry.pro, entry.opp)), 
+            Some(byeEntry.pro))
+          }
+        }
+        case (Nil, entries) => {
+          Draw(entries.map(entry => (entry.pro, entry.opp)), None)
+        }
+      }
 
     def setDraw(draw: Draw)(implicit database: Database): Unit = {
       Pairing.deleteAllForRound(tabid, roundNumber)

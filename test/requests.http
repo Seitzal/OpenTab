@@ -152,4 +152,3 @@ DELETE  {{host}}/api/round
           ?tabid={{tabid}}
           &roundnumber={{roundnumber}}
 Authorization: {{key}}
-

@@ -48,6 +48,10 @@ POST    /api/round                          eu.seitzal.opentab.controllers.RESTC
 +nocsrf
 DELETE  /api/round                          eu.seitzal.opentab.controllers.RESTController.deleteRound(tabid: Int, roundnumber: Int)
 
+GET     /api/draw                           eu.seitzal.opentab.controllers.RESTController.getDraw(tabid: Int, roundnumber: Int)
++nocsrf
+POST    /api/draw                           eu.seitzal.opentab.controllers.RESTController.setDraw(tabid: Int, roundnumber: Int)
+
 GET     /api/tab/generate-pairings/random   eu.seitzal.opentab.controllers.RESTController.getRandomPairings(id: Int)
 
 GET     /api/team                           eu.seitzal.opentab.controllers.RESTController.getTeam(id: Int)

@@ -626,6 +626,73 @@ class RESTController @Inject()(
     }
   }
 
+  def getDraw(tabid: Int, roundnumber: Int) = Action.async {
+    implicit request: Request[AnyContent] => {
+      implicit val ec = jdbcExecutionContext
+      Future {
+        val auth = request.headers.get("Authorization").map(verifyKey)
+        val tab = Tab(tabid)
+        val round = tab.round(roundnumber)
+        auth match {
+          case Some(keyData) => {
+            if (!keyData.found)
+              Unauthorized("Invalid API key")
+            else if (keyData.expired)
+              Unauthorized("API key has expired")
+            else if (tab.isPublic || userCanSeeTab(keyData.userid, tab))
+              Ok(json.write(round.draw)).as("application/json")
+            else
+              Forbidden("Permission denied")
+          }
+          case None => {
+            if (tab.isPublic)
+              Ok(json.write(round.draw)).as("application/json")
+            else
+              Unauthorized("Authorization required")
+          }
+        }
+      } recover {
+        case ex: NotFoundException => NotFound(ex.getMessage)
+        case ex: Throwable => InternalServerError(ex.getMessage)
+      }
+    }
+  }
+
+  def setDraw(tabid: Int, roundNumber: Int) = Action.async {
+    implicit request: Request[AnyContent] => {
+      implicit val ec = jdbcExecutionContext
+      Future {
+        val auth = request.headers.get("Authorization").map(verifyKey)
+        val tab = Tab(tabid)
+        auth match {
+          case Some(keyData) => {
+            if (!keyData.found)
+              Unauthorized("Invalid API key")
+            else if (keyData.expired)
+              Unauthorized("API key has expired")
+            else if (userCanSetupTab(keyData.userid, tab)) {
+              val round = tab.round(roundNumber)
+              val drawOpt = request.body.asJson.map(c => json.read[Draw](c.toString()))
+              drawOpt match {
+                case Some(draw) => {
+                  round.setDraw(draw)
+                  Ok(json.write(round.pairings))
+                }
+                case None =>
+                  BadRequest("Request body must contain JSON-formatted draw")
+              }
+            } else
+              Forbidden("Permission denied")
+          }
+          case None => Unauthorized("Authorization required")
+        }
+      } recover {
+        case ex: NotFoundException => NotFound(ex.getMessage)
+        case ex: Throwable => InternalServerError(ex.getMessage)
+      }
+    }
+  }
+
   def jsRouter() = Action.async { implicit request => Future {
     Ok(
       JavaScriptReverseRouter("routes")(
@@ -648,7 +715,9 @@ class RESTController @Inject()(
         routes.javascript.RESTController.getRound,
         routes.javascript.RESTController.getRounds,
         routes.javascript.RESTController.addRound,
-        routes.javascript.RESTController.deleteRound
+        routes.javascript.RESTController.deleteRound,
+        routes.javascript.RESTController.getDraw,
+        routes.javascript.RESTController.setDraw,
       )
     ).as(http.MimeTypes.JAVASCRIPT)
   }}
