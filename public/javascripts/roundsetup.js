@@ -5,6 +5,8 @@ let emptyBox = undefined;
 
 $("#navitem_rounds").addClass("text-light");
 $("#box_pairings").ready(loadTeams);
+
+$("#btn_save").click(saveAndExit);
 $("#btn_clear").click(() => {
   initTable();
   initTeams();
@@ -37,13 +39,34 @@ function drop(ev, el) {
   el.appendChild(document.getElementById(data));
 }
 
+function loadDraw() {
+  let req1 = rc.isDrawn(tabid, roundNumber);
+  req1.headers = {"Authorization": api_key};
+  req1.error = () => alert("Error checking draw status");
+  req1.success = isDrawn => {
+    if(isDrawn) {
+      let req2 = rc.getDraw(tabid, roundNumber);
+      req2.headers = {"Authorization": api_key};
+      req2.error = () => alert("Error loading draw");
+      req2.success = data => {
+        draw = data;
+        renderDraw();
+      }
+      $.ajax(req2);
+    } else {
+      initTable();
+      initTeams();
+    }
+  };
+  $.ajax(req1);
+}
+
 function loadTeams() {
   let req = rc.getAllTeams(tabid);
   req.headers = {"Authorization" : api_key};
   req.success = data => {
     teams = data.filter(team => team.active); 
-    initTable();
-    initTeams();
+    loadDraw();
   };
   req.error = () => alert("Error loading teams");
   $.ajax(req);
@@ -163,4 +186,19 @@ function checkDraw() {
   }
   draw = {pairings : newPairings, teamOnBye : newByeTeam};
   return true;
+}
+
+function saveAndExit() {
+  if (checkDraw()) {
+    let req = rc.setDraw(tabid, roundNumber)
+    req.headers = {"Authorization": api_key, "Content-Type": "application/json"}
+    req.data = JSON.stringify(draw);
+    req.success = () => {
+      window.location.href = encodeURI(app_location + "/tab/" + tabid + "/rounds");
+    }
+    req.error = () => alert("Error saving draw.");
+    $.ajax(req);
+  } else {
+    alert("Please assign all teams before saving the draw.");
+  }
 }

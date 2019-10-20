@@ -47,6 +47,26 @@ case class Round(
         }
       }
 
+    def drawOption(implicit database: Database) =
+      pairings.partition(p => p.teamidPro < 0 || p.teamidOpp < 0) match {
+        case (Nil, Nil) => {
+          None
+        }
+        case (byeEntry :: byeTail, otherEntries) => {
+          if (byeEntry.teamidPro < 0) {
+            Some(Draw(
+              otherEntries.map(entry => (entry.pro, entry.opp)), 
+              Some(byeEntry.opp)))
+          } else {
+            Some(Draw(otherEntries.map(entry => (entry.pro, entry.opp)), 
+            Some(byeEntry.pro)))
+          }
+        }
+        case (Nil, entries) => {
+          Some(Draw(entries.map(entry => (entry.pro, entry.opp)), None))
+        }
+      }
+
     def setDraw(draw: Draw)(implicit database: Database): Unit = {
       Pairing.deleteAllForRound(tabid, roundNumber)
       val tab = Tab(tabid)

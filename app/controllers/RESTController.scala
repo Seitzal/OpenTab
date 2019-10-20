@@ -626,13 +626,13 @@ class RESTController @Inject()(
     }
   }
 
-  def getDraw(tabid: Int, roundnumber: Int) = Action.async {
+  def getDraw(tabid: Int, roundNumber: Int) = Action.async {
     implicit request: Request[AnyContent] => {
       implicit val ec = jdbcExecutionContext
       Future {
         val auth = request.headers.get("Authorization").map(verifyKey)
         val tab = Tab(tabid)
-        val round = tab.round(roundnumber)
+        val round = tab.round(roundNumber)
         auth match {
           case Some(keyData) => {
             if (!keyData.found)
@@ -641,6 +641,38 @@ class RESTController @Inject()(
               Unauthorized("API key has expired")
             else if (tab.isPublic || userCanSeeTab(keyData.userid, tab))
               Ok(json.write(round.draw)).as("application/json")
+            else
+              Forbidden("Permission denied")
+          }
+          case None => {
+            if (tab.isPublic)
+              Ok(json.write(round.draw)).as("application/json")
+            else
+              Unauthorized("Authorization required")
+          }
+        }
+      } recover {
+        case ex: NotFoundException => NotFound(ex.getMessage)
+        case ex: Throwable => InternalServerError(ex.getMessage)
+      }
+    }
+  }
+
+  def isDrawn(tabid: Int, roundNumber: Int) = Action.async {
+    implicit request: Request[AnyContent] => {
+      implicit val ec = jdbcExecutionContext
+      Future {
+        val auth = request.headers.get("Authorization").map(verifyKey)
+        val tab = Tab(tabid)
+        val round = tab.round(roundNumber)
+        auth match {
+          case Some(keyData) => {
+            if (!keyData.found)
+              Unauthorized("Invalid API key")
+            else if (keyData.expired)
+              Unauthorized("API key has expired")
+            else if (tab.isPublic || userCanSeeTab(keyData.userid, tab))
+              Ok(json.write(round.drawOption.isDefined)).as("application/json")
             else
               Forbidden("Permission denied")
           }
@@ -718,6 +750,7 @@ class RESTController @Inject()(
         routes.javascript.RESTController.deleteRound,
         routes.javascript.RESTController.getDraw,
         routes.javascript.RESTController.setDraw,
+        routes.javascript.RESTController.isDrawn
       )
     ).as(http.MimeTypes.JAVASCRIPT)
   }}
