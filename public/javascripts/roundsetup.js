@@ -7,6 +7,7 @@ $("#navitem_rounds").addClass("text-light");
 $("#box_pairings").ready(loadTeams);
 
 $("#btn_save").click(saveAndExit);
+$("#btn_lock").click(saveLockAndExit);
 $("#btn_clear").click(() => {
   initTable();
   initTeams();
@@ -198,6 +199,29 @@ function saveAndExit() {
     }
     req.error = () => alert("Error saving draw.");
     $.ajax(req);
+  } else {
+    alert("Please assign all teams before saving the draw.");
+  }
+}
+
+function saveLockAndExit() {
+  if (checkDraw()) {
+    let req1 = rc.setDraw(tabid, roundNumber)
+    req1.headers = {"Authorization": api_key, "Content-Type": "application/json"}
+    req1.data = JSON.stringify(draw);
+    req1.success = () => {
+      let req2 = rc.lockRound(tabid, roundNumber)
+      req2.headers = {"Authorization": api_key}
+      req2.success = () => {
+        window.location.href = encodeURI(app_location + "/tab/" + tabid + "/rounds");
+      }
+      req2.error = (xhr, ajaxOptions, thrownError) => {
+        alert(xhr.responseText);
+      }
+      $.ajax(req2);
+    }
+    req1.error = () => alert("Error saving draw.");
+    $.ajax(req1);
   } else {
     alert("Please assign all teams before saving the draw.");
   }

@@ -39,7 +39,7 @@ function displayRounds(data) {
         tbodycontent += '<td class="bg-warning w-25">Unlocked</td>';
         if (canSetup) {
           tbodycontent += '<td><a class="btn btn-primary btn-block" href="' + encodeURI(app_location + "/tab/" + tabid + "/round/" + rounds[i].roundNumber + "/setup") + '">Set Up</a></td>'
-          tbodycontent += '<td><button class="btn btn-success btn-block">Lock</button></td>'
+          tbodycontent += '<td><button class="btn btn-success btn-block btn_round_lock" data-roundno="' + rounds[i].roundNumber + '">Lock</button></td>'
           tbodycontent += '<td><button class="btn btn-danger btn-block btn_round_delete" data-roundno="' + rounds[i].roundNumber + '">Delete</button></td>';
         } else tbodycontent += '<td></td><td></td><td></td>';
       }
@@ -48,6 +48,7 @@ function displayRounds(data) {
   }
   $("#tbody_rounds").html(tbodycontent);
   $(".btn_round_delete").click(deleteRound);
+  $(".btn_round_lock").click(lockRound);
 }
 
 function addRound() {
@@ -63,5 +64,15 @@ function deleteRound(event) {
   req.headers = {"Authorization" : api_key};
   req.success = loadRounds;
   req.error = () => alert("Error deleting round");
+  $.ajax(req);
+}
+
+function lockRound(event) {
+  let req = rc.lockRound(tabid, $(event.target).data("roundno"));
+  req.headers = {"Authorization": api_key}
+  req.success = loadRounds;
+  req.error = (xhr, ajaxOptions, thrownError) => {
+    alert(xhr.responseText);
+  }
   $.ajax(req);
 }

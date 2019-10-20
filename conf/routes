@@ -47,6 +47,8 @@ GET     /api/round                          eu.seitzal.opentab.controllers.RESTC
 POST    /api/round                          eu.seitzal.opentab.controllers.RESTController.addRound(tabid: Int)
 +nocsrf
 DELETE  /api/round                          eu.seitzal.opentab.controllers.RESTController.deleteRound(tabid: Int, roundnumber: Int)
++nocsrf
+PATCH   /api/round/lock                     eu.seitzal.opentab.controllers.RESTController.lockRound(tabid: Int, roundnumber: Int)
 
 GET     /api/draw/exists                    eu.seitzal.opentab.controllers.RESTController.isDrawn(tabid: Int, roundnumber: Int)
 

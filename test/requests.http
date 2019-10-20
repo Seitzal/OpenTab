@@ -134,7 +134,7 @@ firstname=Some
 # Round-level endpoints
 ############################################################
 
-@roundnumber = 1
+@roundnumber = 3
 
 ### Get round
 GET     {{host}}/api/round
@@ -149,6 +149,12 @@ Authorization: {{key}}
 
 ### Delete round
 DELETE  {{host}}/api/round
+          ?tabid={{tabid}}
+          &roundnumber={{roundnumber}}
+Authorization: {{key}}
+
+### Lock round
+PATCH   {{host}}/api/round/lock
           ?tabid={{tabid}}
           &roundnumber={{roundnumber}}
 Authorization: {{key}}

@@ -725,6 +725,34 @@ class RESTController @Inject()(
     }
   }
 
+  def lockRound(tabid: Int, roundNumber: Int) = Action.async {
+    implicit request: Request[AnyContent] => {
+      implicit val ec = jdbcExecutionContext
+      Future {
+        val auth = request.headers.get("Authorization").map(verifyKey)
+        val tab = Tab(tabid)
+        auth match {
+          case Some(keyData) => {
+            if (!keyData.found)
+              Unauthorized("Invalid API key")
+            else if (keyData.expired)
+              Unauthorized("API key has expired")
+            else if (userCanSetupTab(keyData.userid, tab)) {
+              val round = tab.round(roundNumber)
+              round.lock()
+              NoContent
+            } else
+              Forbidden("Permission denied")
+          }
+          case None => Unauthorized("Authorization required")
+        }
+      } recover {
+        case ex: NotFoundException => NotFound(ex.getMessage)
+        case ex: Throwable => InternalServerError(ex.getMessage)
+      }
+    }
+  }
+
   def jsRouter() = Action.async { implicit request => Future {
     Ok(
       JavaScriptReverseRouter("routes")(
@@ -750,7 +778,8 @@ class RESTController @Inject()(
         routes.javascript.RESTController.deleteRound,
         routes.javascript.RESTController.getDraw,
         routes.javascript.RESTController.setDraw,
-        routes.javascript.RESTController.isDrawn
+        routes.javascript.RESTController.isDrawn,
+        routes.javascript.RESTController.lockRound
       )
     ).as(http.MimeTypes.JAVASCRIPT)
   }}
