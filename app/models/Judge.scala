@@ -16,10 +16,15 @@ case class Judge (
 
   def delete()(implicit database: Database): Unit = {
     val connection = database.getConnection()
-    val queryText = "DELETE FROM judges WHERE id = ?"
+    val queryText = "DELETE FROM judge_clashes WHERE judgeid = ?"
     val query = connection.prepareStatement(queryText)
     query.setInt(1, id)
     query.executeUpdate()
+    val query2Text = "DELETE FROM judges WHERE id = ?"
+    val query2 = connection.prepareStatement(query2Text)
+    query2.setInt(1, id)
+    query2.executeUpdate()
+    connection.close()
   }
 
   def updateFirstName(newName: String)(implicit database: Database): Judge = {
@@ -105,7 +110,7 @@ case class Judge (
     val queryText = "SELECT * FROM judge_clashes WHERE judgeid = ? AND teamid = ?"
     val query = connection.prepareStatement(queryText)
     query.setInt(1, id)
-    query.setInt(1, team.id)
+    query.setInt(2, team.id)
     val queryResult = query.executeQuery()
     val query2Text = 
       if (queryResult.next())
@@ -125,7 +130,7 @@ case class Judge (
     val queryText = "SELECT * FROM judge_clashes WHERE judgeid = ? AND teamid = ?"
     val query = connection.prepareStatement(queryText)
     query.setInt(1, id)
-    query.setInt(1, team.id)
+    query.setInt(2, team.id)
     val queryResult = query.executeQuery()
     connection.close()
     if (queryResult.next())
@@ -192,7 +197,7 @@ object Judge {
     val query = connection.prepareStatement(queryText)
     query.setInt(1, tabid)
     query.setString(2, firstName)
-    query.setString(2, lastName)
+    query.setString(3, lastName)
     val queryResult = query.executeQuery()
     if (queryResult.next()) {
       connection.close()
@@ -212,7 +217,7 @@ object Judge {
       val query2 = connection.prepareStatement(query2Text)
       query2.setInt(1, tabid)
       query2.setString(2, firstName)
-      query2.setString(2, lastName)
+      query2.setString(3, lastName)
       val queryResult = query2.executeQuery()
       connection.close()
       if (queryResult.next()) {

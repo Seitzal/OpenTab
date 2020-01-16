@@ -40,6 +40,8 @@ GET     /api/tab/teams                      eu.seitzal.opentab.controllers.RESTC
 
 GET     /api/tab/speakers                   eu.seitzal.opentab.controllers.RESTController.getAllSpeakers(id: Int)
 
+GET     /api/tab/judges                     eu.seitzal.opentab.controllers.RESTController.getAllJudges(id: Int)
+
 GET     /api/tab/rounds                     eu.seitzal.opentab.controllers.RESTController.getRounds(id: Int)
 
 GET     /api/round                          eu.seitzal.opentab.controllers.RESTController.getRound(tabid: Int, roundnumber: Int)
@@ -79,6 +81,16 @@ POST    /api/speaker                        eu.seitzal.opentab.controllers.RESTC
 DELETE  /api/speaker                        eu.seitzal.opentab.controllers.RESTController.deleteSpeaker(id: Int)
 +nocsrf
 PATCH   /api/speaker                        eu.seitzal.opentab.controllers.RESTController.updateSpeaker(id: Int)
+
+GET     /api/judge                          eu.seitzal.opentab.controllers.RESTController.getJudge(id: Int)
++nocsrf
+POST    /api/judge                          eu.seitzal.opentab.controllers.RESTController.createJudge()
++nocsrf
+DELETE  /api/judge                          eu.seitzal.opentab.controllers.RESTController.deleteJudge(id: Int)
++nocsrf
+PATCH   /api/judge                          eu.seitzal.opentab.controllers.RESTController.updateJudge(id: Int)
++nocsrf
+PATCH   /api/judge/toggle                    eu.seitzal.opentab.controllers.RESTController.toggleJudge(id: Int)
 
 GET     /api/verifykey                      eu.seitzal.opentab.controllers.RESTController.remoteVerifyKey()
 

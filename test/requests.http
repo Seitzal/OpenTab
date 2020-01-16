@@ -37,6 +37,11 @@ GET     {{host}}/api/tab/speakers
           ?id={{tabid}}
 Authorization: {{key}}
 
+### Get all judges on tab
+GET     {{host}}/api/tab/judges
+          ?id={{tabid}}
+Authorization: {{key}}
+
 ### Get all rounds on tab
 GET     {{host}}/api/tab/rounds
           ?id={{tabid}}
@@ -129,6 +134,48 @@ Authorization: {{key}}
 firstname=Some
 &lastname=Dude
 &status=1
+
+############################################################
+# Judge-level endpoints
+############################################################
+
+@judgeid = 3
+
+### Get judge
+GET     {{host}}/api/judge
+          ?id={{judgeid}}
+Authorization: {{key}}
+
+### Register judge
+POST    {{host}}/api/judge
+Content-Type: application/x-www-form-urlencoded
+Authorization: {{key}}
+
+tabid={{tabid}}
+&firstname=Weird
+&lastname=Dinosaur
+&rating=4
+
+### Delete judge
+DELETE  {{host}}/api/judge
+          ?id={{judgeid}}
+Authorization: {{key}}
+
+
+### Update judge
+PATCH   {{host}}/api/judge
+          ?id={{judgeid}}
+Content-Type: application/x-www-form-urlencoded
+Authorization: {{key}}
+
+firstname=Pete
+&lastname=Professional
+&rating=10
+
+### Toggle judge
+PATCH   {{host}}/api/judge/toggle
+          ?id={{judgeid}}
+Authorization: {{key}}
 
 ############################################################
 # Round-level endpoints
