@@ -14,6 +14,8 @@ case class Tab (
 
   def teams(implicit database: Database) = Team.getAll(id)
 
+  def delegations(implicit database: Database) = teams.map(t => t.delegation).toSet.toList
+
   def speakers(implicit database: Database) = Speaker.getAll(id)
 
   def round(roundNumber: Int)(implicit database: Database) = Round(id, roundNumber)
