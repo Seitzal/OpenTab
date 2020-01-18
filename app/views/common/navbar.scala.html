@@ -1,12 +1,14 @@
 @import java.net.URLEncoder
 @import common._
 @import helper._
+@import play.api.db.Database
 @import play.api.Configuration
 @import eu.seitzal.opentab._
 @import shortcuts._
 @import models.Tab
+@import auth._
 
-@(config: Configuration, tab: Option[Tab] = None)(implicit request: RequestHeader)
+@(config: Configuration, db: Database, tab: Option[Tab] = None)(implicit request: RequestHeader)
 <nav class="navbar navbar-expand-lg bg-dark navbar-dark sticky-top">
   <a class="navbar-brand" href="@location(config)">
     @config.get[String]("brand")
@@ -29,6 +31,11 @@
         <li class="nav-item">
           <a class="nav-link" id="navitem_rounds" href="@location(config)/tab/@tab.get.id/rounds">Rounds</a>
         </li>
+        @if(loggedIn && userCanSetupTab(sessionUserId, tab.get.id)(db)) {
+          <li class="nav-item">
+            <a class="nav-link" id="navitem_judges" href="@location(config)/tab/@tab.get.id/judges">Judges</a>
+        </li>
+        }
       }
     </ul>
     <ul class="navbar-nav">

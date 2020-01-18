@@ -32,7 +32,7 @@ class TemplateController @Inject()(
 
   def renderIndex() = Action.async { implicit request: Request[AnyContent] =>
     Future {
-      Ok(views.html.index(config))
+      Ok(views.html.index(config, db))
     }
   }
 
@@ -41,7 +41,7 @@ class TemplateController @Inject()(
       if (loggedIn) {
         Redirect(location)
       } else {
-        Ok(views.html.login(config))
+        Ok(views.html.login(config, db))
       }
     }
   }

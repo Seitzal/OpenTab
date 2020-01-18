@@ -15,7 +15,7 @@
     <title>Teams - @tab.name - @config.get[String]("apptitle")</title>
   </head>
   <body>
-    @common.navbar(config, Some(tab))
+    @common.navbar(config, db, Some(tab))
     <ul class="nav nav-tabs mt-1 mb-1">
       @if(loggedIn && userCanSetupTab(sessionUserId, tab.id)(db)) {
         <li class="nav-item">

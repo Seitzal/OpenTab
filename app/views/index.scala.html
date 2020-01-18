@@ -1,10 +1,11 @@
 @import common._
 @import helper._
 @import play.api.Configuration
+@import play.api.db.Database
 @import eu.seitzal.opentab._
 @import eu.seitzal.opentab.shortcuts._
 
-@(config: Configuration)(implicit request: RequestHeader)
+@(config: Configuration, db: Database)(implicit request: RequestHeader)
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -12,7 +13,7 @@
     <title>@config.get[String]("apptitle")</title>
   </head>
   <body>
-    @common.navbar(config)
+    @common.navbar(config, db)
     <div class="col-md-10 m-auto">
       <div class="container-fluid p-2 m-md-2">
         @if(loggedIn) {

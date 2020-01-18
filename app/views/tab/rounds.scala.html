@@ -15,7 +15,7 @@
     <title>Rounds - @tab.name - @config.get[String]("apptitle")</title>
   </head>
   <body>
-    @common.navbar(config, Some(tab))
+    @common.navbar(config, db, Some(tab))
     <div class="container mt-2 mr-auto ml-auto table-responsive">
       <table class="table table-bordered table-hover" id="table_rounds">
         <thead class="thead-light">
