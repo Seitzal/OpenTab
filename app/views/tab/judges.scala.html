@@ -1,0 +1,118 @@
+@import common._
+@import helper._
+@import play.api.Configuration
+@import play.api.db.Database
+@import eu.seitzal.opentab._
+@import shortcuts._
+@import models.Tab
+@import auth._
+
+@(tab: Tab, config: Configuration, db: Database)(implicit request: RequestHeader)
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    @common.head(config)
+    <title>Judges - @tab.name - @config.get[String]("apptitle")</title>
+  </head>
+  <body>
+    @common.navbar(config, Some(tab))
+    <ul class="nav nav-tabs mt-1 mb-1">
+      @if(loggedIn && userCanSetupTab(sessionUserId, tab.id)(db)) {
+        <li class="nav-item">
+          <a class="nav-link active" data-toggle="tab" href="#tab_editjudges">View/Edit Judges</a>
+        </li>
+      }
+    </ul>
+
+    <div class="tab-content">
+      @if(loggedIn && userCanSetupTab(sessionUserId, tab.id)(db)) {
+        <div class="tab-pane container-fluid active" id="tab_editjudges">
+          <div id="accordion_editjudges">
+            <div class="card">
+              <div class="card-header p-1">
+                <a class="card-link blocklink" data-toggle="collapse" href="#card1_editjudges">
+                  Add New
+                </a>
+              </div>
+              <div id="card1_editjudges" class="collapse show" data-parent="#accordion_editjudges">
+                <div class="card-body">
+                  <form class="form-inline">
+                    <div class="input-group m-1">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text">First Name</span>
+                      </div>
+                      <input id="input_addjudge_firstname" type="text" class="form-control" size="20">
+                    </div>
+                    <div class="input-group m-1">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text">Last Name</span>
+                      </div>
+                      <input id="input_addjudge_lastname" type="text" class="form-control" size="20">
+                    </div>
+                    <div class="input-group m-1">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text">Delegation</span>
+                      </div>
+                      <select id="input_addjudge_delegation" class="custom-select">
+                      </select>
+                    </div>
+                    <div class="input-group m-1">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text">Rating</span>
+                      </div>
+                      <input id="input_addjudge_rating" class="rating-input" type="number" value="3" min="1" max="10" step="1" size="3"/>
+                    </div>
+                    <input type="submit" value="Submit" id="btn_addjudge_submit" class="btn btn-primary m-1" disabled>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="container_table_editjudges" class="table-responsive-lg mt-1">
+          </div>
+        </div>
+      }
+    </div>
+  
+    @if(loggedIn && userCanSetupTab(sessionUserId, tab.id)(db)) {
+      <div class="modal" id="modal_editjudge">
+        <div class="modal-dialog modal-dialog-centered modal-dialogue-scrollable">
+          <div class="modal-content">
+            <form>
+              <div class="modal-header">
+                <h4 class="modal-title">Edit Judge</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+              </div>
+              <div class="modal-body">
+                  <div class="form-group">
+                    <label for="input_editjudge_id">ID:</label>
+                    <input type="text" class="form-control" id="input_editspeaker_id" readonly>
+                  </div>
+                  <div class="form-group">
+                    <label for="input_editjudge_firstname">First Name:</label>
+                    <input type="text" class="form-control" id="input_editjudge_firstname">
+                  </div>
+                  <div class="form-group">
+                    <label for="input_editjudge_lastname">Last Name:</label>
+                    <input type="text" class="form-control" id="input_editjudge_lastname">
+                  </div>
+                  <div class="form-group">
+                    <label for="input_editjudge_rating">Rating:</label>
+                    <input id="input_editjudge_rating" class="rating-input" type="number" value="5" min="0" max="10" step="1" size="3"/>
+                  </div>
+              </div>
+              <div class="modal-footer">
+                <input id="btn_editjudge_submit" type="submit" value="Update" class="btn btn-primary">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    }
+
+    @common.scripts(config, Some(db), Some(tab))
+    <script src="@routes.Assets.versioned("javascripts/main.js")" type="text/javascript"></script>
+    <script src="@routes.Assets.versioned("javascripts/judges.js")" type="text/javascript"></script>
+  </body>
+</html>

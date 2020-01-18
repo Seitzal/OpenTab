@@ -133,6 +133,38 @@ class RESTController @Inject()(
     }
   }
 
+  def getAllDelegations(tabid: Int) = Action.async {
+    implicit request: Request[AnyContent] => {
+      implicit val ec = jdbcExecutionContext
+      Future {
+        val auth = request.headers.get("Authorization").map(verifyKey)
+        val tab = Tab(tabid)
+        val delegations = tab.delegations
+        auth match {
+          case Some(keyData) => {
+            if (!keyData.found)
+              Unauthorized("Invalid API key")
+            else if (keyData.expired)
+              Unauthorized("API key has expired")
+            else if (tab.isPublic || userCanSeeTab(keyData.userid, tab))
+              Ok(json.write(delegations)).as("application/json")
+            else
+              Forbidden("Permission denied")
+          }
+          case None => {
+            if (tab.isPublic)
+              Ok(json.write(delegations)).as("application/json")
+            else
+              Unauthorized("Authorization required")
+          }
+        }
+      } recover {
+        case ex: NotFoundException => NotFound(ex.getMessage)
+        case ex: Throwable => InternalServerError(ex.getMessage)
+      }
+    }
+  }
+
   def getTeam(id: Int) = Action.async {implicit request: Request[AnyContent] =>
     implicit val ec = jdbcExecutionContext
     Future {
@@ -1064,6 +1096,7 @@ class RESTController @Inject()(
         routes.javascript.RESTController.getAllTabs,
         routes.javascript.RESTController.getTab,
         routes.javascript.RESTController.getAllTeams,
+        routes.javascript.RESTController.getAllDelegations,
         routes.javascript.RESTController.getTeam,
         routes.javascript.RESTController.createTeam,
         routes.javascript.RESTController.deleteTeam,
@@ -1084,7 +1117,16 @@ class RESTController @Inject()(
         routes.javascript.RESTController.setDraw,
         routes.javascript.RESTController.isDrawn,
         routes.javascript.RESTController.lockRound,
-        routes.javascript.RESTController.unlockRound
+        routes.javascript.RESTController.unlockRound,
+        routes.javascript.RESTController.getAllJudges,
+        routes.javascript.RESTController.getJudge,
+        routes.javascript.RESTController.createJudge,
+        routes.javascript.RESTController.updateJudge,
+        routes.javascript.RESTController.toggleJudge,
+        routes.javascript.RESTController.deleteJudge,
+        routes.javascript.RESTController.getClashesForJudge,
+        routes.javascript.RESTController.setClash,
+        routes.javascript.RESTController.unsetClash
       )
     ).as(http.MimeTypes.JAVASCRIPT)
   }}

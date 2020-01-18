@@ -11,6 +11,7 @@
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.4/umd/popper.min.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="@routes.Assets.versioned("javascripts/third-party/bootstrap-input-spinner.js")"></script>
 <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
 @if(config.get[String]("theme") == "material") {
@@ -31,3 +32,6 @@
 }
 <script>app_location = '@location(config)';</script>
 <script type="text/javascript" src="@location(config)/api/routes.js"></script>
+<script>
+    $("input[type='number']").inputSpinner();
+</script>

@@ -14,6 +14,8 @@ GET     /tab/:tabid/teams                       eu.seitzal.opentab.controllers.T
 
 GET     /tab/:tabid/speakers                    eu.seitzal.opentab.controllers.TemplateController.renderSpeakers(tabid: Int, team: Option[String])
 
+GET     /tab/:tabid/judges                      eu.seitzal.opentab.controllers.TemplateController.renderJudges(tabid: Int)
+
 GET     /tab/:tabid/rounds                      eu.seitzal.opentab.controllers.TemplateController.renderRounds(tabid: Int)
 
 GET     /tab/:tabid/round/:roundnumber/setup    eu.seitzal.opentab.controllers.TemplateController.renderRoundSetup(tabid: Int, roundnumber: Int)
@@ -37,6 +39,8 @@ GET     /api/tabs                           eu.seitzal.opentab.controllers.RESTC
 GET     /api/tab                            eu.seitzal.opentab.controllers.RESTController.getTab(id: Int)
 
 GET     /api/tab/teams                      eu.seitzal.opentab.controllers.RESTController.getAllTeams(id: Int)
+
+GET     /api/tab/delegations                eu.seitzal.opentab.controllers.RESTController.getAllDelegations(id: Int)
 
 GET     /api/tab/speakers                   eu.seitzal.opentab.controllers.RESTController.getAllSpeakers(id: Int)
 

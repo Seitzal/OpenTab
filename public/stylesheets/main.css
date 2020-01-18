@@ -47,3 +47,7 @@ table.dataTable.no-footer {
   height: 40px;
 }
 
+.rating-input {
+  width: 35pt !important;
+}
+

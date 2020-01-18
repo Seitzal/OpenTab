@@ -32,6 +32,11 @@ GET     {{host}}/api/tab/teams
           ?id={{tabid}}
 Authorization: {{key}}
 
+### Get all delegations on tab
+GET     {{host}}/api/tab/delegations
+          ?id={{tabid}}
+Authorization: {{key}}
+
 ### Get all speakers on tab
 GET     {{host}}/api/tab/speakers
           ?id={{tabid}}
@@ -139,7 +144,7 @@ firstname=Some
 # Judge-level endpoints
 ############################################################
 
-@judgeid = 3
+@judgeid = 6
 
 ### Get judge
 GET     {{host}}/api/judge
@@ -152,9 +157,9 @@ Content-Type: application/x-www-form-urlencoded
 Authorization: {{key}}
 
 tabid={{tabid}}
-&firstname=Weird
-&lastname=Dinosaur
-&rating=4
+&firstname=English
+&lastname=Teacher
+&rating=3
 
 ### Delete judge
 DELETE  {{host}}/api/judge
@@ -168,9 +173,9 @@ PATCH   {{host}}/api/judge
 Content-Type: application/x-www-form-urlencoded
 Authorization: {{key}}
 
-firstname=Pete
-&lastname=Professional
-&rating=10
+firstname=Good
+&lastname=Judge
+&rating=7
 
 ### Toggle judge
 PATCH   {{host}}/api/judge/toggle
