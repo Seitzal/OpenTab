@@ -57,7 +57,7 @@ Authorization: {{key}}
 # Team-level endpoints
 ############################################################
 
-@teamid = 70
+@teamid = 108
 
 ### Get team
 GET     {{host}}/api/team
@@ -175,6 +175,24 @@ firstname=Pete
 ### Toggle judge
 PATCH   {{host}}/api/judge/toggle
           ?id={{judgeid}}
+Authorization: {{key}}
+
+### Get clashes for judge
+GET     {{host}}/api/judge/clashes
+          ?id={{judgeid}}
+Authorization: {{key}}
+
+### Set clash
+POST    {{host}}/api/judge/clash
+          ?judgeid={{judgeid}}
+          &teamid={{teamid}}
+          &level=10
+Authorization: {{key}}
+
+### Unset clash
+DELETE  {{host}}/api/judge/clash
+          ?judgeid={{judgeid}}
+          &teamid={{teamid}}
 Authorization: {{key}}
 
 ############################################################

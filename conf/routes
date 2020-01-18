@@ -90,7 +90,13 @@ DELETE  /api/judge                          eu.seitzal.opentab.controllers.RESTC
 +nocsrf
 PATCH   /api/judge                          eu.seitzal.opentab.controllers.RESTController.updateJudge(id: Int)
 +nocsrf
-PATCH   /api/judge/toggle                    eu.seitzal.opentab.controllers.RESTController.toggleJudge(id: Int)
+PATCH   /api/judge/toggle                   eu.seitzal.opentab.controllers.RESTController.toggleJudge(id: Int)
+
+GET     /api/judge/clashes                  eu.seitzal.opentab.controllers.RESTController.getClashesForJudge(id: Int)
++nocsrf
+POST    /api/judge/clash                    eu.seitzal.opentab.controllers.RESTController.setClash(judgeid: Int, teamid: Int, level: Int)
++nocsrf
+DELETE  /api/judge/clash                    eu.seitzal.opentab.controllers.RESTController.unsetClash(judgeid: Int, teamid: Int)            
 
 GET     /api/verifykey                      eu.seitzal.opentab.controllers.RESTController.remoteVerifyKey()
 

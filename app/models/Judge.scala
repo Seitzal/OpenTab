@@ -125,6 +125,16 @@ case class Judge (
     connection.close()
   }
 
+  def unsetClash(team: Team)(implicit database: Database): Unit = {
+    val connection = database.getConnection()
+    val queryText = "DELETE FROM judge_clashes WHERE judgeid = ? AND teamid = ?"
+    val query = connection.prepareStatement(queryText)
+    query.setInt(1, id)
+    query.setInt(2, team.id)
+    query.executeUpdate()
+    connection.close()
+  }
+
   def clash(team: Team)(implicit database: Database): Int = {
     val connection = database.getConnection()
     val queryText = "SELECT * FROM judge_clashes WHERE judgeid = ? AND teamid = ?"

@@ -969,6 +969,94 @@ class RESTController @Inject()(
     }
   }
 
+  def getClashesForJudge(id: Int) = Action.async {implicit request: Request[AnyContent] =>
+    implicit val ec = jdbcExecutionContext
+    Future {
+      val auth = request.headers.get("Authorization").map(verifyKey)
+      val judge = Judge(id)
+      val tab = Tab(judge.tabid)
+      val clashes = judge.clashes
+      auth match {
+        case Some(keyData) => {
+          if (!keyData.found)
+            Unauthorized("Invalid API key")
+          else if (keyData.expired)
+            Unauthorized("API key has expired")
+          else if (userCanSetupTab(keyData.userid, tab)) {
+            Ok(json.write(clashes)).as("application/json")
+          } else
+            Forbidden("Permission denied")
+        }
+        case None => Unauthorized("Authorization required")
+      }
+    } recover {
+      case ex: NotFoundException => NotFound(ex.getMessage)
+      case ex: Throwable => InternalServerError(ex.getMessage)
+    }
+  }
+
+  def setClash(judgeid: Int, teamid: Int, level: Int) = Action.async {implicit request: Request[AnyContent] =>
+    implicit val ec = jdbcExecutionContext
+    Future {
+      val auth = request.headers.get("Authorization").map(verifyKey)
+      val judge = Judge(judgeid)
+      val team = Team(teamid)
+      val tab = Tab(judge.tabid)
+      auth match {
+        case Some(keyData) => {
+          if (!keyData.found)
+            Unauthorized("Invalid API key")
+          else if (keyData.expired)
+            Unauthorized("API key has expired")
+          else if (userCanSetupTab(keyData.userid, tab)) {
+            if(judge.tabid == team.tabid) {
+              judge.setClash(team, level)
+              NoContent
+            } else {
+              Forbidden("Judge and team must be on the same tab")
+            }
+          } else
+            Forbidden("Permission denied")
+        }
+        case None => Unauthorized("Authorization required")
+      }
+    } recover {
+      case ex: NotFoundException => NotFound(ex.getMessage)
+      case ex: Throwable => InternalServerError(ex.getMessage)
+    }
+  }
+
+  def unsetClash(judgeid: Int, teamid: Int) = Action.async {implicit request: Request[AnyContent] =>
+    implicit val ec = jdbcExecutionContext
+    Future {
+      val auth = request.headers.get("Authorization").map(verifyKey)
+      val judge = Judge(judgeid)
+      val team = Team(teamid)
+      val tab = Tab(judge.tabid)
+      auth match {
+        case Some(keyData) => {
+          if (!keyData.found)
+            Unauthorized("Invalid API key")
+          else if (keyData.expired)
+            Unauthorized("API key has expired")
+          else if (userCanSetupTab(keyData.userid, tab)) {
+            if(judge.tabid == team.tabid) {
+              judge.unsetClash(team)
+              NoContent
+            } else {
+              Forbidden("Judge and team must be on the same tab")
+            }
+          } else
+            Forbidden("Permission denied")
+        }
+        case None => Unauthorized("Authorization required")
+      }
+    } recover {
+      case ex: NotFoundException => NotFound(ex.getMessage)
+      case ex: Throwable => InternalServerError(ex.getMessage)
+    }
+  }
+
   def jsRouter() = Action.async { implicit request => Future {
     Ok(
       JavaScriptReverseRouter("routes")(
