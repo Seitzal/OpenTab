@@ -144,7 +144,7 @@ firstname=Some
 # Judge-level endpoints
 ############################################################
 
-@judgeid = 6
+@judgeid = 14
 
 ### Get judge
 GET     {{host}}/api/judge

@@ -84,92 +84,91 @@ function displayJudges(data) {
     dtableOptions["search"] = searchterm_editjudges;
   }
   dtable_editjudges = $('#table_editjudges').DataTable(dtableOptions);
-  // $(".btn_judge_delete").click(deleteJudge);
-  // $(".btn_judge_edit").click(showModalEditJudge);
+  $(".btn_judge_delete").click(deleteJudge);
+  $(".btn_judge_edit").click(showModalEditJudge);
 }
 
-/*
-function storeTableStateEditSpeakers() {
-  ordering_editspeakers = dtable_editspeakers.order();
-  searchterm_editspeakers = dtable_editspeakers.search();
+function storeTableStateEditJudges() {
+  ordering_editjudges = dtable_editjudges.order();
+  searchterm_editjudges = dtable_editjudges.search();
 }
 
-function addSpeaker() {
-  let firstname = $("#input_addspeaker_firstname").val();
-  let lastname = $("#input_addspeaker_lastname").val();
-  let teamid = $("#input_addspeaker_team option:selected").val();
-  let status = $("#input_addspeaker_lstatus option:selected").val();
+function addJudge() {
+  let firstname = $("#input_addjudge_firstname").val();
+  let lastname = $("#input_addjudge_lastname").val();
+  let delegation = $("#input_addjudge_delegation option:selected").val();
+  let rating = $("#input_addjudge_rating").val();
   if (firstname == "") {
-    $("#input_addspeaker_firstname").addClass("is-invalid");
+    $("#input_addjudge_firstname").addClass("is-invalid");
   } else if (lastname == "") {
-    $("#input_addspeaker_lastname").addClass("is-invalid");
+    $("#input_addjudge_lastname").addClass("is-invalid");
   } else {
-    let req = rc.createSpeaker();
+    let req = rc.createJudge();
     req.headers = {"Authorization" : api_key};
     req.data = {
-      teamid      : teamid,
+      tabid       : tabid,
       firstname   : firstname,
       lastname    : lastname,
-      status      : status
+      rating      : rating
     };
+    if (delegation != "!!!NONE")
+      req.data.delegation = delegation
     req.success = () => {
-      storeTableStateEditSpeakers();
-      $("#input_addspeaker_firstname").val("");
-      $("#input_addspeaker_lastname").val("");
-      $("#input_addspeaker_firstname").focus();
-      loadSpeakers();
+      storeTableStateEditJudges();
+      $("#input_addjudge_firstname").val("");
+      $("#input_addjudge_lastname").val("");
+      $("#input_addjudge_firstname").focus();
+      loadJudges();
     };
-    req.error = () => alert("Error adding speaker");
+    req.error = () => alert("Error adding judge");
     $.ajax(req);
   }
 }
 
-function deleteSpeaker(event) {
-  let req = rc.deleteSpeaker($(event.target).data("speakerid"));
+function deleteJudge(event) {
+  let req = rc.deleteJudge($(event.target).data("judgeid"));
   req.headers = {"Authorization" : api_key};
   req.success = () => {
-    storeTableStateEditSpeakers();
-    loadSpeakers();
+    storeTableStateEditJudges();
+    loadJudges();
   };
-  req.error = () => alert("Error removing speaker");
+  req.error = () => alert("Error removing judge");
   $.ajax(req);
 }
 
-function showModalEditSpeaker(event) {
-  const speaker = speakers[$(event.target).data("speakerindex")];
-  $("#input_editspeaker_id").val(speaker.id);
-  $("#input_editspeaker_team").val(speaker.team);
-  $("#input_editspeaker_firstname").val(speaker.firstName);
-  $("#input_editspeaker_lastname").val(speaker.lastName);
-  $("#input_editspeaker_lstatus").val(speaker.status);
-  $("#modal_editspeaker").modal({keyboard: true});
-  $("#input_editspeaker_firstname").focus();
+function showModalEditJudge(event) {
+  const judge = judges[$(event.target).data("judgeindex")];
+  $("#input_editjudge_id").val(judge.id);
+  $("#input_editjudge_firstname").val(judge.firstName);
+  $("#input_editjudge_lastname").val(judge.lastName);
+  $("#input_editjudge_rating").val(judge.rating);
+  $("#modal_editjudge").modal({keyboard: true});
+  $("#input_editjudge_firstname").focus();
 }
 
-function editSpeaker() {
-  let id = $("#input_editspeaker_id").val();
-  let firstname = $("#input_editspeaker_firstname").val();
-  let lastname = $("#input_editspeaker_lastname").val();
-  let status = $("#input_editspeaker_lstatus option:selected").val();
+function editJudge() {
+  let id = $("#input_editjudge_id").val();
+  let firstname = $("#input_editjudge_firstname").val();
+  let lastname = $("#input_editjudge_lastname").val();
+  let rating = $("#input_editjudge_rating").val();
   if (firstname == "") {
-    $("#input_editspeaker_firstname").addClass("is-invalid");
+    $("#input_editjudge_firstname").addClass("is-invalid");
   } else if (lastname == "") {
-    $("#input_editspeaker_lastname").addClass("is-invalid");
+    $("#input_editjudge_lastname").addClass("is-invalid");
   } else {
-    let req = rc.updateSpeaker(id);
+    let req = rc.updateJudge(id);
     req.headers = {"Authorization" : api_key};
     req.data = {
       firstname   : firstname,
       lastname    : lastname,
-      status      : status
+      rating      : rating
     };
     req.success = () => {
-      storeTableStateEditSpeakers();
-      $("#modal_editspeaker").modal("hide");
-      loadSpeakers();
+      storeTableStateEditJudges();
+      $("#modal_editjudge").modal("hide");
+      loadJudges();
     };
-    req.error = () => alert("Error updating speaker");
+    req.error = () => alert("Error updating judge");
     $.ajax(req);
   }
 }
-*/
