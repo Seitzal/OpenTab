@@ -32,8 +32,18 @@ GET     {{host}}/api/tab/teams
           ?id={{tabid}}
 Authorization: {{key}}
 
+### Get all delegations on tab
+GET     {{host}}/api/tab/delegations
+          ?id={{tabid}}
+Authorization: {{key}}
+
 ### Get all speakers on tab
 GET     {{host}}/api/tab/speakers
+          ?id={{tabid}}
+Authorization: {{key}}
+
+### Get all judges on tab
+GET     {{host}}/api/tab/judges
           ?id={{tabid}}
 Authorization: {{key}}
 
@@ -52,7 +62,7 @@ Authorization: {{key}}
 # Team-level endpoints
 ############################################################
 
-@teamid = 70
+@teamid = 108
 
 ### Get team
 GET     {{host}}/api/team
@@ -129,6 +139,66 @@ Authorization: {{key}}
 firstname=Some
 &lastname=Dude
 &status=1
+
+############################################################
+# Judge-level endpoints
+############################################################
+
+@judgeid = 14
+
+### Get judge
+GET     {{host}}/api/judge
+          ?id={{judgeid}}
+Authorization: {{key}}
+
+### Register judge
+POST    {{host}}/api/judge
+Content-Type: application/x-www-form-urlencoded
+Authorization: {{key}}
+
+tabid={{tabid}}
+&firstname=English
+&lastname=Teacher
+&rating=3
+
+### Delete judge
+DELETE  {{host}}/api/judge
+          ?id={{judgeid}}
+Authorization: {{key}}
+
+
+### Update judge
+PATCH   {{host}}/api/judge
+          ?id={{judgeid}}
+Content-Type: application/x-www-form-urlencoded
+Authorization: {{key}}
+
+firstname=Good
+&lastname=Judge
+&rating=7
+
+### Toggle judge
+PATCH   {{host}}/api/judge/toggle
+          ?id={{judgeid}}
+Authorization: {{key}}
+
+### Get clashes for judge
+GET     {{host}}/api/judge/clashes
+          ?id={{judgeid}}
+Authorization: {{key}}
+
+### Set clash
+POST    {{host}}/api/judge/clash
+          ?judgeid={{judgeid}}
+          &teamid={{teamid}}
+          &level=10
+Authorization: {{key}}
+
+### Unset clash
+DELETE  {{host}}/api/judge/clash
+          ?judgeid={{judgeid}}
+          &teamid={{teamid}}
+Authorization: {{key}}
 
 ############################################################
 # Round-level endpoints

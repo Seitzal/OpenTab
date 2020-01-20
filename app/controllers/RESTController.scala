@@ -133,6 +133,38 @@ class RESTController @Inject()(
     }
   }
 
+  def getAllDelegations(tabid: Int) = Action.async {
+    implicit request: Request[AnyContent] => {
+      implicit val ec = jdbcExecutionContext
+      Future {
+        val auth = request.headers.get("Authorization").map(verifyKey)
+        val tab = Tab(tabid)
+        val delegations = tab.delegations
+        auth match {
+          case Some(keyData) => {
+            if (!keyData.found)
+              Unauthorized("Invalid API key")
+            else if (keyData.expired)
+              Unauthorized("API key has expired")
+            else if (tab.isPublic || userCanSeeTab(keyData.userid, tab))
+              Ok(json.write(delegations)).as("application/json")
+            else
+              Forbidden("Permission denied")
+          }
+          case None => {
+            if (tab.isPublic)
+              Ok(json.write(delegations)).as("application/json")
+            else
+              Unauthorized("Authorization required")
+          }
+        }
+      } recover {
+        case ex: NotFoundException => NotFound(ex.getMessage)
+        case ex: Throwable => InternalServerError(ex.getMessage)
+      }
+    }
+  }
+
   def getTeam(id: Int) = Action.async {implicit request: Request[AnyContent] =>
     implicit val ec = jdbcExecutionContext
     Future {
@@ -781,6 +813,282 @@ class RESTController @Inject()(
     }
   }
 
+  def getAllJudges(tabid: Int) = Action.async {
+    implicit request: Request[AnyContent] => {
+      implicit val ec = jdbcExecutionContext
+      Future {
+        val auth = request.headers.get("Authorization").map(verifyKey)
+        val tab = Tab(tabid)
+        val judges = tab.judges
+        auth match {
+          case Some(keyData) => {
+            if (!keyData.found)
+              Unauthorized("Invalid API key")
+            else if (keyData.expired)
+              Unauthorized("API key has expired")
+            else if (tab.isPublic || userCanSetupTab(keyData.userid, tab))
+              Ok(json.write(judges)).as("application/json")
+            else
+              Forbidden("Permission denied")
+          }
+          case None => Unauthorized("Authorization required")
+        }
+      } recover {
+        case ex: NotFoundException => NotFound(ex.getMessage)
+        case ex: Throwable => InternalServerError(ex.getMessage)
+      }
+    }
+  }
+
+  def getJudge(id: Int) = Action.async {implicit request: Request[AnyContent] =>
+    implicit val ec = jdbcExecutionContext
+    Future {
+      val auth = request.headers.get("Authorization").map(verifyKey)
+      auth match {
+        case Some(keyData) => {
+          if (!keyData.found)
+            Unauthorized("Invalid API key")
+          else if (keyData.expired)
+            Unauthorized("API key has expired")
+          else {
+            val judge = Judge(id)
+            val tab = Tab(judge.tabid)
+            if (tab.isPublic || userCanSetupTab(keyData.userid, tab))
+              Ok(json.write(judge)).as("application/json")
+            else
+              Forbidden("Permission denied")
+          }
+        }
+        case None => Unauthorized("Authorization required")
+      }
+    } recover {
+      case ex: NotFoundException => NotFound(ex.getMessage)
+      case ex: Throwable => InternalServerError(ex.getMessage)
+    }
+  }
+
+  def createJudge() = Action.async(parse.formUrlEncoded) {
+    implicit request: Request[Map[String,Seq[String]]] => {
+      implicit val ec = jdbcExecutionContext
+      Future {
+        val auth = request.headers.get("Authorization").map(verifyKey)
+        val formData = request.body
+        auth match {
+          case Some(keyData) => {
+            if (!keyData.found)
+              Unauthorized("Invalid API key")
+            else if (keyData.expired)
+              Unauthorized("API key has expired")
+            else formData.get("tabid").map(seq => Tab(seq(0).toInt)) match {
+              case Some(tab) => {
+                if (userCanSetupTab(keyData.userid, tab.id)) {
+                  val firstNameOpt = formData.get("firstname").map(seq => seq(0))
+                  val lastNameOpt = formData.get("lastname").map(seq => seq(0))
+                  val delegOpt = formData.get("delegation").map(seq => seq(0))
+                  val ratingOpt = formData.get("rating").map(seq => seq(0).toInt)
+                  (firstNameOpt, lastNameOpt, ratingOpt) match {
+                    case (Some(firstName), Some(lastName), Some(rating)) => {
+                      val newJudge = Judge.create(tab.id, firstName, lastName, rating)
+                      delegOpt match {
+                        case Some(delegation) => {
+                          tab.teams.filter(t => t.delegation == delegation).foreach(
+                            team => newJudge.setClash(team, 10)
+                          )
+                        }
+                        case _ => {}
+                      }
+                      Ok(json.write(newJudge)).as("application/json")
+                    }
+                    case _ => BadRequest("Invalid post data")
+                  }
+                } else {
+                  Forbidden("Permission denied")
+                }
+              }
+              case None => BadRequest("No tab ID specified")
+            }
+          }
+          case None => Unauthorized("Authorization required")
+        }
+      } recover {
+        case ex: NotFoundException => NotFound(ex.getMessage)
+        case ex: Throwable => InternalServerError(ex.getMessage)
+      }
+    }
+  }
+
+  def deleteJudge(id: Int) = Action.async {implicit request: Request[AnyContent] =>
+    implicit val ec = jdbcExecutionContext
+    Future {
+      val auth = request.headers.get("Authorization").map(verifyKey)
+      val judge = Judge(id)
+      val tab = Tab(judge.tabid)
+      auth match {
+        case Some(keyData) => {
+          if (!keyData.found)
+            Unauthorized("Invalid API key")
+          else if (keyData.expired)
+            Unauthorized("API key has expired")
+          else if (userCanSetupTab(keyData.userid, tab)) {
+            judge.delete()
+            NoContent
+          } else
+            Forbidden("Permission denied")
+        }
+        case None => Unauthorized("Authorization required")
+      }
+    } recover {
+      case ex: NotFoundException => NotFound(ex.getMessage)
+      case ex: Throwable => InternalServerError(ex.getMessage)
+    }
+  }
+
+  def updateJudge(id: Int) = Action.async(parse.formUrlEncoded) {
+    implicit request: Request[Map[String,Seq[String]]] => {
+      implicit val ec = jdbcExecutionContext
+      Future {
+        val auth = request.headers.get("Authorization").map(verifyKey)
+        val judge = Judge(id)
+        val tab = Tab(judge.tabid)
+        auth match {
+          case Some(keyData) => {
+            if (!keyData.found)
+              Unauthorized("Invalid API key")
+            else if (keyData.expired)
+              Unauthorized("API key has expired")
+            else if (userCanSetupTab(keyData.userid, tab)) {
+              val formData = request.body
+              val newJudge = judge.update(
+                formData.get("firstname").map(seq => seq(0)),
+                formData.get("lastname").map(seq => seq(0)),
+                formData.get("rating").map(seq => seq(0).toInt))
+              Ok(json.write(newJudge)).as("application/json")
+            } else
+              Forbidden("Permission denied")
+          }
+          case None => Unauthorized("Authorization required")
+        }
+      } recover {
+        case ex: NotFoundException => NotFound(ex.getMessage)
+        case ex: Throwable => InternalServerError(ex.getMessage)
+      }
+    }
+  }
+
+  def toggleJudge(id: Int) = Action.async {implicit request: Request[AnyContent] =>
+    implicit val ec = jdbcExecutionContext
+    Future {
+      val auth = request.headers.get("Authorization").map(verifyKey)
+      val judge = Judge(id)
+      val tab = Tab(judge.tabid)
+      auth match {
+        case Some(keyData) => {
+          if (!keyData.found)
+            Unauthorized("Invalid API key")
+          else if (keyData.expired)
+            Unauthorized("API key has expired")
+          else if (userCanSetupTab(keyData.userid, tab)) {
+            val newJudge = judge.toggleActive()
+            Ok(json.write(newJudge)).as("application/json")
+          } else
+            Forbidden("Permission denied")
+        }
+        case None => Unauthorized("Authorization required")
+      }
+    } recover {
+      case ex: NotFoundException => NotFound(ex.getMessage)
+      case ex: Throwable => InternalServerError(ex.getMessage)
+    }
+  }
+
+  def getClashesForJudge(id: Int) = Action.async {implicit request: Request[AnyContent] =>
+    implicit val ec = jdbcExecutionContext
+    Future {
+      val auth = request.headers.get("Authorization").map(verifyKey)
+      val judge = Judge(id)
+      val tab = Tab(judge.tabid)
+      val clashes = judge.clashes
+      auth match {
+        case Some(keyData) => {
+          if (!keyData.found)
+            Unauthorized("Invalid API key")
+          else if (keyData.expired)
+            Unauthorized("API key has expired")
+          else if (userCanSetupTab(keyData.userid, tab)) {
+            Ok(json.write(clashes)).as("application/json")
+          } else
+            Forbidden("Permission denied")
+        }
+        case None => Unauthorized("Authorization required")
+      }
+    } recover {
+      case ex: NotFoundException => NotFound(ex.getMessage)
+      case ex: Throwable => InternalServerError(ex.getMessage)
+    }
+  }
+
+  def setClash(judgeid: Int, teamid: Int, level: Int) = Action.async {implicit request: Request[AnyContent] =>
+    implicit val ec = jdbcExecutionContext
+    Future {
+      val auth = request.headers.get("Authorization").map(verifyKey)
+      val judge = Judge(judgeid)
+      val team = Team(teamid)
+      val tab = Tab(judge.tabid)
+      auth match {
+        case Some(keyData) => {
+          if (!keyData.found)
+            Unauthorized("Invalid API key")
+          else if (keyData.expired)
+            Unauthorized("API key has expired")
+          else if (userCanSetupTab(keyData.userid, tab)) {
+            if(judge.tabid == team.tabid) {
+              judge.setClash(team, level)
+              NoContent
+            } else {
+              Forbidden("Judge and team must be on the same tab")
+            }
+          } else
+            Forbidden("Permission denied")
+        }
+        case None => Unauthorized("Authorization required")
+      }
+    } recover {
+      case ex: NotFoundException => NotFound(ex.getMessage)
+      case ex: Throwable => InternalServerError(ex.getMessage)
+    }
+  }
+
+  def unsetClash(judgeid: Int, teamid: Int) = Action.async {implicit request: Request[AnyContent] =>
+    implicit val ec = jdbcExecutionContext
+    Future {
+      val auth = request.headers.get("Authorization").map(verifyKey)
+      val judge = Judge(judgeid)
+      val team = Team(teamid)
+      val tab = Tab(judge.tabid)
+      auth match {
+        case Some(keyData) => {
+          if (!keyData.found)
+            Unauthorized("Invalid API key")
+          else if (keyData.expired)
+            Unauthorized("API key has expired")
+          else if (userCanSetupTab(keyData.userid, tab)) {
+            if(judge.tabid == team.tabid) {
+              judge.unsetClash(team)
+              NoContent
+            } else {
+              Forbidden("Judge and team must be on the same tab")
+            }
+          } else
+            Forbidden("Permission denied")
+        }
+        case None => Unauthorized("Authorization required")
+      }
+    } recover {
+      case ex: NotFoundException => NotFound(ex.getMessage)
+      case ex: Throwable => InternalServerError(ex.getMessage)
+    }
+  }
+
   def jsRouter() = Action.async { implicit request => Future {
     Ok(
       JavaScriptReverseRouter("routes")(
@@ -788,6 +1096,7 @@ class RESTController @Inject()(
         routes.javascript.RESTController.getAllTabs,
         routes.javascript.RESTController.getTab,
         routes.javascript.RESTController.getAllTeams,
+        routes.javascript.RESTController.getAllDelegations,
         routes.javascript.RESTController.getTeam,
         routes.javascript.RESTController.createTeam,
         routes.javascript.RESTController.deleteTeam,
@@ -808,7 +1117,16 @@ class RESTController @Inject()(
         routes.javascript.RESTController.setDraw,
         routes.javascript.RESTController.isDrawn,
         routes.javascript.RESTController.lockRound,
-        routes.javascript.RESTController.unlockRound
+        routes.javascript.RESTController.unlockRound,
+        routes.javascript.RESTController.getAllJudges,
+        routes.javascript.RESTController.getJudge,
+        routes.javascript.RESTController.createJudge,
+        routes.javascript.RESTController.updateJudge,
+        routes.javascript.RESTController.toggleJudge,
+        routes.javascript.RESTController.deleteJudge,
+        routes.javascript.RESTController.getClashesForJudge,
+        routes.javascript.RESTController.setClash,
+        routes.javascript.RESTController.unsetClash
       )
     ).as(http.MimeTypes.JAVASCRIPT)
   }}

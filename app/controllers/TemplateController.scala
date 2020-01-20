@@ -32,7 +32,7 @@ class TemplateController @Inject()(
 
   def renderIndex() = Action.async { implicit request: Request[AnyContent] =>
     Future {
-      Ok(views.html.index(config))
+      Ok(views.html.index(config, db))
     }
   }
 
@@ -41,7 +41,7 @@ class TemplateController @Inject()(
       if (loggedIn) {
         Redirect(location)
       } else {
-        Ok(views.html.login(config))
+        Ok(views.html.login(config, db))
       }
     }
   }
@@ -120,6 +120,32 @@ class TemplateController @Inject()(
           case None =>
             Redirect(location + "/login?origin=" + 
               URLEncoder.encode(location + "/tab/" + tabid + "/speakers", "utf-8"))
+        }
+      } recover {
+        case ex: NotFoundException => 
+          NotFound("404 Not Found: " + ex.getMessage)
+        case ex: Throwable => 
+          InternalServerError("503 Internal Server Error: " + ex.getMessage)
+      }
+    }
+  }
+
+  def renderJudges(tabid: Int) = Action.async { 
+    implicit request: Request[AnyContent] => {
+      implicit val ec = jdbcExecutionContext
+      Future {
+        val tab = Tab(tabid)
+        request.session.get("userid").map(_.toInt) match {
+          case Some(uid) => {
+            if (userCanSetupTab(uid, tab)) {
+              Ok(views.html.tab.judges(tab, config, db))
+            } else {
+              Forbidden("403 Forbidden: Permission denied")
+            }
+          }
+          case None =>
+            Redirect(location + "/login?origin=" + 
+              URLEncoder.encode(location + "/tab/" + tabid + "/judges", "utf-8"))
         }
       } recover {
         case ex: NotFoundException => 
