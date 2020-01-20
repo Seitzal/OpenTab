@@ -109,6 +109,44 @@
           </div>
         </div>
       </div>
+
+      <div class="modal" id="modal_clashes">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialogue-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="title_modal_clashes">Clashes</h4>
+              <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+              <div id="card_addclash" class="card">
+                <div class="card-body">
+                  <form class="form-inline">
+                    <div class="input-group m-1">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text">Team</span>
+                      </div>
+                      <select id="input_addclash_team" class="custom-select">
+                      </select>
+                    </div>
+                    <div class="input-group m-1">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text">Clash Level</span>
+                      </div>
+                      <input id="input_addclash_level" class="rating-input" type="number" value="10" min="1" max="10" step="1" size="3"/>
+                    </div>
+                    <button type="button" id="btn_addclash_submit" class="btn btn-primary m-1" disabled>Add Clash</button>
+                  </form>
+                </div>
+              </div>
+              <div id="container_table_clashes" class="table-responsive-lg mt-1">
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>       
+      </div>
     }
 
     @common.scripts(config, Some(db), Some(tab))

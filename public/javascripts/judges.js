@@ -1,13 +1,19 @@
 let judges = undefined;
 let delegations = undefined;
+let teams = undefined;
+let clashes = undefined;
+let judgeindex_clashes = undefined;
+let judgeid_clashes = undefined;
 let dtable_editjudges = undefined;
 let ordering_editjudges = undefined;
 let searchterm_editjudges = undefined;
 
 $("#container_table_editjudges").ready(loadJudges);
 $("#input_addjudge_delegation").ready(loadDelegations);
+$("#input_addclash_team").ready(loadTeams);
 $("#btn_addjudge_submit").click(event => {event.preventDefault(); addJudge()});
 $("#btn_editjudge_submit").click(event => {event.preventDefault(); editJudge()});
+$("#btn_addclash_submit").click(event => {event.preventDefault(); addClash()});
 
 $("#navitem_judges").addClass("text-light");
 
@@ -28,6 +34,23 @@ function displayDelegations(data) {
   }
 
   $("#btn_addjudge_submit").removeAttr("disabled");
+}
+
+function loadTeams() {
+  let req = rc.getAllTeams(tabid);
+  req.headers = {"Authorization" : api_key};
+  req.success = displayTeams;
+  req.error = () => alert("Error loading teams");
+  $.ajax(req);
+}
+
+function displayTeams(data) {
+  teams = data
+  for (i = 0; i < teams.length; i++) {
+    let option = '<option value="' + teams[i].id + '">' + teams[i].name + '</option>';
+    $("#input_addclash_team").append(option);
+  }
+  $("#btn_addclash_submit").removeAttr("disabled");
 }
 
 function loadJudges() {
@@ -60,6 +83,7 @@ function displayJudges(data) {
     table += parseRating(judges[i].rating);
     table += '<td class="p-1">';
     table += '<button type="button" class="btn btn-sm btn-outline-secondary btn_judge_edit m-1"  data-judgeindex="' + i + '">Edit</button>';
+    table += '<button type="button" class="btn btn-sm btn-outline-secondary btn_judge_clashes m-1"  data-judgeindex="' + i + '">Clashes</button>';
     table += '<button type="button" class="btn btn-sm btn-danger btn_judge_delete m-1" data-judgeid="' + judges[i].id + '">Delete</button>';
     table += "</td>";
     table += "</tr>";
@@ -86,6 +110,7 @@ function displayJudges(data) {
   dtable_editjudges = $('#table_editjudges').DataTable(dtableOptions);
   $(".btn_judge_delete").click(deleteJudge);
   $(".btn_judge_edit").click(showModalEditJudge);
+  $(".btn_judge_clashes").click(showModalClash);
 }
 
 function storeTableStateEditJudges() {
@@ -171,4 +196,71 @@ function editJudge() {
     req.error = () => alert("Error updating judge");
     $.ajax(req);
   }
+}
+
+function showModalClash(event) {
+  judgeindex_clashes = $(event.target).data("judgeindex");
+  loadClashes(judgeindex_clashes);
+}
+
+function loadClashes(judgeindex) {
+  const name = judges[judgeindex].firstName + " " + judges[judgeindex].lastName;
+  $("#title_modal_clashes").html("Clashes for Judge " + name);
+  judgeid_clashes = judges[judgeindex].id
+  let req = rc.getClashesForJudge(judgeid_clashes);
+  req.headers = {"Authorization" : api_key};
+  req.success = displayClashes;
+  req.error = () => alert("Error loading clashes");
+  $.ajax(req);
+}
+
+function displayClashes(data) {
+  clashes = data;
+  let table = `
+    <table id="table_editclashes" class="table table-hover table-bordered">
+      <thead class="thead-light">
+        <tr>
+          <th class="font-weight-normal">Team</th>
+          <th class="font-weight-normal">Clash Level</th>
+          <th class="font-weight-normal"></th>
+        </tr>
+      </thead>
+      <tbody>`;
+  for(i = 0; i < clashes.length; i++) {
+    table += "<tr>";
+    table += "<td>" + clashes[i][0].name + "</td>";
+    table += "<td>" + clashes[i][1] + "</td>";
+    table += '<td class="p-1">';
+    table += '<button type="button" class="btn btn-sm btn-danger btn_clash_delete m-1" data-teamid="' + clashes[i][0].id + '">Delete</button>';
+    table += "</td>";
+    table += "</tr>";
+  }
+  table += `
+      </tbody>
+    </table>`;
+  $("#container_table_clashes").html(table);
+  $(".btn_clash_delete").click(deleteClash);
+  $("#modal_clashes").modal("show");
+}
+
+function deleteClash(event) {
+  let req = rc.unsetClash(judgeid_clashes, $(event.target).data("teamid"));
+  req.headers = {"Authorization" : api_key};
+  req.success = () => {
+    loadClashes(judgeindex_clashes);
+  };
+  req.error = () => alert("Error removing clash");
+  $.ajax(req);
+}
+
+function addClash() {
+  let teamid = $("#input_addclash_team option:selected").val();
+  let level = $("#input_addclash_level").val();
+  let req = rc.setClash(judgeid_clashes, teamid, level);
+  req.headers = {"Authorization" : api_key};
+  req.success = () => {
+    loadClashes(judgeindex_clashes);
+  };
+  req.error = () => alert("Error adding clash");
+  $.ajax(req);
 }
