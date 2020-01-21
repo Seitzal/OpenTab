@@ -11,3 +11,4 @@ project/.bloop
 /.settings
 .vscode
 /RUNNING_PID
+dbadm.sql
