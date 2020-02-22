@@ -26,6 +26,8 @@ class RESTController @Inject()(
 
   implicit def database = db
   implicit def config = cfg
+  implicit def actionBuilder = Action
+  implicit def defaultParser = parse.anyContent
 
   val jdbcExecutionContext = 
     actorSystem.dispatchers.lookup("jdbc-execution-context")
@@ -45,222 +47,94 @@ class RESTController @Inject()(
     }
   }
 
-  def getAllTabs = Action.async { implicit request: Request[AnyContent] =>
-    implicit val ec = jdbcExecutionContext
-    Future {
-      val auth = request.headers.get("Authorization").map(verifyKey)
-      val tabs = Tab.getAll(database)
-      auth match {
-        case Some(keyData) => {
-          if (!keyData.found)
-            Unauthorized("Invalid API key")
-          else if (keyData.expired)
-            Unauthorized("API key has expired")
-          else {
-            val visibleTabs = 
-              tabs.filter(tab => userCanSeeTab(keyData.userid, tab))
-            Ok(json.write(visibleTabs)).as("application/json")
-          }
-        }
-        case None => {
-          val visibleTabs = tabs.filter(_.isPublic)
-          Ok(json.write(visibleTabs)).as("application/json")
-        }
-      }
-    } recover {
-      case ex: Throwable => InternalServerError(ex.getMessage)
+  def getAllTabs = optionalAuthAction((userOpt, request) => userOpt match {
+    case Some(user) => {
+      val visibleTabs = Tab.getAll.filter(tab => userCanSeeTab(user, tab))
+      Ok(json.write(visibleTabs)).as("application/json")
     }
-  }
-
-  def getTab(tabid: Int) =  Action.async { implicit request: Request[AnyContent] =>
-    implicit val ec = jdbcExecutionContext
-    Future {
-      val auth = request.headers.get("Authorization").map(verifyKey)
-      val tab = Tab(tabid)
-      auth match {
-        case Some(keyData) => {
-          if (!keyData.found)
-            Unauthorized("Invalid API key")
-          else if (keyData.expired)
-            Unauthorized("API key has expired")
-          else if (tab.isPublic || userCanSeeTab(keyData.userid, tab))
-            Ok(json.write(tab)).as("application/json")
-          else
-            Forbidden("Permission denied")
-        }
-        case None => {
-          if (tab.isPublic)
-            Ok(json.write(tab)).as("application/json")
-          else
-            Unauthorized("Authorization required")
-        }
-      }
-    } recover {
-      case ex: NotFoundException => NotFound(ex.getMessage)
-      case ex: Throwable => InternalServerError(ex.getMessage)
+    case None => {
+      val visibleTabs = Tab.getAll.filter(_.isPublic)
+      Ok(json.write(visibleTabs)).as("application/json")
     }
-  }
+  })
 
-  def getAllTeams(tabid: Int) = Action.async {
-    implicit request: Request[AnyContent] => {
-      implicit val ec = jdbcExecutionContext
-      Future {
-        val auth = request.headers.get("Authorization").map(verifyKey)
-        val tab = Tab(tabid)
-        val teams = Team.getAll(tabid)
-        auth match {
-          case Some(keyData) => {
-            if (!keyData.found)
-              Unauthorized("Invalid API key")
-            else if (keyData.expired)
-              Unauthorized("API key has expired")
-            else if (tab.isPublic || userCanSeeTab(keyData.userid, tab))
-              Ok(json.write(teams)).as("application/json")
-            else
-              Forbidden("Permission denied")
-          }
-          case None => {
-            if (tab.isPublic)
-              Ok(json.write(teams)).as("application/json")
-            else
-              Unauthorized("Authorization required")
-          }
-        }
-      } recover {
-        case ex: NotFoundException => NotFound(ex.getMessage)
-        case ex: Throwable => InternalServerError(ex.getMessage)
-      }
+  def getTab(tabid: Int) = optionalAuthAction((userOpt, request) => {
+    val tab = Tab(tabid)
+    userOpt match {
+      case Some(user) =>
+        if (tab.isPublic || userCanSeeTab(user, tab))
+          Ok(json.write(tab)).as("application/json")
+        else PermissionDenied
+      case None =>
+        if (tab.isPublic)
+          Ok(json.write(tab)).as("application/json")
+        else AuthorizationRequired
     }
-  }
+  })
 
-  def getAllDelegations(tabid: Int) = Action.async {
-    implicit request: Request[AnyContent] => {
-      implicit val ec = jdbcExecutionContext
-      Future {
-        val auth = request.headers.get("Authorization").map(verifyKey)
-        val tab = Tab(tabid)
-        val delegations = tab.delegations
-        auth match {
-          case Some(keyData) => {
-            if (!keyData.found)
-              Unauthorized("Invalid API key")
-            else if (keyData.expired)
-              Unauthorized("API key has expired")
-            else if (tab.isPublic || userCanSeeTab(keyData.userid, tab))
-              Ok(json.write(delegations)).as("application/json")
-            else
-              Forbidden("Permission denied")
-          }
-          case None => {
-            if (tab.isPublic)
-              Ok(json.write(delegations)).as("application/json")
-            else
-              Unauthorized("Authorization required")
-          }
-        }
-      } recover {
-        case ex: NotFoundException => NotFound(ex.getMessage)
-        case ex: Throwable => InternalServerError(ex.getMessage)
-      }
+  def getAllTeams(tabid: Int) = optionalAuthAction((userOpt, request) => {
+    val tab = Tab(tabid)
+    userOpt match {
+      case Some(user) =>
+        if (tab.isPublic || userCanSeeTab(user, tab))
+          Ok(json.write(tab.teams)).as("application/json")
+        else PermissionDenied
+      case None =>
+        if (tab.isPublic)
+          Ok(json.write(tab.teams)).as("application/json")
+        else AuthorizationRequired
     }
-  }
+  })
 
-  def getTeam(id: Int) = Action.async {implicit request: Request[AnyContent] =>
-    implicit val ec = jdbcExecutionContext
-    Future {
-      val auth = request.headers.get("Authorization").map(verifyKey)
-      val team = Team(id)
-      val tab = Tab(team.tabid)
-      auth match {
-        case Some(keyData) => {
-          if (!keyData.found)
-            Unauthorized("Invalid API key")
-          else if (keyData.expired)
-            Unauthorized("API key has expired")
-          else if (tab.isPublic || userCanSeeTab(keyData.userid, tab))
-            Ok(json.write(team)).as("application/json")
-          else
-            Forbidden("Permission denied")
-        }
-        case None => {
-          if (tab.isPublic)
-            Ok(json.write(team)).as("application/json")
-          else
-            Unauthorized("Authorization required")
-        }
-      }
-    } recover {
-      case ex: NotFoundException => NotFound(ex.getMessage)
-      case ex: Throwable => InternalServerError(ex.getMessage)
+  def getAllDelegations(tabid: Int) = authAction((user, request) => {
+    val tab = Tab(tabid)
+    if (userCanSetupTab(user, tab))
+      Ok(json.write(tab.delegations)).as("application/json")
+    else PermissionDenied
+  })
+
+  def getTeam(teamid: Int) = optionalAuthAction((userOpt, request) => {
+    val team = Team(teamid)
+    val tab = team.tab
+    userOpt match {
+      case Some(user) =>
+        if (tab.isPublic || userCanSeeTab(user, tab))
+          Ok(json.write(team)).as("application/json")
+        else PermissionDenied
+      case None =>
+        if (tab.isPublic)
+          Ok(json.write(team)).as("application/json")
+        else AuthorizationRequired
     }
-  }
+  })
 
-  def createTeam() = Action.async(parse.formUrlEncoded) {
-    implicit request: Request[Map[String,Seq[String]]] => {
-      implicit val ec = jdbcExecutionContext
-      Future {
-        val auth = request.headers.get("Authorization").map(verifyKey)
-        val formData = request.body
-        auth match {
-          case Some(keyData) => {
-            if (!keyData.found)
-              Unauthorized("Invalid API key")
-            else if (keyData.expired)
-              Unauthorized("API key has expired")
-            else formData.get("tabid").map(seq => Tab(seq(0).toInt)) match {
-              case Some(tab) => {
-                if (userCanSetupTab(keyData.userid, tab.id)) {
-                  val nameOpt = formData.get("name").map(seq => seq(0))
-                  val delegOpt = formData.get("delegation").map(seq => seq(0))
-                  val statusOpt = formData.get("status").map(seq => seq(0).toInt)
-                  (nameOpt, delegOpt, statusOpt) match {
-                    case (Some(name), Some(deleg), Some(status)) => {
-                      val newteam = Team.create(tab.id, name, deleg, status)
-                      Ok(json.write(newteam)).as("application/json")
-                    }
-                    case _ => BadRequest("Invalid post data")
-                  }
-                } else {
-                  Forbidden("Permission denied")
-                }
-              }
-              case None => BadRequest("No tab ID specified")
+  def createTeam() = authAction[Map[String,Seq[String]]](parse.formUrlEncoded, (user, request) => {
+    val formData = request.body
+    formData.get("tabid").map(seq => Tab(seq(0).toInt)) match {
+      case Some(tab) =>
+        if (userCanSetupTab(user, tab.id)) {
+          val nameOpt = formData.get("name").map(seq => seq(0))
+          val delegOpt = formData.get("delegation").map(seq => seq(0))
+          val statusOpt = formData.get("status").map(seq => seq(0).toInt)
+          (nameOpt, delegOpt, statusOpt) match {
+            case (Some(name), Some(deleg), Some(status)) => {
+              val newteam = Team.create(tab.id, name, deleg, status)
+              Ok(json.write(newteam)).as("application/json")
             }
+            case _ => BadRequest("Invalid post data")
           }
-          case None => Unauthorized("Authorization required")
-        }
-      } recover {
-        case ex: NotFoundException => NotFound(ex.getMessage)
-        case ex: Throwable => InternalServerError(ex.getMessage)
-      }
+        } else PermissionDenied
+      case None => BadRequest("No tab ID specified")
     }
-  }
+  })
 
-  def deleteTeam(id: Int) = Action.async {implicit request: Request[AnyContent] =>
-    implicit val ec = jdbcExecutionContext
-    Future {
-      val auth = request.headers.get("Authorization").map(verifyKey)
-      val team = Team(id)
-      val tab = Tab(team.tabid)
-      auth match {
-        case Some(keyData) => {
-          if (!keyData.found)
-            Unauthorized("Invalid API key")
-          else if (keyData.expired)
-            Unauthorized("API key has expired")
-          else if (userCanSetupTab(keyData.userid, tab)) {
-            team.delete()
-            NoContent
-          } else
-            Forbidden("Permission denied")
-        }
-        case None => Unauthorized("Authorization required")
-      }
-    } recover {
-      case ex: NotFoundException => NotFound(ex.getMessage)
-      case ex: Throwable => InternalServerError(ex.getMessage)
-    }
-  }
+  def deleteTeam(id: Int) = authAction((user, request) => {
+    val team = Team(id)
+    if (userCanSetupTab(user, team.tab)) {
+      team.delete()
+      NoContent
+    } else PermissionDenied
+  })
 
   def updateTeam(id: Int) = Action.async(parse.formUrlEncoded) {
     implicit request: Request[Map[String,Seq[String]]] => {
@@ -283,9 +157,9 @@ class RESTController @Inject()(
                 formData.get("status").map(seq => seq(0).toInt))
               Ok(json.write(newteam)).as("application/json")
             } else
-              Forbidden("Permission denied")
+              PermissionDenied
           }
-          case None => Unauthorized("Authorization required")
+          case None => AuthorizationRequired
         }
       } recover {
         case ex: NotFoundException => NotFound(ex.getMessage)
@@ -310,9 +184,9 @@ class RESTController @Inject()(
             val newteam = team.toggleActive()
             Ok(json.write(newteam)).as("application/json")
           } else
-            Forbidden("Permission denied")
+            PermissionDenied
         }
-        case None => Unauthorized("Authorization required")
+        case None => AuthorizationRequired
       }
     } recover {
       case ex: NotFoundException => NotFound(ex.getMessage)
@@ -336,13 +210,13 @@ class RESTController @Inject()(
             else if (tab.isPublic || userCanSeeTab(keyData.userid, tab))
               Ok(json.write(speakers)).as("application/json")
             else
-              Forbidden("Permission denied")
+              PermissionDenied
           }
           case None => {
             if (tab.isPublic)
               Ok(json.write(speakers)).as("application/json")
             else
-              Unauthorized("Authorization required")
+              AuthorizationRequired
           }
         }
       } recover {
@@ -369,13 +243,13 @@ class RESTController @Inject()(
             else if (tab.isPublic || userCanSeeTab(keyData.userid, tab))
               Ok(json.write(speakers)).as("application/json")
             else
-              Forbidden("Permission denied")
+              PermissionDenied
           }
           case None => {
             if (tab.isPublic)
               Ok(json.write(speakers)).as("application/json")
             else
-              Unauthorized("Authorization required")
+              AuthorizationRequired
           }
         }
       } recover {
@@ -400,13 +274,13 @@ class RESTController @Inject()(
           else if (tab.isPublic || userCanSeeTab(keyData.userid, tab))
             Ok(json.write(speaker)).as("application/json")
           else
-            Forbidden("Permission denied")
+            PermissionDenied
         }
         case None => {
           if (tab.isPublic)
             Ok(json.write(speaker)).as("application/json")
           else
-            Unauthorized("Authorization required")
+            AuthorizationRequired
         }
       }
     } recover {
@@ -442,13 +316,13 @@ class RESTController @Inject()(
                     case _ => BadRequest("Invalid post data")
                   }
                 } else {
-                  Forbidden("Permission denied")
+                  PermissionDenied
                 }
               }
               case None => BadRequest("No valid team id specified")
             }
           }
-          case None => Unauthorized("Authorization required")
+          case None => AuthorizationRequired
         }
       } recover {
         case ex: NotFoundException => NotFound(ex.getMessage)
@@ -473,9 +347,9 @@ class RESTController @Inject()(
             speaker.delete()
             NoContent
           } else
-            Forbidden("Permission denied")
+            PermissionDenied
         }
-        case None => Unauthorized("Authorization required")
+        case None => AuthorizationRequired
       }
     } recover {
       case ex: NotFoundException => NotFound(ex.getMessage)
@@ -504,9 +378,9 @@ class RESTController @Inject()(
                 formData.get("status").map(seq => seq(0).toInt))
               Ok(json.write(newspeaker)).as("application/json")
             } else
-              Forbidden("Permission denied")
+              PermissionDenied
           }
-          case None => Unauthorized("Authorization required")
+          case None => AuthorizationRequired
         }
       } recover {
         case ex: NotFoundException => NotFound(ex.getMessage)
@@ -515,29 +389,13 @@ class RESTController @Inject()(
     }
   }
 
-  def getRandomPairings(tabid: Int) = Action.async{ implicit request: Request[AnyContent] =>
-    implicit val ec = pairingExecutionContext
-    Future {
-      val auth = request.headers.get("Authorization").map(verifyKey)
+  def getRandomPairings(tabid: Int) = 
+    authAction[AnyContent](parse.anyContent, (user, request) => {
       val tab = Tab(tabid)
-      auth match {
-        case Some(keyData) => {
-          if (!keyData.found)
-            Unauthorized("Invalid API key")
-          else if (keyData.expired)
-            Unauthorized("API key has expired")
-          else if (userCanSetupTab(keyData.userid, tab)) {
-            Ok(json.write(RandomPairings(tab))).as("application/json")
-          } else
-            Forbidden("Permission denied")
-        }
-        case None => Unauthorized("Authorization required")
-      }
-    } recover {
-      case ex: NotFoundException => NotFound(ex.getMessage)
-      case ex: Throwable => InternalServerError(ex.getMessage)
-    }
-  }
+      if (userCanSetupTab(user, tab))
+        Ok(json.write(RandomPairings(tab))).as("application/json")
+      else PermissionDenied
+    })    
 
   def getRound(tabid: Int, roundnumber: Int) = Action.async {
     implicit request: Request[AnyContent] => {
@@ -555,13 +413,13 @@ class RESTController @Inject()(
             else if (tab.isPublic || userCanSeeTab(keyData.userid, tab))
               Ok(json.write(round)).as("application/json")
             else
-              Forbidden("Permission denied")
+              PermissionDenied
           }
           case None => {
             if (tab.isPublic)
               Ok(json.write(round)).as("application/json")
             else
-              Unauthorized("Authorization required")
+              AuthorizationRequired
           }
         }
       } recover {
@@ -587,13 +445,13 @@ class RESTController @Inject()(
             else if (tab.isPublic || userCanSeeTab(keyData.userid, tab))
               Ok(json.write(rounds)).as("application/json")
             else
-              Forbidden("Permission denied")
+              PermissionDenied
           }
           case None => {
             if (tab.isPublic)
               Ok(json.write(rounds)).as("application/json")
             else
-              Unauthorized("Authorization required")
+              AuthorizationRequired
           }
         }
       } recover {
@@ -619,9 +477,9 @@ class RESTController @Inject()(
               val round = tab.addRound()
               Ok(json.write(round)).as("application/json")
             } else
-              Forbidden("Permission denied")
+              PermissionDenied
           }
-          case None => Unauthorized("Authorization required")
+          case None => AuthorizationRequired
         }
       } recover {
         case ex: NotFoundException => NotFound(ex.getMessage)
@@ -647,9 +505,9 @@ class RESTController @Inject()(
               round.delete()
               NoContent
             } else
-              Forbidden("Permission denied")
+              PermissionDenied
           }
-          case None => Unauthorized("Authorization required")
+          case None => AuthorizationRequired
         }
       } recover {
         case ex: NotFoundException => NotFound(ex.getMessage)
@@ -674,13 +532,13 @@ class RESTController @Inject()(
             else if (tab.isPublic || userCanSeeTab(keyData.userid, tab))
               Ok(json.write(round.draw)).as("application/json")
             else
-              Forbidden("Permission denied")
+              PermissionDenied
           }
           case None => {
             if (tab.isPublic)
               Ok(json.write(round.draw)).as("application/json")
             else
-              Unauthorized("Authorization required")
+              AuthorizationRequired
           }
         }
       } recover {
@@ -706,13 +564,13 @@ class RESTController @Inject()(
             else if (tab.isPublic || userCanSeeTab(keyData.userid, tab))
               Ok(json.write(round.drawOption.isDefined)).as("application/json")
             else
-              Forbidden("Permission denied")
+              PermissionDenied
           }
           case None => {
             if (tab.isPublic)
               Ok(json.write(round.draw)).as("application/json")
             else
-              Unauthorized("Authorization required")
+              AuthorizationRequired
           }
         }
       } recover {
@@ -746,9 +604,9 @@ class RESTController @Inject()(
                   BadRequest("Request body must contain JSON-formatted draw")
               }
             } else
-              Forbidden("Permission denied")
+              PermissionDenied
           }
-          case None => Unauthorized("Authorization required")
+          case None => AuthorizationRequired
         }
       } recover {
         case ex: NotFoundException => NotFound(ex.getMessage)
@@ -774,9 +632,9 @@ class RESTController @Inject()(
               round.lock()
               NoContent
             } else
-              Forbidden("Permission denied")
+              PermissionDenied
           }
-          case None => Unauthorized("Authorization required")
+          case None => AuthorizationRequired
         }
       } recover {
         case ex: NotFoundException => NotFound(ex.getMessage)
@@ -802,9 +660,9 @@ class RESTController @Inject()(
               round.unlock()
               NoContent
             } else
-              Forbidden("Permission denied")
+              PermissionDenied
           }
-          case None => Unauthorized("Authorization required")
+          case None => AuthorizationRequired
         }
       } recover {
         case ex: NotFoundException => NotFound(ex.getMessage)
@@ -829,9 +687,9 @@ class RESTController @Inject()(
             else if (tab.isPublic || userCanSetupTab(keyData.userid, tab))
               Ok(json.write(judges)).as("application/json")
             else
-              Forbidden("Permission denied")
+              PermissionDenied
           }
-          case None => Unauthorized("Authorization required")
+          case None => AuthorizationRequired
         }
       } recover {
         case ex: NotFoundException => NotFound(ex.getMessage)
@@ -856,10 +714,10 @@ class RESTController @Inject()(
             if (tab.isPublic || userCanSetupTab(keyData.userid, tab))
               Ok(json.write(judge)).as("application/json")
             else
-              Forbidden("Permission denied")
+              PermissionDenied
           }
         }
-        case None => Unauthorized("Authorization required")
+        case None => AuthorizationRequired
       }
     } recover {
       case ex: NotFoundException => NotFound(ex.getMessage)
@@ -902,13 +760,13 @@ class RESTController @Inject()(
                     case _ => BadRequest("Invalid post data")
                   }
                 } else {
-                  Forbidden("Permission denied")
+                  PermissionDenied
                 }
               }
               case None => BadRequest("No tab ID specified")
             }
           }
-          case None => Unauthorized("Authorization required")
+          case None => AuthorizationRequired
         }
       } recover {
         case ex: NotFoundException => NotFound(ex.getMessage)
@@ -933,9 +791,9 @@ class RESTController @Inject()(
             judge.delete()
             NoContent
           } else
-            Forbidden("Permission denied")
+            PermissionDenied
         }
-        case None => Unauthorized("Authorization required")
+        case None => AuthorizationRequired
       }
     } recover {
       case ex: NotFoundException => NotFound(ex.getMessage)
@@ -964,9 +822,9 @@ class RESTController @Inject()(
                 formData.get("rating").map(seq => seq(0).toInt))
               Ok(json.write(newJudge)).as("application/json")
             } else
-              Forbidden("Permission denied")
+              PermissionDenied
           }
-          case None => Unauthorized("Authorization required")
+          case None => AuthorizationRequired
         }
       } recover {
         case ex: NotFoundException => NotFound(ex.getMessage)
@@ -991,9 +849,9 @@ class RESTController @Inject()(
             val newJudge = judge.toggleActive()
             Ok(json.write(newJudge)).as("application/json")
           } else
-            Forbidden("Permission denied")
+            PermissionDenied
         }
-        case None => Unauthorized("Authorization required")
+        case None => AuthorizationRequired
       }
     } recover {
       case ex: NotFoundException => NotFound(ex.getMessage)
@@ -1017,9 +875,9 @@ class RESTController @Inject()(
           else if (userCanSetupTab(keyData.userid, tab)) {
             Ok(json.write(clashes)).as("application/json")
           } else
-            Forbidden("Permission denied")
+            PermissionDenied
         }
-        case None => Unauthorized("Authorization required")
+        case None => AuthorizationRequired
       }
     } recover {
       case ex: NotFoundException => NotFound(ex.getMessage)
@@ -1048,9 +906,9 @@ class RESTController @Inject()(
               Forbidden("Judge and team must be on the same tab")
             }
           } else
-            Forbidden("Permission denied")
+            PermissionDenied
         }
-        case None => Unauthorized("Authorization required")
+        case None => AuthorizationRequired
       }
     } recover {
       case ex: NotFoundException => NotFound(ex.getMessage)
@@ -1079,9 +937,9 @@ class RESTController @Inject()(
               Forbidden("Judge and team must be on the same tab")
             }
           } else
-            Forbidden("Permission denied")
+            PermissionDenied
         }
-        case None => Unauthorized("Authorization required")
+        case None => AuthorizationRequired
       }
     } recover {
       case ex: NotFoundException => NotFound(ex.getMessage)
