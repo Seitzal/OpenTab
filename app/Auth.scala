@@ -7,10 +7,18 @@ import upickle.{default => json}
 
 import play.api.Configuration
 import play.api.db.Database
+import play.api._
+import play.api.mvc._
+import play.api.mvc.Results._
+import play.api.routing._
+
+import scala.concurrent.{Future, ExecutionContext}
 
 import org.mindrot.jbcrypt.BCrypt
 
 package object auth {
+
+import play.api.mvc.DefaultPlayBodyParsers
 
   case class KeyData(
     found: Boolean,
@@ -154,5 +162,76 @@ package object auth {
   def userCanSetupTab(user: User, tab: Tab)
                      (implicit database: Database) : Boolean =
     readPermissionsEntry(user.id, tab.id).setup
+
+  def authAction[A](
+      parser: BodyParser[A], 
+      block: (User, Request[A]) => Result)(
+      implicit executionContext: ExecutionContext,
+      database: Database,
+      actionBuilder: ActionBuilder[Request, AnyContent]): Action[A] =
+    actionBuilder.async(parser) {
+      implicit request: Request[A] => Future {
+        val auth = request.headers.get("Authorization").map(verifyKey)
+        auth match {
+          case Some(keyData) => 
+            if (!keyData.found)
+              Unauthorized("Invalid API key")
+            else if (keyData.expired)
+              Unauthorized("API key has expired")
+            else
+              block(User(keyData.userid), request)
+          case None =>
+              Unauthorized("Authorization Required")
+        }
+      } recover {
+        case ex: NotFoundException => NotFound(ex.getMessage)
+        case ex: Throwable => InternalServerError(ex.getMessage)
+      }
+    }
+
+  def authAction(
+      block: (User, Request[AnyContent]) => Result)(
+      implicit executionContext: ExecutionContext,
+      database: Database,
+      actionBuilder: ActionBuilder[Request, AnyContent],
+      defaultParser: BodyParser[AnyContent]) =
+    authAction[AnyContent](defaultParser, block)
+
+  def optionalAuthAction[A](
+      parser: BodyParser[A], 
+      block: (Option[User], Request[A]) => Result)(
+      implicit executionContext: ExecutionContext,
+      database: Database,
+      actionBuilder: ActionBuilder[Request, AnyContent]): Action[A] =
+    actionBuilder.async(parser) {
+      implicit request: Request[A] => Future {
+        val auth = request.headers.get("Authorization").map(verifyKey)
+        auth match {
+          case Some(keyData) => 
+            if (!keyData.found)
+              Unauthorized("Invalid API key")
+            else if (keyData.expired)
+              Unauthorized("API key has expired")
+            else
+              block(Some(User(keyData.userid)), request)
+          case None =>
+              block(None, request)
+        }
+      } recover {
+        case ex: NotFoundException => NotFound(ex.getMessage)
+        case ex: Throwable => InternalServerError(ex.getMessage)
+      }
+    }
+
+  def optionalAuthAction(
+      block: (Option[User], Request[AnyContent]) => Result)(
+      implicit executionContext: ExecutionContext,
+      database: Database,
+      actionBuilder: ActionBuilder[Request, AnyContent],
+      defaultParser: BodyParser[AnyContent]) =
+    optionalAuthAction[AnyContent](defaultParser, block)
+
+  val PermissionDenied = Forbidden("Permission denied.")
+  val AuthorizationRequired = Unauthorized("Authorization required.")
 
 }
