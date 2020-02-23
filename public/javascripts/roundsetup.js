@@ -2,6 +2,8 @@ let draw = undefined;
 let teams = undefined;
 let pairings = undefined;
 let emptyBox = undefined;
+let newPairings = undefined;
+let newByeTeam = undefined;
 
 $("#navitem_rounds").addClass("text-light");
 $("#box_pairings").ready(loadTeams);
@@ -82,7 +84,7 @@ function initTable() {
           <th class="font-weight-normal">Opposition</th>
         </tr>
       </thead>
-      <tbody>`;
+      <tbody id="table_pairings_body">`;
   for (i = 0; i < teams.length; i += 2) {
     table += `
       <tr>
@@ -167,8 +169,8 @@ function checkDraw() {
     return false;
   }
   let rows = $("#table_pairings_body").children();
-  let newPairings = [];
-  let newByeTeam = [];
+  newPairings = [];
+  newByeTeam = [];
   for(i = 0; i < rows.length; i++) {
     let row = rows[i];
     if (row.children[0].children[0].id == "byetag") {
