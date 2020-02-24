@@ -36,6 +36,8 @@ class TemplateController @Inject()(
     }
   }
 
+  /*
+
   def renderLogin() = Action.async { implicit request: Request[AnyContent] =>
     Future {
       if (loggedIn) {
@@ -212,5 +214,7 @@ class TemplateController @Inject()(
       }
     }
   }
+
+  */
 
 }
