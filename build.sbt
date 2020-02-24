@@ -18,12 +18,12 @@ javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 libraryDependencies ++= Seq(
   guice,
   jdbc,
-  "org.mariadb.jdbc" % "mariadb-java-client" % "2.4.3",
-  "de.svenkubiak" % "jBCrypt" % "0.4",
-  "com.lihaoyi" %% "upickle" % "0.7.5")
+  "org.mariadb.jdbc" %  "mariadb-java-client" % "2.4.3",
+  "de.svenkubiak"    %  "jBCrypt"             % "0.4",
+  "com.lihaoyi"      %% "upickle"             % "0.7.5")
 
 // Frontend dependencies using WebJars
 libraryDependencies ++= Seq (
-  "org.webjars.npm" % "vue" % "2.6.11",
+  "org.webjars.npm" % "vue"     % "2.6.11",
   "org.webjars.npm" % "vuetify" % "2.2.14",
-  "org.webjars.npm" % "axios" % "0.19.2")
+  "org.webjars.npm" % "axios"   % "0.19.2")

@@ -2,12 +2,14 @@
 @import helper._
 @import play.api.Configuration
 @import play.api.db.Database
+@import play.api.Mode
 @import eu.seitzal.opentab._
 @import shortcuts._
 @import models.Tab
 @import auth._
 
 @(config: Configuration, db : Option[Database], tab: Option[Tab] = None)(implicit request: RequestHeader)
+<!-- BEGIN OLD; UNMANAGED -->
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.4/umd/popper.min.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
@@ -17,6 +19,20 @@
 @if(config.get[String]("theme") == "material") {
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.8/js/mdb.min.js"></script>
 }
+<!-- END OLD; UNMANAGED -->
+
+<!-- BEGIN NEW; MANAGED -->
+@if(config.get[Boolean]("debugFrontend") == true) {
+  <script src="@routes.Assets.versioned("lib/vue/dist/vue.js")"></script>
+  <script src="@routes.Assets.versioned("lib/vuetify/dist/vuetify.js")"></script>
+  <script src="@routes.Assets.versioned("lib/axios/dist/axios.js")"></script>
+} else {
+  <script src="@routes.Assets.versioned("lib/vue/dist/vue.min.js")"></script>
+  <script src="@routes.Assets.versioned("lib/vuetify/dist/vuetify.min.js")"></script>
+  <script src="@routes.Assets.versioned("lib/axios/dist/axios.min.js")"></script>
+}
+<!-- END NEW; MANAGED -->
+
 @if(loggedIn) {
   <script>api_key = '@request.session.get("api_key").getOrElse("")';</script>
 } else {
