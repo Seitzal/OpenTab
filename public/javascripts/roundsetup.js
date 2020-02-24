@@ -2,8 +2,6 @@ let draw = undefined;
 let teams = undefined;
 let pairings = undefined;
 let emptyBox = undefined;
-let newPairings = undefined;
-let newByeTeam = undefined;
 
 $("#navitem_rounds").addClass("text-light");
 $("#box_pairings").ready(loadTeams);
@@ -169,8 +167,8 @@ function checkDraw() {
     return false;
   }
   let rows = $("#table_pairings_body").children();
-  newPairings = [];
-  newByeTeam = [];
+  let newPairings = [];
+  let newByeTeam = [];
   for(i = 0; i < rows.length; i++) {
     let row = rows[i];
     if (row.children[0].children[0].id == "byetag") {
