@@ -1,4 +1,4 @@
-package eu.seitzal.opentab
+package opentab
 
 import play.api.mvc.RequestHeader
 import play.api.Configuration

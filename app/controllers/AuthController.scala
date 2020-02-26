@@ -1,6 +1,6 @@
-package eu.seitzal.opentab.controllers
+package opentab.controllers
 
-import eu.seitzal.opentab._
+import opentab._
 import shortcuts._
 import models._
 import auth._
@@ -13,7 +13,6 @@ import play.api.mvc._
 import play.api.db.Database
 import akka.actor.ActorSystem
 import scala.concurrent.{Future, ExecutionContext}
-import java.net.URLDecoder
 
 @Singleton
 class AuthController @Inject()(
@@ -30,47 +29,58 @@ class AuthController @Inject()(
   val jdbcExecutionContext =
     actorSystem.dispatchers.lookup("jdbc-execution-context")
 
-  def login(origin: Option[String]) = Action.async(parse.formUrlEncoded) {
-    implicit request: Request[Map[String,Seq[String]]] => {
+  def signIn = Action.async {
+    implicit request: Request[AnyContent] => {
       implicit val ec = jdbcExecutionContext
       Future {
-        val formData = request.body
-        (formData.get("username"), formData.get("password")) match {
-          case (Some(username), Some(password)) => {
-            verifyUser(username(0), password(0)) match {
+        request.body.asJson.map(c => json.read[Credentials](c.toString())) match {
+          case (Some(credentials)) => {
+            verifyUser(credentials.username, credentials.password) match {
               case Some(userid) => {
                 val key = Keygen.newTempKey
                 registerKey(key, userid)
-                val session = List(
-                  "userid" -> userid.toString,
-                  "username" -> username(0),
-                  "api_key" -> key)
-                origin.map(str => URLDecoder.decode(str, "utf-8")) match {
-                case Some(url) => 
-                  Redirect(url).withSession(session: _*)
-                case None =>
-                  Redirect(location).withSession(session: _*)
-                }
+                Ok(json.write((key, verifyKey(key)))).as("application/json")
               }
-              case None => Redirect("login?origin=" + origin.getOrElse(location))
+              case None => Unauthorized("Invalid username or password.")
             }
           }
-          case _ => BadRequest("400 Bad Request: Invalid form data.")
+          case _ => BadRequest("Invalid form data.")
         }
       } recover {
         case ex: NotFoundException =>
-          NotFound("404 Not found: " + ex.getMessage)
+          Unauthorized("Invalid username or password.") // Prevent username checking
         case ex: Throwable =>
-          InternalServerError("503 Internal server error: " + ex.getMessage)
+          InternalServerError(ex.getMessage)
       }
     }
   }
 
-  def logout = Action.async { implicit request: Request[AnyContent] =>
+  def signOut = Action.async { implicit request: Request[AnyContent] =>
     implicit val ec = jdbcExecutionContext
     Future {
-      request.session.get("api_key").map(unregisterKey)
-      Redirect("/").withNewSession
+      request.headers.get("Authorization") match {
+        case Some(key) => {
+          unregisterKey(request.headers.get("Authorization").get)
+          NoContent
+        }
+        case None => BadRequest("No key transmitted.")
+      }
+    } recover {
+      case ex: NotFoundException =>
+        NotFound(ex.getMessage)
+      case ex: Throwable =>
+        InternalServerError(ex.getMessage)
+    }
+  }
+
+  def remoteVerifyKey = Action.async { implicit request: Request[AnyContent] =>
+    Future {
+      request.headers.get("Authorization").map(verifyKey) match {
+        case Some(keyData) => Ok(json.write(keyData)).as("application/json")
+        case None => BadRequest("No API key found in authorization header.")
+      }
+    } recover {
+        case ex: Throwable => InternalServerError(ex.getMessage)
     }
   }
 

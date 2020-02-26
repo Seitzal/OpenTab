@@ -1,4 +1,4 @@
-package eu.seitzal.opentab
+package opentab
 
 import java.security.SecureRandom
 import scala.collection.mutable.ArrayBuffer

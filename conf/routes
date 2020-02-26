@@ -1,129 +1,102 @@
-########################################################################################################################
-# Routes for the template controller
-########################################################################################################################
 
-GET     /                                       eu.seitzal.opentab.controllers.TemplateController.renderIndex()
+GET  /              controllers.Assets.at(path="/public", file="app.html")
 
-# GET     /login                                  eu.seitzal.opentab.controllers.TemplateController.renderLogin()
+GET  /static/*file  controllers.Assets.versioned(path="/public", file: Asset)
 
-# GET     /tab/:tabid                             eu.seitzal.opentab.controllers.TemplateController.renderTabIndex(tabid: Int)
+POST  /auth/sign-in  opentab.controllers.AuthController.signIn()       
 
-# GET     /tab/:tabid/                            eu.seitzal.opentab.controllers.TemplateController.renderTabIndex(tabid: Int)
+POST /auth/sign-out opentab.controllers.AuthController.signOut()
 
-# GET     /tab/:tabid/teams                       eu.seitzal.opentab.controllers.TemplateController.renderTeams(tabid: Int)
-
-# GET     /tab/:tabid/speakers                    eu.seitzal.opentab.controllers.TemplateController.renderSpeakers(tabid: Int, team: Option[String])
-
-# GET     /tab/:tabid/judges                      eu.seitzal.opentab.controllers.TemplateController.renderJudges(tabid: Int)
-
-# GET     /tab/:tabid/rounds                      eu.seitzal.opentab.controllers.TemplateController.renderRounds(tabid: Int)
-
-# GET     /tab/:tabid/round/:number/setup         eu.seitzal.opentab.controllers.TemplateController.renderRoundSetup(tabid: Int, number: Int)
-
-########################################################################################################################
-# Routes for the authentication controller
-########################################################################################################################
-
-POST    /login                      eu.seitzal.opentab.controllers.AuthController.login(origin: Option[String])
-
-GET     /logout                     eu.seitzal.opentab.controllers.AuthController.logout()
+GET  /auth/verifykey  opentab.controllers.AuthController.remoteVerifyKey()
 
 ########################################################################################################################
 # Routes for the REST API controller
 ########################################################################################################################
 
-GET  /api/routes.js  eu.seitzal.opentab.controllers.RESTController.jsRouter()
+GET  /api/routes.js  opentab.controllers.RESTController.jsRouter()
 
-GET  /api/tabs  eu.seitzal.opentab.controllers.RESTController.getAllTabs()
+GET  /api/tabs  opentab.controllers.RESTController.getAllTabs()
 
-GET  /api/tab/:tabid  eu.seitzal.opentab.controllers.RESTController.getTab(tabid: Int)
+GET  /api/tab/:tabid  opentab.controllers.RESTController.getTab(tabid: Int)
 
-GET  /api/tab/:tabid/teams  eu.seitzal.opentab.controllers.RESTController.getAllTeams(tabid: Int)
+GET  /api/tab/:tabid/teams  opentab.controllers.RESTController.getAllTeams(tabid: Int)
 
-GET  /api/tab/:tabid/delegations  eu.seitzal.opentab.controllers.RESTController.getAllDelegations(tabid: Int)
+GET  /api/tab/:tabid/delegations  opentab.controllers.RESTController.getAllDelegations(tabid: Int)
 
-GET  /api/tab/:tabid/speakers  eu.seitzal.opentab.controllers.RESTController.getAllSpeakers(tabid: Int)
+GET  /api/tab/:tabid/speakers  opentab.controllers.RESTController.getAllSpeakers(tabid: Int)
 
-GET  /api/tab/:tabid/judges  eu.seitzal.opentab.controllers.RESTController.getAllJudges(tabid: Int)
+GET  /api/tab/:tabid/judges  opentab.controllers.RESTController.getAllJudges(tabid: Int)
 
-GET  /api/tab/:tabid/rounds  eu.seitzal.opentab.controllers.RESTController.getRounds(tabid: Int)
+GET  /api/tab/:tabid/rounds  opentab.controllers.RESTController.getRounds(tabid: Int)
 
-GET  /api/tab/:tabid/round/:number  eu.seitzal.opentab.controllers.RESTController.getRound(tabid: Int, number: Int)
+GET  /api/tab/:tabid/round/:number  opentab.controllers.RESTController.getRound(tabid: Int, number: Int)
 
-+nocsrf
-POST  /api/tab/:tabid/round  eu.seitzal.opentab.controllers.RESTController.addRound(tabid: Int)
 
-+nocsrf
-DELETE  /api/tab/:tabid/round/:number  eu.seitzal.opentab.controllers.RESTController.deleteRound(tabid: Int, number: Int)
+POST  /api/tab/:tabid/round  opentab.controllers.RESTController.addRound(tabid: Int)
 
-+nocsrf
-PATCH  /api/tab/:tabid/round/:number/lock  eu.seitzal.opentab.controllers.RESTController.lockRound(tabid: Int, number: Int)
 
-+nocsrf
-PATCH  /api/tab/:tabid/round/:number/unlock  eu.seitzal.opentab.controllers.RESTController.unlockRound(tabid: Int, number: Int)
+DELETE  /api/tab/:tabid/round/:number  opentab.controllers.RESTController.deleteRound(tabid: Int, number: Int)
 
-GET  /api/tab/:tabid/round/:number/draw/exists  eu.seitzal.opentab.controllers.RESTController.isDrawn(tabid: Int, number: Int)
 
-GET  /api/tab/:tabid/round/:number/draw  eu.seitzal.opentab.controllers.RESTController.getDraw(tabid: Int, number: Int)
+PATCH  /api/tab/:tabid/round/:number/lock  opentab.controllers.RESTController.lockRound(tabid: Int, number: Int)
 
-+nocsrf
-POST  /api/tab/:tabid/round/:number/draw  eu.seitzal.opentab.controllers.RESTController.setDraw(tabid: Int, number: Int)
 
-GET  /api/tab/:tabid/generate-pairings/random  eu.seitzal.opentab.controllers.RESTController.getRandomPairings(tabid: Int)
+PATCH  /api/tab/:tabid/round/:number/unlock  opentab.controllers.RESTController.unlockRound(tabid: Int, number: Int)
 
-GET  /api/team/:teamid  eu.seitzal.opentab.controllers.RESTController.getTeam(teamid: Int)
+GET  /api/tab/:tabid/round/:number/draw/exists  opentab.controllers.RESTController.isDrawn(tabid: Int, number: Int)
 
-+nocsrf
-POST  /api/team  eu.seitzal.opentab.controllers.RESTController.createTeam()
+GET  /api/tab/:tabid/round/:number/draw  opentab.controllers.RESTController.getDraw(tabid: Int, number: Int)
 
-+nocsrf
-DELETE  /api/team/:teamid  eu.seitzal.opentab.controllers.RESTController.deleteTeam(teamid: Int)
 
-+nocsrf
-PATCH  /api/team/:teamid  eu.seitzal.opentab.controllers.RESTController.updateTeam(teamid: Int)
+POST  /api/tab/:tabid/round/:number/draw  opentab.controllers.RESTController.setDraw(tabid: Int, number: Int)
 
-+nocsrf
-PATCH  /api/team/:teamid/toggle  eu.seitzal.opentab.controllers.RESTController.toggleTeam(teamid: Int)
+GET  /api/tab/:tabid/generate-pairings/random  opentab.controllers.RESTController.getRandomPairings(tabid: Int)
 
-GET  /api/team/:teamid/speakers  eu.seitzal.opentab.controllers.RESTController.getAllSpeakersOnTeam(teamid: Int)
+GET  /api/team/:teamid  opentab.controllers.RESTController.getTeam(teamid: Int)
 
-GET  /api/speaker/:speakerid  eu.seitzal.opentab.controllers.RESTController.getSpeaker(speakerid: Int)
 
-+nocsrf
-POST  /api/speaker  eu.seitzal.opentab.controllers.RESTController.createSpeaker()
+POST  /api/team  opentab.controllers.RESTController.createTeam()
 
-+nocsrf
-DELETE  /api/speaker/:speakerid  eu.seitzal.opentab.controllers.RESTController.deleteSpeaker(speakerid: Int)
 
-+nocsrf
-PATCH  /api/speaker/:speakerid  eu.seitzal.opentab.controllers.RESTController.updateSpeaker(speakerid: Int)
+DELETE  /api/team/:teamid  opentab.controllers.RESTController.deleteTeam(teamid: Int)
 
-GET  /api/judge/:judgeid  eu.seitzal.opentab.controllers.RESTController.getJudge(judgeid: Int)
 
-+nocsrf
-POST  /api/judge  eu.seitzal.opentab.controllers.RESTController.createJudge()
+PATCH  /api/team/:teamid  opentab.controllers.RESTController.updateTeam(teamid: Int)
 
-+nocsrf
-DELETE  /api/judge/:judgeid  eu.seitzal.opentab.controllers.RESTController.deleteJudge(judgeid: Int)
 
-+nocsrf
-PATCH  /api/judge/:judgeid  eu.seitzal.opentab.controllers.RESTController.updateJudge(judgeid: Int)
+PATCH  /api/team/:teamid/toggle  opentab.controllers.RESTController.toggleTeam(teamid: Int)
 
-+nocsrf
-PATCH  /api/judge/:judgeid/toggle  eu.seitzal.opentab.controllers.RESTController.toggleJudge(judgeid: Int)
+GET  /api/team/:teamid/speakers  opentab.controllers.RESTController.getAllSpeakersOnTeam(teamid: Int)
 
-GET  /api/judge/:judgeid/clashes  eu.seitzal.opentab.controllers.RESTController.getClashesForJudge(judgeid: Int)
+GET  /api/speaker/:speakerid  opentab.controllers.RESTController.getSpeaker(speakerid: Int)
 
-+nocsrf
-POST  /api/judge/:judgeid/clash/:teamid  eu.seitzal.opentab.controllers.RESTController.setClash(judgeid: Int, teamid: Int, level: Int)
 
-+nocsrf
-DELETE  /api/judge/:judgeid/clash/:teamid  eu.seitzal.opentab.controllers.RESTController.unsetClash(judgeid: Int, teamid: Int)            
+POST  /api/speaker  opentab.controllers.RESTController.createSpeaker()
 
-GET  /api/verifykey  eu.seitzal.opentab.controllers.RESTController.remoteVerifyKey()
 
-########################################################################################################################
-# Route for static assets
-########################################################################################################################
+DELETE  /api/speaker/:speakerid  opentab.controllers.RESTController.deleteSpeaker(speakerid: Int)
 
-GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
+
+PATCH  /api/speaker/:speakerid  opentab.controllers.RESTController.updateSpeaker(speakerid: Int)
+
+GET  /api/judge/:judgeid  opentab.controllers.RESTController.getJudge(judgeid: Int)
+
+
+POST  /api/judge  opentab.controllers.RESTController.createJudge()
+
+
+DELETE  /api/judge/:judgeid  opentab.controllers.RESTController.deleteJudge(judgeid: Int)
+
+
+PATCH  /api/judge/:judgeid  opentab.controllers.RESTController.updateJudge(judgeid: Int)
+
+
+PATCH  /api/judge/:judgeid/toggle  opentab.controllers.RESTController.toggleJudge(judgeid: Int)
+
+GET  /api/judge/:judgeid/clashes  opentab.controllers.RESTController.getClashesForJudge(judgeid: Int)
+
+
+POST  /api/judge/:judgeid/clash/:teamid  opentab.controllers.RESTController.setClash(judgeid: Int, teamid: Int, level: Int)
+
+
+DELETE  /api/judge/:judgeid/clash/:teamid  opentab.controllers.RESTController.unsetClash(judgeid: Int, teamid: Int)            

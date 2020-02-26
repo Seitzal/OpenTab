@@ -1,4 +1,4 @@
-package eu.seitzal.opentab
+package opentab
 
 final case class NotFoundException(
   what: String,

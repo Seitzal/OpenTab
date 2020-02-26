@@ -1,6 +1,6 @@
-package eu.seitzal.opentab
+package opentab
 
-import eu.seitzal.opentab._
+import opentab._
 import models._
 import shortcuts._
 import upickle.{default => json}
@@ -19,6 +19,12 @@ import org.mindrot.jbcrypt.BCrypt
 package object auth {
 
 import play.api.mvc.DefaultPlayBodyParsers
+
+  case class Credentials(username: String, password: String)
+
+  object Credentials {
+    implicit val rw: json.ReadWriter[Credentials] = json.macroRW
+  }
 
   case class KeyData(
     found: Boolean,
@@ -56,13 +62,18 @@ import play.api.mvc.DefaultPlayBodyParsers
   def registerKey(key: String, userid: Int)
                  (implicit db: Database, config: Configuration): Unit = {
     val connection = db.getConnection()
-    val queryText = 
-      "INSERT INTO api_keys (val, expires, userid) VALUES (?, ?, ?)"
+    val queryText =
+      "DELETE FROM api_keys WHERE userid = ? AND expires != 0"
     val query = connection.prepareStatement(queryText)
-    query.setString(1, key)
-    query.setLong(2, timestamp() + config.get[Int]("api.keyLife"))
-    query.setInt(3, userid)
+    query.setInt(1, userid)
     query.executeUpdate()
+    val query2Text = 
+      "INSERT INTO api_keys (val, expires, userid) VALUES (?, ?, ?)"
+    val query2 = connection.prepareStatement(query2Text)
+    query2.setString(1, key)
+    query2.setLong(2, timestamp() + config.get[Int]("api.keyLife"))
+    query2.setInt(3, userid)
+    query2.executeUpdate()
     connection.close()
   }
 

@@ -1,6 +1,6 @@
-package eu.seitzal.opentab.models
+package opentab.models
 
-import eu.seitzal.opentab._
+import opentab._
 import shortcuts._
 import upickle.{default => json}
 

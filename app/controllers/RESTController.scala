@@ -1,6 +1,6 @@
-package eu.seitzal.opentab.controllers
+package opentab.controllers
 
-import eu.seitzal.opentab._
+import opentab._
 import shortcuts._
 import models._
 import auth._
@@ -34,17 +34,6 @@ class RESTController @Inject()(
 
   val pairingExecutionContext = 
     actorSystem.dispatchers.lookup("pairing-execution-context")
-
-  def remoteVerifyKey = Action.async { implicit request: Request[AnyContent] =>
-    Future {
-      request.headers.get("Authorization").map(verifyKey) match {
-        case Some(keyData) => Ok(json.write(keyData)).as("application/json")
-        case None => BadRequest("No API key found in authorization header.")
-      }
-    } recover {
-        case ex: Throwable => InternalServerError(ex.getMessage)
-    }
-  }
 
   def getAllTabs = optionalAuthAction((userOpt, request) => userOpt match {
     case Some(user) => {
@@ -461,7 +450,9 @@ class RESTController @Inject()(
   
   def jsRouter() = Action.async { implicit request => Future {
     Ok(JavaScriptReverseRouter("routes")(
-      routes.javascript.RESTController.remoteVerifyKey,
+      routes.javascript.AuthController.remoteVerifyKey,
+      routes.javascript.AuthController.signIn,
+      routes.javascript.AuthController.signOut,
       routes.javascript.RESTController.getAllTabs,
       routes.javascript.RESTController.getTab,
       routes.javascript.RESTController.getAllTeams,
