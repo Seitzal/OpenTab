@@ -3,7 +3,7 @@ enablePlugins(JavaAppPackaging)
 name := """opentab"""
 organization := "eu.seitzal"
 
-version := "0.1-SNAPSHOT"
+version := "0.2-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
