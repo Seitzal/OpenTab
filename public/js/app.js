@@ -74,11 +74,19 @@ const router = new VueRouter({
   ]
 })
 
+function ajaxFailure(jqXHR, textStatus, errorThrown) {
+  // TODO: Write default handling for expected API failure sources, such as expired tokens
+  console.log(jqXHR.responseText)
+  alert("AJAX request failed: " + jqXHR.responseText)
+}
+
 const app = new Vue({
   router,
   vuetify: new Vuetify({theme: global.theme}),
   data: {
     drawer: null,
+    tabs: [],
+    tabsUpToDate: false,
     api_key: retrieveSession(),
     show_login_dialog: false 
   },
@@ -98,7 +106,23 @@ const app = new Vue({
     signin: function() {
       this.drawer = false
       this.show_login_dialog = true
+    },
+    loadTabs: function() {
+      this.tabsUpToDate = false
+      let rq = rc.getAllTabs()
+      rq.headers = this.signedIn ? {Authorization: this.api_key} : {}
+      rq.success = (data) => {this.tabs = data; this.tabsUpToDate = true}
+      rq.error = ajaxFailure
+      $.ajax(rq)
     }
+  },
+  watch: {
+    signedIn: function(val) {
+      this.loadTabs()
+    }
+  },
+  mounted: function() {
+    this.loadTabs()
   },
   components: {
     'login-dialog': httpVueLoader("static/vue/login.vue")
