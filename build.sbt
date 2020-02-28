@@ -25,6 +25,7 @@ libraryDependencies ++= Seq(
 // Frontend dependencies using WebJars
 libraryDependencies ++= Seq (
   "org.webjars.npm" % "vue" % "2.6.11",
+  "org.webjars.npm" % "vuex" % "3.1.2",
   "org.webjars.npm" % "vue-router" % "3.1.3",
   "org.webjars.npm" % "http-vue-loader" % "1.4.1",
   "org.webjars.npm" % "vuetify" % "2.2.14",

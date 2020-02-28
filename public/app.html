@@ -11,6 +11,7 @@
   <body>
     <script src="api/routes.js"></script>
     <script src="static/lib/vue/dist/vue.js"></script>
+    <script src="static/lib/vuex/dist/vuex.js"></script>
     <script src="static/lib/vue-router/dist/vue-router.js"></script>
     <script src="static/lib/http-vue-loader/src/httpVueLoader.js"></script>
     <script src="static/lib/vuetify/dist/vuetify.js"></script>
@@ -18,7 +19,7 @@
     <script src="static/lib/js-cookie/src/js.cookie.js"></script>
     <div id="app">
       <v-app>
-        <v-app-bar color="primary darken-2" dark app>
+        <v-app-bar ref="navbar" color="primary darken-2" dark app>
           <v-app-bar-nav-icon class="d-lg-none" @click.stop="drawer = !drawer">
           </v-app-bar-nav-icon>
           <router-link to="/" class="headline nav-link mr-5">OpenTab</router-link>
@@ -39,7 +40,7 @@
             </v-btn>
           </div>
         </v-app-bar>
-        <v-navigation-drawer temporary app v-model="drawer" id="drawer">
+        <v-navigation-drawer ref="navdrawer" temporary app v-model="drawer" id="drawer">
           <v-list dense nav>
             <v-list-item two-line v-if="signedIn">
               <v-list-item-avatar><v-icon>mdi-account</v-icon></v-list-item-avatar>
@@ -84,12 +85,14 @@
         </v-navigation-drawer>
         <v-content>
           <router-view ref="rview">
-            <!-- views will render here -->
           </router-view>
         </v-content>
         <login-dialog ref="login_dialog" :show_login_dialog.sync="show_login_dialog"></login-dialog>
       </v-app>
     </div>
+    <script src="static/js/util.js"></script>
+    <script src="static/js/store.js"></script>
+    <script src="static/js/ajax.js"></script>
     <script src="static/js/routes.js"></script>
     <script src="static/js/app.js"></script>
   </body>
