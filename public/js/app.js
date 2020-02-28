@@ -1,4 +1,4 @@
-global= {
+const global = {
   theme: {
     themes: {
       light: {
@@ -68,24 +68,36 @@ function signOut(then) {
   $.ajax(rq)
 }
 
-const router = new VueRouter({
-  routes: [
-    { path: '/', component: httpVueLoader("static/vue/index.vue")}
-  ]
-})
-
 function ajaxFailure(jqXHR, textStatus, errorThrown) {
   // TODO: Write default handling for expected API failure sources, such as expired tokens
-  console.log(jqXHR.responseText)
-  alert("AJAX request failed: " + jqXHR.responseText)
+  if (jqXHR.status == 401 && jqXHR.responseText == "Invalid API key") {
+    alert("Credential rejected by server. Please sign in again.")
+    app.signout()
+  } else {
+    console.error("AJAX failure: " + jqXHR.responseText + "( " + jqXHR.status + ")")
+    alert("An unexpected error occured. Check browser console for details.")
+  }
 }
+
+const router = new VueRouter({
+  routes: vueRoutes
+})
+
+router.afterEach((to, from) => {
+  app.drawer = false
+  if (app.$refs.rview == undefined || app.$refs.rview.tab == undefined) {
+    app.tab = undefined
+  }
+})
 
 const app = new Vue({
   router,
   vuetify: new Vuetify({theme: global.theme}),
   data: {
     drawer: null,
+    drawerTabLinks: true,
     tabs: [],
+    tab: undefined,
     tabsUpToDate: false,
     api_key: retrieveSession(),
     show_login_dialog: false 
