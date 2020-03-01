@@ -8,14 +8,18 @@ import play.api.db.Database
 
 package object permissions {
 
-  private case class Entry(
+  case class Entry(
     view: Boolean,
     results : Boolean,
     setup: Boolean,
     own: Boolean)
 
-  private def readEntry(userid: Int, tabid: Int, attempt: Int = 1)
-                       (implicit database: Database) : Entry = {
+  object Entry {
+    implicit val rw: json.ReadWriter[Entry] = json.macroRW
+  }
+
+  def readEntry(userid: Int, tabid: Int, attempt: Int = 1)
+               (implicit database: Database) : Entry = {
     if (attempt > 4) {
       throw new Throwable("Internal authorization error.")
     }

@@ -60,6 +60,47 @@ class RESTController @Inject()(
     }
   })
 
+  def getPermissions(tabid: Int) = optionalAuthAction((userOpt, request) => {
+    val tab = Tab(tabid)
+    userOpt match {
+      case Some(user) =>
+        if (tab.isPublic) {
+          val perms = permissions.readEntry(user.id, tabid)
+          val perms_ = permissions.Entry(true, perms.results, perms.setup, perms.own)
+          Ok(json.write(perms)).as("application/json")
+        } else 
+          Ok(json.write(permissions.readEntry(user.id, tabid))).as("application/json")
+      case None =>
+        if (tab.isPublic)
+          Ok(json.write(permissions.Entry(true, false, false, false))).as("application/json")
+        else 
+          Ok(json.write(permissions.Entry(false, false, false, false))).as("application/json")
+    }
+  })
+
+  def getAllPermissions() = optionalAuthAction((userOpt, request) => {
+    userOpt match {
+      case Some(user) => {
+        val perms =
+          Tab.getAll
+          .filter(tab => userCanSeeTab(user, tab))
+          .map(tab => (tab.id, permissions.readEntry(user.id, tab.id)))
+          .map(set =>
+            if (Tab(set._1).isPublic)
+              (set._1, permissions.Entry(true, set._2.results, set._2.setup, set._2.own))
+              else set)
+        Ok(json.write(perms)).as("application/json")
+      }
+      case None => {
+        val perms =
+          Tab.getAll
+          .filter(_.isPublic)
+          .map(tab => (tab.id, permissions.Entry(true, false, false, false)))
+        Ok(json.write(perms)).as("application/json")
+      }
+    }
+  })
+
   def getAllTeams(tabid: Int) = optionalAuthAction((userOpt, request) => {
     val tab = Tab(tabid)
     userOpt match {
@@ -453,6 +494,8 @@ class RESTController @Inject()(
       routes.javascript.AuthController.remoteVerifyKey,
       routes.javascript.AuthController.signIn,
       routes.javascript.AuthController.signOut,
+      routes.javascript.RESTController.getAllPermissions,
+      routes.javascript.RESTController.getPermissions,
       routes.javascript.RESTController.getAllTabs,
       routes.javascript.RESTController.getTab,
       routes.javascript.RESTController.getAllTeams,

@@ -12,3 +12,11 @@ Authorization: {{key}}
 ###
 POST {{host}}/auth/sign-out HTTP/1.1
 Authorization: 
+###
+@tabid = 9
+###
+GET {{host}}/api/tab/{{tabid}}/permissions
+Authorization: {{key}}
+###
+GET {{host}}/api/tabs/permissions
+Authorization: {{key}}
