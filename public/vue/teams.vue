@@ -1,7 +1,7 @@
 <template>
   <div>
     <div v-if="tab != undefined" style="display:none">{{tab.id}}</div>
-    <v-container>
+    <v-container v-if="showControls">
       <v-form v-model="valid">
         <v-expansion-panels v-model="panel">
           <v-expansion-panel>
@@ -31,57 +31,60 @@
     <v-container>
       <table>
         <tbody>
-        <tr v-for="team in teams" v-bind:key="team.id">
-          <v-card>
-            <v-card-title>
-              <v-spacer></v-spacer>
-              <v-text-field v-model="search" append-icon="mdi-magnify" label="Search" single-line hide-details>
-              </v-text-field>
-            </v-card-title>
-            <v-data-table height="60vh" disable-pagination hide-default-footer fixed-header :loading="!$store.state.teamsUpToDate" 
-              loading-text="Loading data..." :headers="headers" :items="$store.state.teams" :search="search" dense>
-              <template v-slot:item.status="{ item }">
-                {{ statusOptions.find(s => s.value == item.status).text }}
-              </template>
-              <template v-slot:item.action="{ item }">
-                <v-icon class="mr-2" @click="editTeam(item)">
-                  mdi-pencil
-                </v-icon>
-                <v-icon @click="deleteTeam(item)">
-                  mdi-delete
-                </v-icon>
-              </template>
-              <template v-slot:item.active="{ item }">
-                <v-switch v-model="item.active" mt-0 mb-0 @click.stop="toggleActive(item)" color="primary">
-                </v-switch>
-              </template>
-            </v-data-table>
-          </v-card>
-        </tr>
-      </tbody>
-    </table>
-  </v-container>
-  <v-dialog v-model="dialogEditTeam" max-width="500px">
-    <v-card>
-      <v-card-title>
-        <span class="headline">Update Team</span>
-      </v-card-title>
-      <v-card-text>
-        <v-form v-model="valid">
-          <v-container>
-            <v-text-field :rules="nameRules" v-model="editedTeam.name" label="Name" required></v-text-field>
-            <v-text-field v-model="editedTeam.delegation" label="Delegation"></v-text-field>
-            <v-select v-model="editedTeam.status" label="Language Status" :items="statusOptions"></v-select>
-          </v-container>
-        </v-form>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn color="primary" text @click="editTeamDiscard">Cancel</v-btn>
-        <v-btn color="primary" text @click="editTeamSave">Save</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+          <tr v-for="team in teams" v-bind:key="team.id">
+            <v-card>
+              <v-card-title>
+                <v-switch label="Hide Controls" v-if="canSetup" v-model="hideControls"></v-switch>
+                <v-spacer></v-spacer>
+                <v-text-field v-model="search" append-icon="mdi-magnify" label="Search" single-line hide-details>
+                </v-text-field>
+              </v-card-title>
+              <v-data-table height="60vh" disable-pagination hide-default-footer fixed-header :search="search" dense
+                :loading="!$store.state.teamsUpToDate" loading-text="Loading data..." 
+                :headers="showControls ? headers : headers.slice(1,4)" 
+                :items="$store.state.teams">
+                <template v-slot:item.status="{ item }">
+                  {{ statusOptions.find(s => s.value == item.status).text }}
+                </template>
+                <template v-slot:item.action="{ item }">
+                  <v-icon class="mr-2" @click="editTeam(item)">
+                    mdi-pencil
+                  </v-icon>
+                  <v-icon @click="deleteTeam(item)">
+                    mdi-delete
+                  </v-icon>
+                </template>
+                <template v-slot:item.active="{ item }">
+                  <v-switch v-model="item.active" mt-0 mb-0 @click.stop="toggleActive(item)" color="primary">
+                  </v-switch>
+                </template>
+              </v-data-table>
+            </v-card>
+          </tr>
+        </tbody>
+      </table>
+    </v-container>
+    <v-dialog v-model="dialogEditTeam" max-width="500px" @keydown.enter="editTeamSave()" @keydown.esc="editTeamDiscard()">
+      <v-card>
+        <v-card-title>
+          <span class="headline">Update Team</span>
+        </v-card-title>
+        <v-card-text>
+          <v-form v-model="valid">
+            <v-container>
+              <v-text-field :rules="nameRules" v-model="editedTeam.name" label="Name" required autofocus></v-text-field>
+              <v-text-field v-model="editedTeam.delegation" label="Delegation"></v-text-field>
+              <v-select v-model="editedTeam.status" label="Language Status" :items="statusOptions"></v-select>
+            </v-container>
+          </v-form>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" text @click="editTeamDiscard">Cancel</v-btn>
+          <v-btn color="primary" text @click="editTeamSave">Save</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -89,9 +92,9 @@
 module.exports = {
   name: "teams",
   data: function() { return {
+    hideControls: false,
     panel: 0,
     valid: false,
-    loading: true,
     dialogEditTeam: false,
     nameRules: [v => !!v || 'Must enter a name!'],
     statusOptions: [{text: "EPL", value: 1},{text: "ESL", value: 2},{text: "EFL", value: 3}],
@@ -109,31 +112,39 @@ module.exports = {
   }},
   computed: {
     signedIn: function() { return this.$store.getters.signedIn },
-    tab: function() { return this.$store.getters.tab }
+    tab: function() { return this.$store.getters.tab },
+    canSetup: function() {
+      if (this.$store.state.permissions.length != 0 && this.tab != undefined)
+        return this.$store.state.permissions.find(set => set[0] == this.tab.id)[1].setup
+      else return false
+    },
+    showControls: function() { return this.canSetup && !this.hideControls }
   },
   methods: {
     deleteTeam(team) {
-      confirm('Are you sure you want to delete this item?') && {}
+      confirm('Are you sure you want to delete this item?') && deleteTeam(team, loadTeams)
     },
     createTeam() {
-      
+      createTeam(this.newTeam, loadTeams)
     },
     editTeam(team) {
-      
+      this.editedTeam = team;
+      this.dialogEditTeam = true;
     },
     editTeamDiscard() {
-      
+      this.dialogEditItem = false;
     },
     editTeamSave() {
-
+      updateTeam(this.editedTeam, () => {loadTeams(); this.dialogEditTeam = false})
     },
     toggleActive: function(team) {
-
+      toggleTeam(team, loadTeams)
     }
   },
   watch: {
     tab: function() {
-      loadTeams()
+      if (this.tab != undefined)
+        loadTeams()
     }
   },
   mounted: function() {
@@ -141,6 +152,3 @@ module.exports = {
   }
 }
 </script>
-
-<style>
-</style>

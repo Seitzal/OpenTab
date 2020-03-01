@@ -37,14 +37,11 @@ const app = new Vue({
     },
     signout: function() {
       this.drawer = false
-      signOut(function(){ router.push("/")})
+      signOut(function(){})
     },
     signin: function() {
       this.drawer = false
       this.show_login_dialog = true
-    },
-    loadTabs: function() {
-      loadTabs()
     }
   },
   computed: {
@@ -53,14 +50,15 @@ const app = new Vue({
   },
   watch: {
     signedIn: function(val) {
-      this.loadTabs()
+      loadTabs()
+      loadPermissions()
     }
   },
   mounted: function() {
-    this.loadTabs()
+    loadTabs()
+    loadPermissions()
   },
   components: {
     'login-dialog': httpVueLoader("static/vue/login.vue")
   }
 }).$mount('#app')
-

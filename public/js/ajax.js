@@ -28,13 +28,26 @@ function signOut(then) {
   $.ajax(rq)
 }
 
-function loadTabs() {
+function loadTabs(then = function(){}) {
   store.commit("setTabsUpToDate", false)
   let rq = rc.getAllTabs()
   rq.headers = store.getters.signedIn ? {Authorization: store.state.api_key} : {}
   rq.success = (data) => {
     store.commit("setTabs", data)
-    store.commit("setTabsUpToDate", true)}
+    store.commit("setTabsUpToDate", true)
+    then()
+  }
+  rq.error = ajaxFailure
+  $.ajax(rq)
+}
+
+function loadPermissions(then = function(){}) {
+  let rq = rc.getAllPermissions()
+  rq.headers = store.getters.signedIn ? {Authorization: store.state.api_key} : {}
+  rq.success = (data) => {
+    store.commit("setPermissions", data)
+    then()
+  }
   rq.error = ajaxFailure
   $.ajax(rq)
 }
@@ -46,6 +59,57 @@ function loadTeams() {
   rq.success = (data) =>  {
     store.commit("setTeams", data)
     store.commit("setTeamsUpToDate", true)}
+  rq.error = ajaxFailure
+  $.ajax(rq)
+}
+
+function createTeam(team, then) {
+  let rq = rc.createTeam()
+  rq.headers = {Authorization: store.state.api_key}
+  rq.data = {
+    tabid: store.state.tabid,
+    name: team.name,
+    delegation: team.delegation != "" ? team.delegation : team.name,
+    status: team.status
+  }
+  rq.success = (data) => {
+    then(data)
+  }
+  rq.error = ajaxFailure
+  $.ajax(rq)
+}
+
+function updateTeam(team, then) {
+  let rq = rc.updateTeam(team.id)
+  rq.headers = {Authorization: store.state.api_key}
+  rq.data = {
+    name: team.name,
+    delegation: team.delegation,
+    status: team.status
+  }
+  rq.success = (data) => {
+    then(data)
+  }
+  rq.error = ajaxFailure
+  $.ajax(rq)
+}
+
+function deleteTeam(team, then) {
+  let rq = rc.deleteTeam(team.id)
+  rq.headers = {Authorization: store.state.api_key}
+  rq.success = (data) => {
+    then(data)
+  }
+  rq.error = ajaxFailure
+  $.ajax(rq)
+}
+
+function toggleTeam(team, then) {
+  let rq = rc.toggleTeam(team.id)
+  rq.headers = {Authorization: store.state.api_key}
+  rq.success = (data) => {
+    then(data)
+  }
   rq.error = ajaxFailure
   $.ajax(rq)
 }

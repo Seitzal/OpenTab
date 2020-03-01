@@ -4,6 +4,7 @@ var store = new Vuex.Store({
     tabs: [],
     tabid: undefined,
     tabsUpToDate: false,
+    permissions: [],
     teams: [],
     teamsUpToDate: false
   },
@@ -24,6 +25,9 @@ var store = new Vuex.Store({
     },
     setTabId: (state, x) => {
       state.tabid = x
+    },
+    setPermissions: (state, x) => {
+      state.permissions = x
     },
     setTabsUpToDate: (state, x) => {
       state.tabsUpToDate = x
