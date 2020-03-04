@@ -29,42 +29,41 @@
       </v-form>
     </v-container>
     <v-container>
-      <table>
-        <tbody>
-          <tr v-for="team in teams" v-bind:key="team.id">
-            <v-card>
-              <v-card-title>
-                <v-switch label="Hide Controls" v-if="canSetup" v-model="hideControls"></v-switch>
-                <v-spacer></v-spacer>
-                <v-text-field v-model="search" append-icon="mdi-magnify" label="Search" single-line hide-details>
-                </v-text-field>
-              </v-card-title>
-              <v-data-table height="60vh" disable-pagination hide-default-footer fixed-header :search="search" dense
-                :loading="!$store.state.teamsUpToDate" loading-text="Loading data..." 
-                :headers="showControls ? headers : headers.slice(1,4)" 
-                :items="$store.state.teams">
-                <template v-slot:item.status="{ item }">
-                  {{ statusOptions.find(s => s.value == item.status).text }}
-                </template>
-                <template v-slot:item.action="{ item }">
-                  <v-icon class="mr-2" @click="editTeam(item)">
-                    mdi-pencil
-                  </v-icon>
-                  <v-icon @click="deleteTeam(item)">
-                    mdi-delete
-                  </v-icon>
-                </template>
-                <template v-slot:item.active="{ item }">
-                  <v-switch v-model="item.active" mt-0 mb-0 @click.stop="toggleActive(item)" color="primary">
-                  </v-switch>
-                </template>
-              </v-data-table>
-            </v-card>
-          </tr>
-        </tbody>
-      </table>
+      <v-card>
+        <v-card-title class="py-0">
+            <v-btn dense text class="mr-3" align="center" @click="refresh"><v-icon>mdi-refresh</v-icon></v-btn>
+            <v-switch align="center" dense inset label="Hide Controls" v-if="canSetup" v-model="hideControls"></v-switch>
+            <v-spacer></v-spacer>
+            <v-text-field class="mt-0" align="center" dense v-model="search" append-icon="mdi-magnify" label="Search" single-line hide-details>
+            </v-text-field>
+        </v-card-title>
+        <v-data-table :height="showControls ? '60vh' : '75vh'" disable-pagination hide-default-footer fixed-header :search="search" dense
+          :loading="!$store.state.teamsUpToDate" loading-text="Loading data..." 
+          :headers="showControls ? headers : headers.slice(1,4)" 
+          :items="$store.state.teams">
+          <template v-slot:item.status="{ item }">
+            {{ statusOptions.find(s => s.value == item.status).text }}
+          </template>
+          <template v-slot:item.action="{ item }">
+            <v-icon class="mr-2" @click="editTeam(item)">
+              mdi-pencil
+            </v-icon>
+            <v-icon @click="deleteTeam(item)">
+              mdi-delete
+            </v-icon>
+          </template>
+          <template v-slot:item.active="{ item }">
+            <v-icon v-if="item.active" @click="toggleActive(item)" color="primary">
+              mdi-checkbox-marked
+            </v-icon>
+            <v-icon v-if="!item.active" @click="toggleActive(item)">
+              mdi-checkbox-blank-outline
+            </v-icon>
+          </template>
+        </v-data-table>
+      </v-card>
     </v-container>
-    <v-dialog v-model="dialogEditTeam" max-width="500px" @keydown.enter="editTeamSave()" @keydown.esc="editTeamDiscard()">
+    <v-dialog v-model="dialogEditTeam" max-width="500px" @keydown.enter="editTeamSave()" @keydown.esc="dialogEditTeam = false;">
       <v-card>
         <v-card-title>
           <span class="headline">Update Team</span>
@@ -80,7 +79,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="primary" text @click="editTeamDiscard">Cancel</v-btn>
+          <v-btn color="primary" text @click="dialogEditTeam = false;">Cancel</v-btn>
           <v-btn color="primary" text @click="editTeamSave">Save</v-btn>
         </v-card-actions>
       </v-card>
@@ -106,7 +105,7 @@ module.exports = {
       {text: "Name", value: "name"},
       {text: "Delegation", value: "delegation"},
       {text: "Language Status", value: "status"},
-      {text: "Active", value: "active", sortable: false},
+      {text: "Active", value: "active"},
       {text: "Actions", value: "action", sortable: false}],
     teams: []
   }},
@@ -128,17 +127,17 @@ module.exports = {
       createTeam(this.newTeam, loadTeams)
     },
     editTeam(team) {
-      this.editedTeam = team;
+      this.editedTeam = Object.assign({}, team);
       this.dialogEditTeam = true;
-    },
-    editTeamDiscard() {
-      this.dialogEditItem = false;
     },
     editTeamSave() {
       updateTeam(this.editedTeam, () => {loadTeams(); this.dialogEditTeam = false})
     },
-    toggleActive: function(team) {
+    toggleActive(team) {
       toggleTeam(team, loadTeams)
+    },
+    refresh() {
+      loadTeams()
     }
   },
   watch: {

@@ -190,11 +190,11 @@ class RESTController @Inject()(
     userOpt match {
       case Some(user) =>
         if (tab.isPublic || userCanSeeTab(user, tab))
-          Ok(json.write(tab.speakers)).as("application/json")
+          Ok(json.write(tab.speakers.map(_.externalRepresentation))).as("application/json")
         else PermissionDenied
       case None =>
         if (tab.isPublic)
-          Ok(json.write(tab.speakers)).as("application/json")
+          Ok(json.write(tab.speakers.map(_.externalRepresentation))).as("application/json")
         else AuthorizationRequired
     }
   })
@@ -205,11 +205,11 @@ class RESTController @Inject()(
     userOpt match {
       case Some(user) =>
         if (tab.isPublic || userCanSeeTab(user, tab))
-          Ok(json.write(team.speakers)).as("application/json")
+          Ok(json.write(team.speakers.map(_.externalRepresentation))).as("application/json")
         else PermissionDenied
       case None =>
         if (tab.isPublic)
-          Ok(json.write(team.speakers)).as("application/json")
+          Ok(json.write(team.speakers.map(_.externalRepresentation))).as("application/json")
         else AuthorizationRequired
     }
   })
@@ -235,8 +235,8 @@ class RESTController @Inject()(
       case Some(tab) => {
         if (userCanSetupTab(user, tab)) {
           val teamidOpt = formData.get("teamid").map(seq => seq(0).toInt)
-          val firstNameOpt = formData.get("firstname").map(seq => seq(0))
-          val lastNameOpt = formData.get("lastname").map(seq => seq(0))
+          val firstNameOpt = formData.get("firstName").map(seq => seq(0))
+          val lastNameOpt = formData.get("lastName").map(seq => seq(0))
           val statusOpt = formData.get("status").map(seq => seq(0).toInt)
           (teamidOpt, firstNameOpt, lastNameOpt, statusOpt) match {
             case (Some(teamid), Some(fname), Some(lname), Some(status)) => {
@@ -264,8 +264,8 @@ class RESTController @Inject()(
     if (userCanSetupTab(user, speaker.tab)) {
       val formData = request.body
       val newSpeaker = speaker.update(
-        formData.get("firstname").map(seq => seq(0)),
-        formData.get("lastname").map(seq => seq(0)),
+        formData.get("firstName").map(seq => seq(0)),
+        formData.get("lastName").map(seq => seq(0)),
         formData.get("status").map(seq => seq(0).toInt))
       Ok(json.write(newSpeaker.externalRepresentation)).as("application/json")
     } else PermissionDenied

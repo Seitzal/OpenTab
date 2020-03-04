@@ -6,7 +6,9 @@ var store = new Vuex.Store({
     tabsUpToDate: false,
     permissions: [],
     teams: [],
-    teamsUpToDate: false
+    teamsUpToDate: false,
+    speakers: [],
+    speakersUpToDate: false
   },
   getters: {
     tab: state => {
@@ -14,7 +16,7 @@ var store = new Vuex.Store({
     },
     signedIn: state => {
       return state.api_key != undefined;
-    }
+    },
   },
   mutations: {
     setApiKey: (state, x) => {
@@ -37,6 +39,12 @@ var store = new Vuex.Store({
     },
     setTeamsUpToDate: (state, x) => {
       state.teamsUpToDate = x
+    },
+    setSpeakers: (state, x) => {
+      state.speakers = x
+    },
+    setSpeakersUpToDate: (state, x) => {
+      state.speakersUpToDate = x
     },
   }
 })

@@ -114,13 +114,58 @@ function toggleTeam(team, then) {
   $.ajax(rq)
 }
 
+function loadSpeakers(then) {
+  store.commit("setSpeakersUpToDate", false)
+  let rq = rc.getAllSpeakers(store.state.tabid)
+  rq.headers = store.getters.signedIn ? {Authorization: store.state.api_key} : {}
+  rq.success = (data) =>  {
+    store.commit("setSpeakers", data)
+    store.commit("setSpeakersUpToDate", true)}
+  rq.error = ajaxFailure
+  $.ajax(rq)
+}
+
+function createSpeaker(speaker, then) {
+  let rq = rc.createSpeaker()
+  rq.headers = {Authorization: store.state.api_key}
+  rq.data = speaker
+  rq.success = (data) => {
+    then(data)
+  }
+  rq.error = ajaxFailure
+  $.ajax(rq)
+}
+
+function updateSpeaker(speaker, then) {
+  let rq = rc.updateSpeaker(speaker.id)
+  rq.headers = {Authorization: store.state.api_key}
+  rq.data = speaker
+  rq.success = (data) => {
+    then(data)
+  }
+  rq.error = ajaxFailure
+  $.ajax(rq)
+}
+
+function deleteSpeaker(speaker, then) {
+  let rq = rc.deleteSpeaker(speaker.id)
+  rq.headers = {Authorization: store.state.api_key}
+  rq.success = (data) => {
+    then(data)
+  }
+  rq.error = ajaxFailure
+  $.ajax(rq)
+}
+
 function ajaxFailure(jqXHR, textStatus, errorThrown) {
-  // TODO: Write default handling for expected API failure sources, such as expired tokens
-  if (jqXHR.status == 401 && jqXHR.responseText == "Invalid API key") {
+  console.error("AJAX failure: " + jqXHR.responseText + " (" + jqXHR.status + ")")
+  if (jqXHR.responseText == "Invalid API key") {
     alert("Credential rejected by server. Please sign in again.")
     app.signout()
+  } else if (jqXHR.responseText == "API key has expired") {
+    alert("Your session has expired. Please sign in again.")
+    app.signout()
   } else {
-    console.error("AJAX failure: " + jqXHR.responseText + "( " + jqXHR.status + ")")
     alert("An unexpected error occured. Check browser console for details.")
   }
 }
