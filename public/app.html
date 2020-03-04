@@ -26,6 +26,7 @@
           <v-toolbar-items class="d-none d-lg-block wsblock" v-if="tab != undefined">
             <v-btn :to="'/tab/' + tab.id" depressed dark>{{tab.name}}</v-btn>
             <v-btn :to="'/tab/' + tab.id + '/teams'" text>Teams</v-btn>
+            <v-btn :to="'/tab/' + tab.id + '/speakers'" text>Speakers</v-btn>
           </v-toolbar-items>
           <v-spacer></v-spacer>
           <div class="d-none d-lg-block">
@@ -77,6 +78,11 @@
               <v-list-item :to="'/tab/' + tab.id + '/teams'" active-class="mobile_nav_tweak">
                 <v-list-item-content>
                   <v-list-item-title>Teams</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+              <v-list-item :to="'/tab/' + tab.id + '/speakers'" active-class="mobile_nav_tweak">
+                <v-list-item-content>
+                  <v-list-item-title>Speakers</v-list-item-title>
                 </v-list-item-content>
               </v-list-item>
             </v-list-group>

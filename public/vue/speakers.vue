@@ -1,6 +1,13 @@
 <template>
   <div>
     <div v-if="tab != undefined" style="display:none">{{tab.id}}</div>
+    <v-container v-if="teamid != undefined">
+      <v-card>
+        <v-toolbar>
+            <div>Showing speakers for team "{{teamname}}"</div><v-spacer></v-spacer><v-btn text to="./">show all</v-btn>
+        </v-toolbar>
+      </v-card>
+    </v-container>
     <v-container v-if="showControls">
       <v-form v-model="valid">
         <v-expansion-panels v-model="panel">
@@ -15,7 +22,8 @@
                   <v-text-field v-model="newSpeaker.lastName" :rules="nameRules" :counter="50" label="Last Name" required></v-text-field>
                 </v-col>
                 <v-col lg="2" md="4" cols="12">
-                  <v-select v-model="newSpeaker.teamid" :items="$store.state.teams" item-text="name" item-value="id" label="Team"></v-select>
+                  <v-select v-model="newSpeaker.teamid" :disabled="teamid != undefined" :items="teams" :rules="teamRules"
+                    item-text="name" item-value="id" label="Team" required></v-select>
                 </v-col>
                 <v-col lg="2" md="4" cols="12">
                   <v-btn-toggle v-model="newSpeaker.status" mandatory>
@@ -36,7 +44,9 @@
     <v-container>
       <v-card>
         <v-card-title class="py-0">
-          <v-btn dense text class="mr-3" align="center" @click="refresh"><v-icon>mdi-refresh</v-icon></v-btn>
+          <v-tooltip bottom><template v-slot:activator="{ on }">
+            <v-btn dense text class="mr-3" align="center" @click="refresh" v-on="on"><v-icon>mdi-refresh</v-icon></v-btn>
+          </template><span>reload data</span></v-tooltip>
           <v-switch align="center" dense inset label="Hide Controls" v-if="canSetup" v-model="hideControls"></v-switch>
           <v-spacer></v-spacer>
           <v-text-field class="mt-0" align="center" dense v-model="search" append-icon="mdi-magnify" label="Search" single-line hide-details>
@@ -45,17 +55,21 @@
         <v-data-table :height="showControls ? '60vh' : '75vh'" disable-pagination hide-default-footer fixed-header :search="search" dense
           :loading="!$store.state.speakersUpToDate" loading-text="Loading data..." 
           :headers="showControls ? headers : headers.slice(1,5)" 
-          :items="$store.state.speakers">
+          :items="speakers">
           <template v-slot:item.status="{ item }">
             {{ statusOptions.find(s => s.value == item.status).text }}
           </template>
           <template v-slot:item.action="{ item }">
-            <v-icon class="mr-2" @click="editSpeaker(item)">
-              mdi-pencil
-            </v-icon>
-            <v-icon @click="deleteSpeaker(item)">
-              mdi-delete
-            </v-icon>
+            <v-tooltip bottom><template v-slot:activator="{ on }">
+              <v-icon @click="editSpeaker(item)" v-on="on">
+                mdi-pencil
+              </v-icon>
+            </template><span>modify</span></v-tooltip>
+            <v-tooltip bottom><template v-slot:activator="{ on }">
+              <v-icon @click="deleteSpeaker(item)" v-on="on">
+                mdi-delete
+              </v-icon>
+            </template><span>modify</span></v-tooltip>
           </template>
         </v-data-table>
       </v-card>
@@ -93,17 +107,18 @@ module.exports = {
     valid: false,
     dialogEditSpeaker: false,
     nameRules: [v => !!v || 'Must enter a name!'],
+    teamRules: [v => !!v || 'Must select a team!'],
     statusOptions: [{text: "EPL", value: 1},{text: "ESL", value: 2},{text: "EFL", value: 3}],
     newSpeaker: {},
     editedSpeaker: {},
     search: "",
     headers: [
-      {text: "ID", value: "id", align: "start"}, //0
-      {text: "First Name", value: "firstName"}, //1
-      {text: "Last Name", value: "lastName"}, //2
-      {text: "Team", value: "team"}, //3
-      {text: "Language Status", value: "status"}, //4
-      {text: "Actions", value: "action", sortable: false}], //5
+      {text: "ID", value: "id", align: "start"},
+      {text: "First Name", value: "firstName"},
+      {text: "Last Name", value: "lastName"},
+      {text: "Team", value: "team"},
+      {text: "Language Status", value: "status"},
+      {text: "Actions", value: "action", sortable: false}],
   }},
   computed: {
     signedIn: function() { return this.$store.getters.signedIn },
@@ -113,7 +128,30 @@ module.exports = {
         return this.$store.state.permissions.find(set => set[0] == this.tab.id)[1].setup
       else return false
     },
-    showControls: function() { return this.canSetup && !this.hideControls }
+    showControls: function() { return this.canSetup && !this.hideControls },
+    teamid: function() { return this.$route.params.teamid },
+    teamname: function() {
+      if (this.teamid != undefined) {
+        const team = this.$store.state.teams.find(team => team.id == this.teamid)
+        if (team != undefined) {
+          return team.name
+        } else {
+          return undefined
+        }
+      }
+     },
+    speakers: function() {
+      if (this.teamid != undefined) {
+        return this.$store.state.speakers.filter(speaker => speaker.teamid == this.teamid)
+      } else {
+        return this.$store.state.speakers
+      }
+    },
+    teams: function() {
+      if (this.teamname != undefined) {
+        return [{name: this.teamname, id: this.teamid}]
+      } else return this.$store.state.teams
+    },
   },
   methods: {
     deleteSpeaker(speaker) {
@@ -138,11 +176,15 @@ module.exports = {
       if (this.tab != undefined)
         loadTeams()
         loadSpeakers()
+    },
+    teamid: function() {
+      this.newSpeaker.teamid = this.teamid
     }
   },
   mounted: function() {
     loadTeams()
     loadSpeakers()
+    this.newSpeaker.teamid = this.teamid
   }
 }
 </script>

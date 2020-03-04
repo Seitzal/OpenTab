@@ -31,7 +31,9 @@
     <v-container>
       <v-card>
         <v-card-title class="py-0">
-            <v-btn dense text class="mr-3" align="center" @click="refresh"><v-icon>mdi-refresh</v-icon></v-btn>
+            <v-tooltip bottom><template v-slot:activator="{ on }">
+              <v-btn dense text class="mr-3" align="center" @click="refresh" v-on="on"><v-icon>mdi-refresh</v-icon></v-btn>
+            </template><span>reload data</span></v-tooltip>
             <v-switch align="center" dense inset label="Hide Controls" v-if="canSetup" v-model="hideControls"></v-switch>
             <v-spacer></v-spacer>
             <v-text-field class="mt-0" align="center" dense v-model="search" append-icon="mdi-magnify" label="Search" single-line hide-details>
@@ -45,12 +47,23 @@
             {{ statusOptions.find(s => s.value == item.status).text }}
           </template>
           <template v-slot:item.action="{ item }">
-            <v-icon class="mr-2" @click="editTeam(item)">
-              mdi-pencil
-            </v-icon>
-            <v-icon @click="deleteTeam(item)">
-              mdi-delete
-            </v-icon>
+            <v-tooltip bottom><template v-slot:activator="{ on }">
+              <v-icon @click="editTeam(item)" v-on="on">
+                mdi-pencil
+              </v-icon>
+            </template><span>modify</span></v-tooltip>
+            <v-tooltip bottom><template v-slot:activator="{ on }">
+              <router-link :to="'./speakers/' + item.id">
+                <v-icon v-on="on">
+                  mdi-account-multiple
+                </v-icon>
+              </router-link>
+            </template><span>speakers</span></v-tooltip>
+            <v-tooltip bottom><template v-slot:activator="{ on }">
+              <v-icon @click="deleteTeam(item)" v-on="on">
+                mdi-delete
+              </v-icon>
+            </template><span>delete</span></v-tooltip>
           </template>
           <template v-slot:item.active="{ item }">
             <v-icon v-if="item.active" @click="toggleActive(item)" color="primary">
