@@ -1,0 +1,9 @@
+language: scala
+scala:
+  - 2.13.1
+jobs:
+  include:
+    - stage: build
+      script: sbt ++$TRAVIS_SCALA_VERSION clean compile
+    - stage: package
+      script: sbt ++$TRAVIS_SCALA_VERSION doc package clean
