@@ -5,7 +5,7 @@ const global = {
         primary: "#009688"
       }
     }
-  }
+  },
 };
 
 const router = new VueRouter({

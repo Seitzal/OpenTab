@@ -405,8 +405,8 @@ class RESTController @Inject()(
     formData.get("tabid").map(seq => Tab(seq(0).toInt)) match {
       case Some(tab) => {
         if (userCanSetupTab(user, tab)) {
-          val firstNameOpt = formData.get("firstname").map(seq => seq(0))
-          val lastNameOpt = formData.get("lastname").map(seq => seq(0))
+          val firstNameOpt = formData.get("firstName").map(seq => seq(0))
+          val lastNameOpt = formData.get("lastName").map(seq => seq(0))
           val delegOpt = formData.get("delegation").map(seq => seq(0))
           val ratingOpt = formData.get("rating").map(seq => seq(0).toInt)
           (firstNameOpt, lastNameOpt, ratingOpt) match {
@@ -442,8 +442,8 @@ class RESTController @Inject()(
     if (userCanSetupTab(user, judge.tab)) {
       val formData = request.body
       val newJudge = judge.update(
-        formData.get("firstname").map(seq => seq(0)),
-        formData.get("lastname").map(seq => seq(0)),
+        formData.get("firstName").map(seq => seq(0)),
+        formData.get("lastName").map(seq => seq(0)),
         formData.get("rating").map(seq => seq(0).toInt))
       Ok(json.write(newJudge)).as("application/json")
     } else PermissionDenied

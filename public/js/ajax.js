@@ -157,6 +157,68 @@ function deleteSpeaker(speaker, then) {
   $.ajax(rq)
 }
 
+function loadDelegations(then) {
+  let rq = rc.getAllDelegations(store.state.tabid)
+  rq.headers = {Authorization: store.state.api_key}
+  rq.success = (data) =>  {
+    store.commit("setDelegations", data)}
+  rq.error = ajaxFailure
+  $.ajax(rq)
+}
+
+function loadJudges(then) {
+  store.commit("setJudgesUpToDate", false)
+  let rq = rc.getAllJudges(store.state.tabid)
+  rq.headers = {Authorization: store.state.api_key}
+  rq.success = (data) =>  {
+    store.commit("setJudges", data)
+    store.commit("setJudgesUpToDate", true)}
+  rq.error = ajaxFailure
+  $.ajax(rq)
+}
+
+function createJudge(judge, then) {
+  let rq = rc.createJudge()
+  rq.headers = {Authorization: store.state.api_key}
+  rq.data = {...judge, tabid: store.state.tabid}
+  rq.success = (data) => {
+    then(data)
+  }
+  rq.error = ajaxFailure
+  $.ajax(rq)
+}
+
+function updateJudge(judge, ratingOnly = false, then) {
+  let rq = rc.updateJudge(judge.id)
+  rq.headers = {Authorization: store.state.api_key}
+  rq.data = ratingOnly ? {rating: judge.rating} : judge
+  rq.success = (data) => {
+    then(data)
+  }
+  rq.error = ajaxFailure
+  $.ajax(rq)
+}
+
+function toggleJudge(judge, then) {
+  let rq = rc.toggleJudge(judge.id)
+  rq.headers = {Authorization: store.state.api_key}
+  rq.success = (data) => {
+    then(data)
+  }
+  rq.error = ajaxFailure
+  $.ajax(rq)
+}
+
+function deleteJudge(judge, then) {
+  let rq = rc.deleteJudge(judge.id)
+  rq.headers = {Authorization: store.state.api_key}
+  rq.success = (data) => {
+    then(data)
+  }
+  rq.error = ajaxFailure
+  $.ajax(rq)
+}
+
 function ajaxFailure(jqXHR, textStatus, errorThrown) {
   console.error("AJAX failure: " + jqXHR.responseText + " (" + jqXHR.status + ")")
   if (jqXHR.responseText == "Invalid API key") {

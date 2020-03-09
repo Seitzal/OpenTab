@@ -8,7 +8,10 @@ var store = new Vuex.Store({
     teams: [],
     teamsUpToDate: false,
     speakers: [],
-    speakersUpToDate: false
+    speakersUpToDate: false,
+    delegations: [],
+    judges: [],
+    judgesUpToDate: false,
   },
   getters: {
     tab: state => {
@@ -45,6 +48,15 @@ var store = new Vuex.Store({
     },
     setSpeakersUpToDate: (state, x) => {
       state.speakersUpToDate = x
+    },
+    setDelegations: (state, x) => {
+      state.delegations = x
+    },
+    setJudges: (state, x) => {
+      state.judges = x
+    },
+    setJudgesUpToDate: (state, x) => {
+      state.judgesUpToDate = x
     },
   }
 })
