@@ -135,44 +135,56 @@ object Team {
 
   implicit val rw: json.ReadWriter[Team] = json.macroRW
 
-  def apply(id: Int)(implicit database: Database): Team = {
-    val connection = database.getConnection()
-    val queryText = "SELECT * FROM teams WHERE id = ?"
-    val query = connection.prepareStatement(queryText)
-    query.setInt(1, id)
-    val queryResult = query.executeQuery()
-    connection.close()
-    if (queryResult.next()) {
-      val id = queryResult.getInt("id")
-      val tabid = queryResult.getInt("tabid")
-      val name = queryResult.getString("name")
-      val delegation = queryResult.getString("delegation")
-      val status = queryResult.getInt("langstatus")
-      val isActive = queryResult.getBoolean("active")
-      Team(id, tabid, name, delegation, status, isActive)
-    } else {
-      throw new NotFoundException("team", "ID", id.toString)
-    }
-  }
-
-  def getAll(tabid: Int)(implicit database: Database): List[Team] = {
-    val connection = database.getConnection()
-    val queryText = "SELECT * FROM teams WHERE tabid = ?"
-    val query = connection.prepareStatement(queryText)
-    query.setInt(1, tabid)
-    val queryResult = query.executeQuery()
-    connection.close()
-    def iter(teams: List[Team]) : List[Team] =
+  def apply(id: Int)(implicit database: Database): Team = 
+    Cache.teams.getOrElse(id, {
+      println("Querying database for team " + id)
+      val connection = database.getConnection()
+      val queryText = "SELECT * FROM teams WHERE id = ?"
+      val query = connection.prepareStatement(queryText)
+      query.setInt(1, id)
+      val queryResult = query.executeQuery()
+      connection.close()
       if (queryResult.next()) {
-        val id = queryResult.getInt("id")
-      val tabid = queryResult.getInt("tabid")
-      val name = queryResult.getString("name")
-      val delegation = queryResult.getString("delegation")
-      val status = queryResult.getInt("langstatus")
-      val isActive = queryResult.getBoolean("active")
-      iter(Team(id, tabid, name, delegation, status, isActive) :: teams)
-      } else teams.reverse
-    iter(Nil)
+        val team = Team(
+          queryResult.getInt("id"),
+          queryResult.getInt("tabid"),
+          queryResult.getString("name"),
+          queryResult.getString("delegation"),
+          queryResult.getInt("langstatus"),
+          queryResult.getBoolean("active"))
+        Cache.teams.putIfAbsent(id, team)
+        team
+      } else {
+        throw new NotFoundException("team", "ID", id.toString)
+      }
+    })
+
+  def getAll(tabid: Int)(implicit database: Database): List[Team] = 
+    if (Cache.loadedForTab(tabid, "teams")) {
+      Cache.teams.filter{ case (id, team) => team.tabid == tabid }.map(_._2).toList
+    } else {
+      println("Querying database for teams in tab " + tabid)
+      val connection = database.getConnection()
+      val queryText = "SELECT * FROM teams WHERE tabid = ?"
+      val query = connection.prepareStatement(queryText)
+      query.setInt(1, tabid)
+      val queryResult = query.executeQuery()
+      connection.close()
+      def iter(teams: List[Team]) : List[Team] =
+        if (queryResult.next()) {
+          val team = Team(
+            queryResult.getInt("id"),
+            queryResult.getInt("tabid"),
+            queryResult.getString("name"),
+            queryResult.getString("delegation"),
+            queryResult.getInt("langstatus"),
+            queryResult.getBoolean("active"))
+          iter(team :: teams)
+        } else teams.reverse
+      val teams = iter(Nil)
+      teams.foreach(team => Cache.teams.putIfAbsent(team.id, team))
+      Cache.loadedForTab.set(tabid, "teams")
+      teams
   }
 
   def create(
