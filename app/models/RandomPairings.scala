@@ -12,6 +12,11 @@ import scala.util.Random
 object RandomPairings {
 
   def apply(tab: Tab, ruleset: String = "drs")(implicit db: Database) : Draw = {
+
+    // Previously cached constraints may no longer be up to date
+    Cache.sideTendencies.clear()
+    Cache.previousOpponents.clear()
+
     val random = new Random
     val pool = random.shuffle(tab.teams.filter(_.active)).toBuffer
     val acc = new ArrayBuffer[(String, String)]
@@ -21,19 +26,19 @@ object RandomPairings {
 
     // First pass: Avoid all three criteria
     def rule1(i : Int) : Boolean = 
-      pool(0).previousOpponents.contains(pool(i)) ||
+      pool(0).previousOpponents.contains(pool(i).id) ||
       pool(0).delegation == pool(i).delegation ||
       pool(0).sideTendency * pool(i).sideTendency > 0
 
     // Second pass: Avoid two criteria
     def rule2(i : Int) : Boolean =
-      (crit2.contains('r') && pool(0).previousOpponents.contains(pool(i))) ||
+      (crit2.contains('r') && pool(0).previousOpponents.contains(pool(i).id)) ||
       (crit2.contains('d') && pool(0).delegation == pool(i).delegation) ||
       (crit2.contains('s') && pool(0).sideTendency * pool(i).sideTendency > 0)
 
     // Third pass: Avoid one criterion
     def rule3(i : Int) : Boolean = 
-      (crit3 == 'r' && pool(0).previousOpponents.contains(pool(i))) ||
+      (crit3 == 'r' && pool(0).previousOpponents.contains(pool(i).id)) ||
       (crit3 == 'd' && pool(0).delegation == pool(i).delegation) ||
       (crit3 == 's' && pool(0).sideTendency * pool(i).sideTendency > 0)
 

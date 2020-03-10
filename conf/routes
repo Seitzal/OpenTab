@@ -86,3 +86,13 @@ GET  /api/judge/:judgeid/clashes  opentab.controllers.RESTController.getClashesF
 POST  /api/judge/:judgeid/clash/:teamid  opentab.controllers.RESTController.setClash(judgeid: Int, teamid: Int, level: Int)
 
 DELETE  /api/judge/:judgeid/clash/:teamid  opentab.controllers.RESTController.unsetClash(judgeid: Int, teamid: Int)            
+
+########################################################################################################################
+# ADMIN ROUTES
+########################################################################################################################
+
+GET  /api/internal/cache  opentab.controllers.RESTController.getCache()
+
+DELETE  /api/internal/cache  opentab.controllers.RESTController.flushCache()
+
+# GET  /api/internal/cache/size  opentab.controllers.RESTController.getCacheSize()

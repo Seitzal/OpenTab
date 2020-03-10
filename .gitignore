@@ -1,6 +1,7 @@
 logs
 target
 project/target
+test/requests.http
 .bloop
 .metals
 project/.bloop

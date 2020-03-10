@@ -29,7 +29,7 @@ class RESTController @Inject()(
   implicit def actionBuilder = Action
   implicit def defaultParser = parse.anyContent
 
-  val jdbcExecutionContext = 
+  val jdbcExCon = 
     actorSystem.dispatchers.lookup("jdbc-execution-context")
 
   val pairingExecutionContext = 
@@ -58,6 +58,21 @@ class RESTController @Inject()(
           Ok(json.write(tab)).as("application/json")
         else AuthorizationRequired
     }
+  })
+
+  def getCache = authAction((user, request) => {
+    if (user.isAdmin) {
+      Ok(json.write(Cache.snapshot)).as("application/json")
+    } else PermissionDenied
+  })
+
+  // def getCacheSize
+
+  def flushCache = authAction((user, request) => {
+    if (user.isAdmin) {
+      Cache.flush()
+      Ok(json.write(Cache.snapshot)).as("application/json")
+    } else PermissionDenied
   })
 
   def getPermissions(tabid: Int) = optionalAuthAction((userOpt, request) => {
@@ -160,7 +175,7 @@ class RESTController @Inject()(
   def deleteTeam(id: Int) = authAction((user, request) => {
     val team = Team(id)
     if (userCanSetupTab(user, team.tab)) {
-      team.delete()
+      team.delete()(db, jdbcExCon)
       NoContent
     } else PermissionDenied
   })
@@ -172,7 +187,7 @@ class RESTController @Inject()(
       val newteam = team.update(
         formData.get("name").map(seq => seq(0)),
         formData.get("delegation").map(seq => seq(0)),
-        formData.get("status").map(seq => seq(0).toInt))
+        formData.get("status").map(seq => seq(0).toInt))(db, jdbcExCon)
       Ok(json.write(newteam)).as("application/json")
     } else PermissionDenied
   })
@@ -180,7 +195,7 @@ class RESTController @Inject()(
   def toggleTeam(id: Int) = authAction((user, request) => {
     val team = Team(id)
     if (userCanSetupTab(user, team.tab)) {
-      val newteam = team.toggleActive()
+      val newteam = team.toggleActive()(db, jdbcExCon)
       Ok(json.write(newteam)).as("application/json")
     } else PermissionDenied
   })
@@ -254,7 +269,7 @@ class RESTController @Inject()(
   def deleteSpeaker(id: Int) = authAction((user, request) => {
     val speaker = Speaker(id)
     if (userCanSetupTab(user, speaker.tab)) {
-      speaker.delete()
+      speaker.delete
       NoContent
     } else PermissionDenied
   })
