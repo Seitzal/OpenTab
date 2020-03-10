@@ -1,1 +1,1 @@
-[![Travis badge](https://travis-ci.com/Seitzal/OpenTab.svg?branch=vue-frontend)](https://travis-ci.com/Seitzal/OpenTab)
+[![Travis badge](https://travis-ci.com/Seitzal/OpenTab.svg?branch=master)](https://travis-ci.com/Seitzal/OpenTab)
