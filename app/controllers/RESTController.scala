@@ -476,7 +476,8 @@ class RESTController @Inject()(
     val judge = Judge(id)
     val tab = judge.tab
     if (userCanSetupTab(user, tab))
-      Ok(json.write(judge.clashes)).as("application/json")
+      Ok(json.write(judge.clashes.toList.map(t => (Team(t._1), t._2))))
+        .as("application/json")
     else PermissionDenied
   })
 

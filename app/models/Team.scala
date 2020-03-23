@@ -12,16 +12,16 @@ import scala.util.{Try, Success, Failure}
 import scala.concurrent.{Future, ExecutionContext => EC}
 
 case class Team(
-  id: Int,
-  tabid: Int,
-  name: String,
-  delegation: String,
-  status: Int,
-  active: Boolean) extends Logging {
+    id: Int,
+    tabid: Int,
+    name: String,
+    delegation: String,
+    status: Int,
+    active: Boolean) extends Logging {
 
   def delete()(implicit db: Database, ec: EC): Unit = {
     Cache.teams.remove(id)
-    // Cache.speakers.filterInPlace(entry => entry._2.teamid != id)
+    Cache.speakers.filterInPlace{case (id, speaker) => speaker.teamid != id}
     Future {
       val connection = db.getConnection()
       val queryText = "DELETE FROM speakers WHERE teamid = ?"
@@ -98,9 +98,9 @@ case class Team(
     newDeleg: Option[String],
     newStatus: Option[Int])(implicit db: Database, ec: EC): Team =
     newName match {
-      case Some(n) => updateName(n).update(None, newDeleg, newStatus)(db, ec)
+      case Some(n) => updateName(n)(db, ec).update(None, newDeleg, newStatus)(db, ec)
       case None => newDeleg match {
-        case Some(d) => updateDelegation(d).update(None, None, newStatus)(db, ec)
+        case Some(d) => updateDelegation(d)(db, ec).update(None, None, newStatus)(db, ec)
         case None => newStatus match {
           case Some(s) => updateStatus(s)(db, ec)
           case None => this
@@ -225,13 +225,13 @@ object Team extends Logging {
       teams.foreach(team => Cache.teams.putIfAbsent(team.id, team))
       Cache.loadedForTab.set(tabid, "teams")
       teams
-  }
+    }
 
   def create(
-    tabid: Int,
-    name: String,
-    delegation: String,
-    status: Int)(implicit database: Database) : Team = {
+      tabid: Int,
+      name: String,
+      delegation: String,
+      status: Int)(implicit database: Database) : Team = {
     val connection = database.getConnection()
     val queryText = "SELECT * FROM teams WHERE tabid = ? AND name = ?"
     val query = connection.prepareStatement(queryText)

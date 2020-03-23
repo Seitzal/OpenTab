@@ -18,6 +18,7 @@ javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 libraryDependencies ++= Seq(
   guice,
   jdbc,
+  "org.postgresql"   % "postgresql"           % "42.2.11",
   "org.mariadb.jdbc" %  "mariadb-java-client" % "2.4.3",
   "de.svenkubiak"    %  "jBCrypt"             % "0.4",
   "com.lihaoyi"      %% "upickle"             % "0.9.5")
