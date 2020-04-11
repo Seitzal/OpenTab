@@ -492,7 +492,7 @@ class RESTController @Inject()(
       } else Forbidden("Judge and team must be on the same tab")
     else PermissionDenied
   })
-        
+
   def unsetClash(judgeid: Int, teamid: Int)  = authAction((user, request) => {
     val judge = Judge(judgeid)
     val team = Team(teamid)

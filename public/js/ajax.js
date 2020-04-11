@@ -219,6 +219,33 @@ function deleteJudge(judge, then) {
   $.ajax(rq)
 }
 
+function loadClashes(judge, then) {
+  let rq = rc.getClashesForJudge(judge.id)
+  rq.headers = {Authorization: store.state.api_key}
+  rq.success = (data) => {
+    store.commit("setClashes", data)
+    then(data)
+  }
+  rq.error = ajaxFailure
+  $.ajax(rq)
+}
+
+function deleteClash(judgeid, teamid, then) {
+  let rq = rc.unsetClash(judgeid, teamid)
+  rq.headers = {Authorization: store.state.api_key}
+  rq.success = then
+  rq.error = ajaxFailure
+  $.ajax(rq)
+}
+
+function setClash(judgeid, teamid, level, then) {
+  let rq = rc.setClash(judgeid, teamid, level)
+  rq.headers = {Authorization: store.state.api_key}
+  rq.success = then
+  rq.error = ajaxFailure
+  $.ajax(rq)
+}
+
 function ajaxFailure(jqXHR, textStatus, errorThrown) {
   console.error("AJAX failure: " + jqXHR.responseText + " (" + jqXHR.status + ")")
   if (jqXHR.responseText == "Invalid API key") {
