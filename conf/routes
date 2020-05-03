@@ -3,11 +3,13 @@ GET  /              controllers.Assets.at(path="/public", file="app.html")
 
 GET  /static/*file  controllers.Assets.versioned(path="/public", file: Asset)
 
-POST  /auth/sign-in  opentab.controllers.AuthController.signIn()       
+POST /auth/sign-in  opentab.controllers.AuthController.signIn()       
 
 POST /auth/sign-out opentab.controllers.AuthController.signOut()
 
 GET  /auth/verifykey  opentab.controllers.AuthController.remoteVerifyKey()
+
+GET  /auth/token  opentab.controllers.AuthController.getToken()
 
 ########################################################################################################################
 # Routes for the REST API controller

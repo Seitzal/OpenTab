@@ -1,24 +1,19 @@
 package opentab
 
 import opentab._
-import models._
-import shortcuts._
-import upickle.{default => json}
-
+import opentab.models._
+import opentab.shortcuts._
 import play.api.Configuration
 import play.api.db.Database
-import play.api._
 import play.api.mvc._
 import play.api.mvc.Results._
-import play.api.routing._
-
-import scala.concurrent.{Future, ExecutionContext}
-
+import upickle.{default => json}
+import pdi.jwt._
 import org.mindrot.jbcrypt.BCrypt
+import scala.concurrent.{Future, ExecutionContext}
+import java.time.{Instant, Duration}
 
 package object auth {
-
-import play.api.mvc.DefaultPlayBodyParsers
 
   case class Credentials(username: String, password: String)
 
@@ -58,6 +53,21 @@ import play.api.mvc.DefaultPlayBodyParsers
       else None
     } else throw new NotFoundException("user", "name", username)
   }
+
+  def issueToken(user: User)(implicit config: Configuration): String =
+    JwtUpickle.encode(
+      claim = JwtClaim(
+        content = json.write(user),
+        issuedAt = Some(Instant.now.getEpochSecond),
+        expiration = Some(
+          Instant.now
+            .plus(Duration.ofSeconds(config.get[Int]("api.keyLife")))
+            .getEpochSecond
+        )
+      ),
+      key = config.get[String]("play.http.secret.key"),
+      algorithm = JwtAlgorithm.HS256
+    )
 
   def registerKey(key: String, userid: Int)
                  (implicit db: Database, config: Configuration): Unit = {

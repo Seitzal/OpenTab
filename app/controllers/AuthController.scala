@@ -1,18 +1,17 @@
 package opentab.controllers
 
 import opentab._
-import shortcuts._
-import models._
-import auth._
-
-import upickle.{default => json}
-
-import javax.inject._
+import opentab.shortcuts._
+import opentab.models._
+import opentab.auth._
 import play.api._
 import play.api.mvc._
 import play.api.db.Database
 import akka.actor.ActorSystem
+import upickle.{default => json}
 import scala.concurrent.{Future, ExecutionContext}
+import javax.inject._
+import java.util.Base64
 
 @Singleton
 class AuthController @Inject()(
@@ -54,6 +53,27 @@ class AuthController @Inject()(
       }
     }
   }
+
+  def getToken = Action.async { implicit request: Request[AnyContent] => {
+    Future {
+      request.headers.get("Authorization") match {
+        case Some(s"Basic $cred") =>
+          new String(Base64.getDecoder().decode(cred.getBytes("UTF-8"))) match {
+            case s"$username:$password" =>
+              verifyUser(username, password) match {
+                case Some(userid) => Ok(issueToken(User(userid)))
+                case None => Unauthorized("Invalid username or password.")
+              }
+            case _ => BadRequest("Invalid authorization header.")
+          }
+        case _ => BadRequest("Invalid authorization header.")
+      }
+    } (jdbcExecutionContext)
+    .recover {
+      case _: NotFoundException => Unauthorized("Invalid username or password.")
+      case ex: Throwable => InternalServerError(ex.getMessage)
+    }
+  }}
 
   def signOut = Action.async { implicit request: Request[AnyContent] =>
     implicit val ec = jdbcExecutionContext
