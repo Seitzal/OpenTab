@@ -19,23 +19,6 @@ package object auth {
 
   val jwtAlgo = JwtAlgorithm.HS256
 
-  case class Credentials(username: String, password: String)
-
-  object Credentials {
-    implicit val rw: json.ReadWriter[Credentials] = json.macroRW
-  }
-
-  case class KeyData(
-    found: Boolean,
-    temporary: Boolean,
-    expired: Boolean,
-    expires: Long,
-    userid: Int)
-  
-  object KeyData {
-    implicit val rw: json.ReadWriter[KeyData] = json.macroRW
-  }
-
   private case class PermissionsEntry(
     view: Boolean,
     results : Boolean,
@@ -75,52 +58,6 @@ package object auth {
       key = config.get[String]("play.http.secret.key"),
       algorithm = jwtAlgo
     )
-
-  def registerKey(key: String, userid: Int)
-                 (implicit db: Database, config: Configuration): Unit = {
-    val connection = db.getConnection()
-    val queryText =
-      "DELETE FROM api_keys WHERE userid = ? AND expires != 0"
-    val query = connection.prepareStatement(queryText)
-    query.setInt(1, userid)
-    query.executeUpdate()
-    val query2Text = 
-      "INSERT INTO api_keys (val, expires, userid) VALUES (?, ?, ?)"
-    val query2 = connection.prepareStatement(query2Text)
-    query2.setString(1, key)
-    query2.setLong(2, timestamp() + config.get[Int]("auth.keyLife"))
-    query2.setInt(3, userid)
-    query2.executeUpdate()
-    connection.close()
-  }
-
-  def unregisterKey(key: String)(implicit db: Database): Unit = {
-    val connection = db.getConnection()
-    val queryText = 
-      "DELETE FROM api_keys WHERE val = ?"
-    val query = connection.prepareStatement(queryText)
-    query.setString(1, key)
-    query.executeUpdate()
-    connection.close()
-  }
-
-  def verifyKey(key: String)(implicit db: Database): KeyData = {
-    val connection = db.getConnection()
-    val queryText = "SELECT * FROM api_keys WHERE val = ?"
-    val query = connection.prepareStatement(queryText)
-    query.setString(1, key)
-    val queryResult = query.executeQuery()
-    connection.close()
-    if (queryResult.next()) {
-      val expires = queryResult.getLong("expires")
-      val temporary = expires != 0
-      val expired = temporary && expires < timestamp()
-      val userid  = queryResult.getInt("userid")
-      KeyData(true, temporary, expired, expires, userid) 
-    } else {
-      KeyData(false, false, false, 0L, 0)
-    }
-  }
 
   def verifyToken(token: String)
       (implicit db: Database, config: Configuration): Try[User] =
@@ -204,24 +141,33 @@ package object auth {
       block: (User, Request[A]) => Result)(
       implicit executionContext: ExecutionContext,
       database: Database,
+      config: Configuration,
       actionBuilder: ActionBuilder[Request, AnyContent]): Action[A] =
     actionBuilder.async(parser) {
       implicit request: Request[A] => Future {
-        val auth = request.headers.get("Authorization").map(verifyKey)
-        auth match {
-          case Some(keyData) => 
-            if (!keyData.found)
-              Unauthorized("Invalid API key")
-            else if (keyData.expired)
-              Unauthorized("API key has expired")
-            else
-              block(User(keyData.userid), request)
+        request.headers.get("Authorization") match {
+          case Some(s"Bearer $token") => 
+            block(verifyToken(token).get, request)
           case None =>
-              Unauthorized("Authorization Required")
+            AuthorizationRequired
+          case _ =>
+            Unauthorized("Invalid authorization header.")
         }
       } recover {
-        case ex: NotFoundException => NotFound(ex.getMessage)
-        case ex: Throwable => InternalServerError(ex.getMessage)
+        case _: JwtLengthException =>
+          BadRequest("Invalid token.")
+        case _: IllegalArgumentException =>
+          BadRequest("Invalid token.")
+        case _: JwtExpirationException =>
+          Unauthorized("Token has expired.")
+        case _: JwtValidationException =>
+          Unauthorized("Token has been forged or compromised.")
+        case _: upickle.core.AbortException =>
+          Unauthorized("Token payload is invalid.")
+        case ex: NotFoundException =>
+          NotFound(ex.getMessage)
+        case ex: Throwable => 
+          InternalServerError(ex.getMessage)
       }
     }
 
@@ -229,6 +175,7 @@ package object auth {
       block: (User, Request[AnyContent]) => Result)(
       implicit executionContext: ExecutionContext,
       database: Database,
+      config: Configuration,
       actionBuilder: ActionBuilder[Request, AnyContent],
       defaultParser: BodyParser[AnyContent]) =
     authAction[AnyContent](defaultParser, block)
@@ -238,24 +185,33 @@ package object auth {
       block: (Option[User], Request[A]) => Result)(
       implicit executionContext: ExecutionContext,
       database: Database,
+      config: Configuration,
       actionBuilder: ActionBuilder[Request, AnyContent]): Action[A] =
     actionBuilder.async(parser) {
       implicit request: Request[A] => Future {
-        val auth = request.headers.get("Authorization").map(verifyKey)
-        auth match {
-          case Some(keyData) => 
-            if (!keyData.found)
-              Unauthorized("Invalid API key")
-            else if (keyData.expired)
-              Unauthorized("API key has expired")
-            else
-              block(Some(User(keyData.userid)), request)
+        request.headers.get("Authorization") match {
+          case Some(s"Bearer $token") => 
+            block(Some(verifyToken(token).get), request)
           case None =>
-              block(None, request)
+            block(None, request)
+          case _ =>
+            Unauthorized("Invalid authorization header.")
         }
       } recover {
-        case ex: NotFoundException => NotFound(ex.getMessage)
-        case ex: Throwable => InternalServerError(ex.getMessage)
+        case _: JwtLengthException =>
+          BadRequest("Invalid token.")
+        case _: IllegalArgumentException =>
+          BadRequest("Invalid token.")
+        case _: JwtExpirationException =>
+          Unauthorized("Token has expired.")
+        case _: JwtValidationException =>
+          Unauthorized("Token has been forged or compromised.")
+        case _: upickle.core.AbortException =>
+          Unauthorized("Token payload is invalid.")
+        case ex: NotFoundException =>
+          NotFound(ex.getMessage)
+        case ex: Throwable => 
+          InternalServerError(ex.getMessage)
       }
     }
 
@@ -263,6 +219,7 @@ package object auth {
       block: (Option[User], Request[AnyContent]) => Result)(
       implicit executionContext: ExecutionContext,
       database: Database,
+      config: Configuration,
       actionBuilder: ActionBuilder[Request, AnyContent],
       defaultParser: BodyParser[AnyContent]) =
     optionalAuthAction[AnyContent](defaultParser, block)

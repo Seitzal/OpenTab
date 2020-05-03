@@ -27,35 +27,11 @@ class AuthController @Inject()(
 
   implicit def database = db
   implicit def config = cfg
+  implicit def actionBuilder = Action
+  implicit def defaultParser = parse.anyContent
 
   val jdbcExecutionContext =
     actorSystem.dispatchers.lookup("jdbc-execution-context")
-
-  def signIn = Action.async {
-    implicit request: Request[AnyContent] => {
-      implicit val ec = jdbcExecutionContext
-      Future {
-        request.body.asJson.map(c => json.read[Credentials](c.toString())) match {
-          case (Some(credentials)) => {
-            verifyUser(credentials.username, credentials.password) match {
-              case Some(userid) => {
-                val key = Keygen.newTempKey
-                registerKey(key, userid)
-                Ok(json.write((key, verifyKey(key)))).as("application/json")
-              }
-              case None => Unauthorized("Invalid username or password.")
-            }
-          }
-          case _ => BadRequest("Invalid form data.")
-        }
-      } recover {
-        case ex: NotFoundException =>
-          Unauthorized("Invalid username or password.") // Prevent username checking
-        case ex: Throwable =>
-          InternalServerError(ex.getMessage)
-      }
-    }
-  }
 
   def getToken(permanent: Boolean) = Action.async {
     implicit request: Request[AnyContent] => Future {
@@ -80,55 +56,8 @@ class AuthController @Inject()(
     }
   }
 
-  def signOut = Action.async { implicit request: Request[AnyContent] =>
-    implicit val ec = jdbcExecutionContext
-    Future {
-      request.headers.get("Authorization") match {
-        case Some(key) => {
-          unregisterKey(request.headers.get("Authorization").get)
-          NoContent
-        }
-        case None => BadRequest("No key transmitted.")
-      }
-    } recover {
-      case ex: NotFoundException =>
-        NotFound(ex.getMessage)
-      case ex: Throwable =>
-        InternalServerError(ex.getMessage)
-    }
-  }
-
-  def remoteVerifyKey = Action.async { 
-    implicit request: Request[AnyContent] => Future {
-      request.headers.get("Authorization").map(verifyKey) match {
-        case Some(keyData) => Ok(json.write(keyData)).as("application/json")
-        case None => BadRequest("No API key found in authorization header.")
-      }
-    } recover {
-        case ex: Throwable => InternalServerError(ex.getMessage)
-    }
-  }
-
-  def remoteVerifyToken = Action.async { 
-    implicit request: Request[AnyContent] => Future {
-      request.headers.get("Authorization") match {
-        case Some(s"Bearer $token") => Ok(json.write(verifyToken(token).get))
-        case _ => BadRequest("Authorization header missing or invalid.")
-      }
-    } recover {
-      case _: JwtLengthException =>
-        BadRequest("Invalid token.")
-      case _: IllegalArgumentException =>
-        BadRequest("Invalid token.")
-      case _: JwtExpirationException =>
-        Unauthorized("Token has expired.")
-      case _: JwtValidationException =>
-        Unauthorized("Token has been forged or compromised.")
-      case _: upickle.core.AbortException =>
-        Unauthorized("Token payload is invalid.")
-      case ex: Throwable =>
-        InternalServerError(ex.getClass.toString + ": " + ex.getMessage)
-    }
-  }
+  def remoteVerifyToken = authAction((user, request) => {
+    Ok(json.write(user)).as("application/json")
+  })
 
 }

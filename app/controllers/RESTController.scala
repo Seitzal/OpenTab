@@ -291,7 +291,7 @@ class RESTController @Inject()(
       if (userCanSetupTab(user, tab))
         Ok(json.write(RandomPairings(tab))).as("application/json")
       else PermissionDenied
-  })(pairingExecutionContext, db, Action, parse.anyContent)
+  })(pairingExecutionContext, db, config, Action, parse.anyContent)
 
   def getRound(tabid: Int, roundnumber: Int) = optionalAuthAction((userOpt, request) => {
     val tab = Tab(tabid)
@@ -507,9 +507,8 @@ class RESTController @Inject()(
   
   def jsRouter() = Action.async { implicit request => Future {
     Ok(JavaScriptReverseRouter("routes")(
-      routes.javascript.AuthController.remoteVerifyKey,
-      routes.javascript.AuthController.signIn,
-      routes.javascript.AuthController.signOut,
+      routes.javascript.AuthController.getToken,
+      routes.javascript.AuthController.remoteVerifyToken,
       routes.javascript.RESTController.getAllPermissions,
       routes.javascript.RESTController.getPermissions,
       routes.javascript.RESTController.getAllTabs,
