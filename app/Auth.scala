@@ -9,11 +9,15 @@ import play.api.mvc._
 import play.api.mvc.Results._
 import upickle.{default => json}
 import pdi.jwt._
+import pdi.jwt.exceptions._
 import org.mindrot.jbcrypt.BCrypt
 import scala.concurrent.{Future, ExecutionContext}
+import scala.util.{Try, Success, Failure}
 import java.time.{Instant, Duration}
 
 package object auth {
+
+  val jwtAlgo = JwtAlgorithm.HS256
 
   case class Credentials(username: String, password: String)
 
@@ -66,7 +70,7 @@ package object auth {
         )
       ),
       key = config.get[String]("play.http.secret.key"),
-      algorithm = JwtAlgorithm.HS256
+      algorithm = jwtAlgo
     )
 
   def registerKey(key: String, userid: Int)
@@ -114,6 +118,14 @@ package object auth {
       KeyData(false, false, false, 0L, 0)
     }
   }
+
+  def verifyToken(token: String)
+      (implicit db: Database, config: Configuration): Try[User] =
+    JwtUpickle.decodeJson(
+      token = token, 
+      key = config.get[String]("play.http.secret.key"),
+      algorithms = Seq(jwtAlgo))
+    .map(json.read[User])
 
   private def readPermissionsEntry(userid: Int, tabid: Int, attempt: Int = 1)
                        (implicit database: Database) : PermissionsEntry = {

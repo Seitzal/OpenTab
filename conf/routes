@@ -11,6 +11,8 @@ GET  /auth/verifykey  opentab.controllers.AuthController.remoteVerifyKey()
 
 GET  /auth/token  opentab.controllers.AuthController.getToken()
 
+GET  /auth/token/verify opentab.controllers.AuthController.remoteVerifyToken()
+
 ########################################################################################################################
 # Routes for the REST API controller
 ########################################################################################################################
