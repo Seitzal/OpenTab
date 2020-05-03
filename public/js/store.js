@@ -1,6 +1,7 @@
 var store = new Vuex.Store({
   state: {
     api_key: retrieveSession(),
+    exp: retrieveSessionExp(),
     tabs: [],
     tabid: undefined,
     tabsUpToDate: false,
@@ -25,6 +26,9 @@ var store = new Vuex.Store({
   mutations: {
     setApiKey: (state, x) => {
       state.api_key = x
+    },
+    setExp: (state, x) => {
+      state.exp = x
     },
     setTabs: (state, x) => {
       state.tabs = x

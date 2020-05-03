@@ -2,36 +2,33 @@ const rc = routes.opentab.controllers.RESTController;
 const ac = routes.opentab.controllers.AuthController;
 
 function signIn(username, password, success, failure) {
-  let rq = ac.signIn()
-  rq.headers = {"Content-Type": "application/json"}
-  rq.data = JSON.stringify({username: username, password: password});
+  let rq = ac.getToken(false);
+  rq.headers = {Authorization: "Basic " + btoa(username + ":" + password)};
   rq.success = (data) => {
-    store.commit("setApiKey", data[0])
-    Cookies.set("api_key", data[0])
-    Cookies.set("api_key.exp", data[1].expires)
-    Cookies.set("username", username)
-    success()
-  }
-  rq.error = failure
-  $.ajax(rq)
+    const exp = JSON.parse(atob(data.split(".")[1])).exp * 1000;
+    store.commit("setApiKey", data);
+    store.commit("setExp", exp);
+    Cookies.set("api_key", data);
+    Cookies.set("api_key.exp", exp);
+    Cookies.set("username", username);
+    success();
+  };
+  rq.error = failure;
+  $.ajax(rq);
 }
 
 function signOut(then) {
-  let rq = ac.signOut()
-  rq.headers = {Authorization: store.state.api_key}
-  rq.success = () => {
-    store.commit("setApiKey", undefined)
-    Cookies.remove("api_key")
-    then()
-  }
-  rq.error = (xhr) => xhr.responseText
-  $.ajax(rq)
+  store.commit("setApiKey", undefined);
+  Cookies.remove("api_key");
+  Cookies.remove("api_key.exp");
+  then();
 }
 
 function loadTabs(then = function(){}) {
+  if (tokenExpired()) return;
   store.commit("setTabsUpToDate", false)
   let rq = rc.getAllTabs()
-  rq.headers = store.getters.signedIn ? {Authorization: store.state.api_key} : {}
+  rq.headers = bearerAuth();
   rq.success = (data) => {
     store.commit("setTabs", data)
     store.commit("setTabsUpToDate", true)
@@ -42,8 +39,9 @@ function loadTabs(then = function(){}) {
 }
 
 function loadPermissions(then = function(){}) {
+  if (tokenExpired()) return;
   let rq = rc.getAllPermissions()
-  rq.headers = store.getters.signedIn ? {Authorization: store.state.api_key} : {}
+  rq.headers = bearerAuth();
   rq.success = (data) => {
     store.commit("setPermissions", data)
     then()
@@ -53,9 +51,10 @@ function loadPermissions(then = function(){}) {
 }
 
 function loadTeams() {
+  if (tokenExpired()) return;
   store.commit("setTeamsUpToDate", false)
   let rq = rc.getAllTeams(store.state.tabid)
-  rq.headers = store.getters.signedIn ? {Authorization: store.state.api_key} : {}
+  rq.headers = bearerAuth();
   rq.success = (data) =>  {
     store.commit("setTeams", data)
     store.commit("setTeamsUpToDate", true)}
@@ -64,8 +63,9 @@ function loadTeams() {
 }
 
 function createTeam(team, then) {
+  if (tokenExpired()) return;
   let rq = rc.createTeam()
-  rq.headers = {Authorization: store.state.api_key}
+  rq.headers = bearerAuth();
   rq.data = {
     tabid: store.state.tabid,
     name: team.name,
@@ -80,8 +80,9 @@ function createTeam(team, then) {
 }
 
 function updateTeam(team, then) {
+  if (tokenExpired()) return;
   let rq = rc.updateTeam(team.id)
-  rq.headers = {Authorization: store.state.api_key}
+  rq.headers = bearerAuth();
   rq.data = {
     name: team.name,
     delegation: team.delegation,
@@ -95,8 +96,9 @@ function updateTeam(team, then) {
 }
 
 function deleteTeam(team, then) {
+  if (tokenExpired()) return;
   let rq = rc.deleteTeam(team.id)
-  rq.headers = {Authorization: store.state.api_key}
+  rq.headers = bearerAuth();
   rq.success = (data) => {
     then(data)
   }
@@ -105,8 +107,9 @@ function deleteTeam(team, then) {
 }
 
 function toggleTeam(team, then) {
+  if (tokenExpired()) return;
   let rq = rc.toggleTeam(team.id)
-  rq.headers = {Authorization: store.state.api_key}
+  rq.headers = bearerAuth();
   rq.success = (data) => {
     then(data)
   }
@@ -115,9 +118,10 @@ function toggleTeam(team, then) {
 }
 
 function loadSpeakers(then) {
+  if (tokenExpired()) return;
   store.commit("setSpeakersUpToDate", false)
   let rq = rc.getAllSpeakers(store.state.tabid)
-  rq.headers = store.getters.signedIn ? {Authorization: store.state.api_key} : {}
+  rq.headers = bearerAuth();
   rq.success = (data) =>  {
     store.commit("setSpeakers", data)
     store.commit("setSpeakersUpToDate", true)}
@@ -126,8 +130,9 @@ function loadSpeakers(then) {
 }
 
 function createSpeaker(speaker, then) {
+  if (tokenExpired()) return;
   let rq = rc.createSpeaker()
-  rq.headers = {Authorization: store.state.api_key}
+  rq.headers = bearerAuth();
   rq.data = speaker
   rq.success = (data) => {
     then(data)
@@ -137,8 +142,9 @@ function createSpeaker(speaker, then) {
 }
 
 function updateSpeaker(speaker, then) {
+  if (tokenExpired()) return;
   let rq = rc.updateSpeaker(speaker.id)
-  rq.headers = {Authorization: store.state.api_key}
+  rq.headers = bearerAuth();
   rq.data = speaker
   rq.success = (data) => {
     then(data)
@@ -148,8 +154,9 @@ function updateSpeaker(speaker, then) {
 }
 
 function deleteSpeaker(speaker, then) {
+  if (tokenExpired()) return;
   let rq = rc.deleteSpeaker(speaker.id)
-  rq.headers = {Authorization: store.state.api_key}
+  rq.headers = bearerAuth();
   rq.success = (data) => {
     then(data)
   }
@@ -158,8 +165,9 @@ function deleteSpeaker(speaker, then) {
 }
 
 function loadDelegations(then) {
+  if (tokenExpired()) return;
   let rq = rc.getAllDelegations(store.state.tabid)
-  rq.headers = {Authorization: store.state.api_key}
+  rq.headers = bearerAuth();
   rq.success = (data) =>  {
     store.commit("setDelegations", data)}
   rq.error = ajaxFailure
@@ -167,9 +175,10 @@ function loadDelegations(then) {
 }
 
 function loadJudges(then) {
+  if (tokenExpired()) return;
   store.commit("setJudgesUpToDate", false)
   let rq = rc.getAllJudges(store.state.tabid)
-  rq.headers = {Authorization: store.state.api_key}
+  rq.headers = bearerAuth();
   rq.success = (data) =>  {
     store.commit("setJudges", data)
     store.commit("setJudgesUpToDate", true)}
@@ -178,8 +187,9 @@ function loadJudges(then) {
 }
 
 function createJudge(judge, then) {
+  if (tokenExpired()) return;
   let rq = rc.createJudge()
-  rq.headers = {Authorization: store.state.api_key}
+  rq.headers = bearerAuth();
   rq.data = {...judge, tabid: store.state.tabid}
   rq.success = (data) => {
     then(data)
@@ -189,8 +199,9 @@ function createJudge(judge, then) {
 }
 
 function updateJudge(judge, ratingOnly = false, then) {
+  if (tokenExpired()) return;
   let rq = rc.updateJudge(judge.id)
-  rq.headers = {Authorization: store.state.api_key}
+  rq.headers = bearerAuth();
   rq.data = ratingOnly ? {rating: judge.rating} : judge
   rq.success = (data) => {
     then(data)
@@ -200,8 +211,9 @@ function updateJudge(judge, ratingOnly = false, then) {
 }
 
 function toggleJudge(judge, then) {
+  if (tokenExpired()) return;
   let rq = rc.toggleJudge(judge.id)
-  rq.headers = {Authorization: store.state.api_key}
+  rq.headers = bearerAuth();
   rq.success = (data) => {
     then(data)
   }
@@ -210,8 +222,9 @@ function toggleJudge(judge, then) {
 }
 
 function deleteJudge(judge, then) {
+  if (tokenExpired()) return;
   let rq = rc.deleteJudge(judge.id)
-  rq.headers = {Authorization: store.state.api_key}
+  rq.headers = bearerAuth();
   rq.success = (data) => {
     then(data)
   }
@@ -220,8 +233,9 @@ function deleteJudge(judge, then) {
 }
 
 function loadClashes(judge, then) {
+  if (tokenExpired()) return;
   let rq = rc.getClashesForJudge(judge.id)
-  rq.headers = {Authorization: store.state.api_key}
+  rq.headers = bearerAuth();
   rq.success = (data) => {
     store.commit("setClashes", data)
     then(data)
@@ -231,16 +245,18 @@ function loadClashes(judge, then) {
 }
 
 function deleteClash(judgeid, teamid, then) {
+  if (tokenExpired()) return;
   let rq = rc.unsetClash(judgeid, teamid)
-  rq.headers = {Authorization: store.state.api_key}
+  rq.headers = bearerAuth();
   rq.success = then
   rq.error = ajaxFailure
   $.ajax(rq)
 }
 
 function setClash(judgeid, teamid, level, then) {
+  if (tokenExpired()) return;
   let rq = rc.setClash(judgeid, teamid, level)
-  rq.headers = {Authorization: store.state.api_key}
+  rq.headers = bearerAuth();
   rq.success = then
   rq.error = ajaxFailure
   $.ajax(rq)
@@ -248,13 +264,8 @@ function setClash(judgeid, teamid, level, then) {
 
 function ajaxFailure(jqXHR, textStatus, errorThrown) {
   console.error("AJAX failure: " + jqXHR.responseText + " (" + jqXHR.status + ")")
-  if (jqXHR.responseText == "Invalid API key") {
-    alert("Credential rejected by server. Please sign in again.")
-    app.signout()
-  } else if (jqXHR.responseText == "API key has expired") {
+  if (jqXHR.responseText == "Token has expired.") {
     alert("Your session has expired. Please sign in again.")
     app.signout()
-  } else {
-    alert("An unexpected error occured. Check browser console for details.")
   }
 }
