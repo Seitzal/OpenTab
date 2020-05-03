@@ -57,14 +57,16 @@ class AuthController @Inject()(
     }
   }
 
-  def getToken = Action.async { implicit request: Request[AnyContent] => {
-    Future {
-      request.headers.get("Authorization") match {
+  def getToken(permanent: Boolean) = Action.async {
+    implicit request: Request[AnyContent] => Future {
+      if (permanent && !config.get[Boolean]("auth.allowPermanentTokens"))
+        Forbidden("Server configuration disallows issuing permanent tokens.")
+      else request.headers.get("Authorization") match {
         case Some(s"Basic $cred") =>
           new String(Base64.getDecoder().decode(cred.getBytes("UTF-8"))) match {
             case s"$username:$password" =>
               verifyUser(username, password) match {
-                case Some(userid) => Ok(issueToken(User(userid)))
+                case Some(userid) => Ok(issueToken(User(userid), permanent))
                 case None => Unauthorized("Invalid username or password.")
               }
             case _ => BadRequest("Invalid authorization header.")
@@ -76,7 +78,7 @@ class AuthController @Inject()(
       case _: NotFoundException => Unauthorized("Invalid username or password.")
       case ex: Throwable => InternalServerError(ex.getMessage)
     }
-  }}
+  }
 
   def signOut = Action.async { implicit request: Request[AnyContent] =>
     implicit val ec = jdbcExecutionContext

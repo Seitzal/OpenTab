@@ -58,16 +58,19 @@ package object auth {
     } else throw new NotFoundException("user", "name", username)
   }
 
-  def issueToken(user: User)(implicit config: Configuration): String =
+  def issueToken(user: User, permanent: Boolean = false)
+      (implicit config: Configuration): String =
     JwtUpickle.encode(
       claim = JwtClaim(
         content = json.write(user),
         issuedAt = Some(Instant.now.getEpochSecond),
-        expiration = Some(
-          Instant.now
-            .plus(Duration.ofSeconds(config.get[Int]("api.keyLife")))
-            .getEpochSecond
-        )
+        expiration = 
+          if (permanent) None
+          else Some(
+            Instant.now
+              .plus(Duration.ofSeconds(config.get[Int]("auth.keyLife")))
+              .getEpochSecond
+          )
       ),
       key = config.get[String]("play.http.secret.key"),
       algorithm = jwtAlgo
@@ -85,7 +88,7 @@ package object auth {
       "INSERT INTO api_keys (val, expires, userid) VALUES (?, ?, ?)"
     val query2 = connection.prepareStatement(query2Text)
     query2.setString(1, key)
-    query2.setLong(2, timestamp() + config.get[Int]("api.keyLife"))
+    query2.setLong(2, timestamp() + config.get[Int]("auth.keyLife"))
     query2.setInt(3, userid)
     query2.executeUpdate()
     connection.close()

@@ -9,7 +9,7 @@ POST /auth/sign-out opentab.controllers.AuthController.signOut()
 
 GET  /auth/verifykey  opentab.controllers.AuthController.remoteVerifyKey()
 
-GET  /auth/token  opentab.controllers.AuthController.getToken()
+GET  /auth/token  opentab.controllers.AuthController.getToken(permanent: Boolean)
 
 GET  /auth/token/verify opentab.controllers.AuthController.remoteVerifyToken()
 
