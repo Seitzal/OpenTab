@@ -15,7 +15,7 @@ import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import scala.collection.mutable.ArrayBuffer
 
-final class Api(conf: Config, db: Database) extends LazyLogging {
+final class Api(conf: Config, db: DB) extends LazyLogging {
 
   val routes: PartialFunction[Request[IO], IO[Response[IO]]] = {
 
@@ -23,7 +23,7 @@ final class Api(conf: Config, db: Database) extends LazyLogging {
       Ok("OpenTab 2 API server")
 
     case GET -> Root / "user" / name =>
-      Ok(User(name).transact(db.transactor))
+      Ok(User(name).transact(db.t))
 
     case rq @ POST -> Root / "user" =>
       Ok(
@@ -32,25 +32,25 @@ final class Api(conf: Config, db: Database) extends LazyLogging {
           name     <- IO.delay(data("name").str)
           password <- IO.delay(data("password").str)
           email    <- IO.delay(data("email").str)
-          user     <- User.create(name, password, email, false).transact(db.transactor)
+          user     <- User.create(name, password, email, false).transact(db.t)
         } yield user
       )
 
     case DELETE -> Root / "user" / name =>
       User(name)
         .flatMap(_.delete)
-        .transact(db.transactor)
+        .transact(db.t)
         .flatMap(_ => NoContent())
 
     case rq @ PATCH -> Root / "user" / name =>
       Ok(
         for {
           data        <- rq.as[Obj]
-          user        <- User(name).transact(db.transactor)
+          user        <- User(name).transact(db.t)
           newPassword <- IO.delay(data.value.get("password").map(_.str))
           newEmail    <- IO.delay(data.value.get("email").map(_.str))
           newIsAdmin  <- IO.delay(data.value.get("isAdmin").map(_.bool))
-          newUser     <- user.update(newPassword, newEmail, newIsAdmin).transact(db.transactor)
+          newUser     <- user.update(newPassword, newEmail, newIsAdmin).transact(db.t)
         } yield newUser
       )
       

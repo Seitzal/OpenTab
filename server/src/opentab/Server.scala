@@ -13,7 +13,7 @@ object Server extends IOApp with LazyLogging {
 
   val conf = ConfigFactory.parseFile(new File("config.json"))
 
-  val db = new Database(conf)
+  val db = new DB(conf)
 
   def host: IO[ExitCode] =
     BlazeServerBuilder[IO]

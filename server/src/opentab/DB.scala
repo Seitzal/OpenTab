@@ -9,11 +9,11 @@ import cats.implicits._
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 
-final class Database(conf: Config) extends LazyLogging {
+final class DB(conf: Config) extends LazyLogging {
 
   implicit val cs = IO.contextShift(ExecutionContexts.synchronous)
 
-  val transactor = Transactor.fromDriverManager[IO](
+  val t = Transactor.fromDriverManager[IO](
     "org.postgresql.Driver",
     "jdbc:postgresql://" +
       conf.getString("db.host") +
@@ -28,7 +28,7 @@ final class Database(conf: Config) extends LazyLogging {
     sql"SELECT schemaVersion FROM instance"
       .query[String]
       .unique
-      .transact(transactor)
+      .transact(t)
       .map(sv => logger.info("Database schema version: " + sv))
 
 }
