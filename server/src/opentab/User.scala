@@ -15,22 +15,25 @@ case class User (
   isAdmin: Boolean
 ) {
 
-  def checkPassword(password: String): ConnectionIO[Boolean] =
+  def checkPassword(password: String)(implicit db: DB): IO[Boolean] =
     sql"SELECT password FROM users WHERE id = $id"
       .query[String]
       .unique
       .map(BCrypt.checkpw(password, _))
+      .transact(db.t)
 
-  def delete: ConnectionIO[Unit] =
+  def delete(implicit db: DB): IO[Unit] =
     sql"DELETE FROM users WHERE id = $id"
       .update
       .run
       .map(_ => {})
+      .transact(db.t)
 
   def update(
       newPassword: Option[String] = None, 
       newEmail: Option[String] = None,
-      newIsAdmin: Option[Boolean] = None): ConnectionIO[User] = {
+      newIsAdmin: Option[Boolean] = None)
+      (implicit db: DB): IO[User] = {
     val hashedNewPassword = newPassword.map(BCrypt.hashpw(_, BCrypt.gensalt()))
     val queryString =
       fr"UPDATE users SET " ++ List(
@@ -51,31 +54,36 @@ case class User (
     queryString
       .update
       .withUniqueGeneratedKeys[User]("id", "name", "email", "isadmin")
+      .transact(db.t)
   }
 }
 
 object User {
 
-  def apply(id: Int): ConnectionIO[User] =
-    sql"SELECT (id, name, email, isadmin) FROM users WHERE id = $id"
+  def apply(id: Int)(implicit db: DB): IO[User] =
+    sql"SELECT id, name, email, isadmin FROM users WHERE id = $id"
       .query[User]
       .unique
+      .transact(db.t)
 
-  def getAll: ConnectionIO[List[User]] =
-    sql"SELECT (id, name, email, isadmin) FROM users"
+  def getAll(implicit db: DB): IO[List[User]] =
+    sql"SELECT id, name, email, isadmin FROM users"
       .query[User]
       .to[List]
+      .transact(db.t)
 
   def create(
       name: String, 
       password: String, 
       email: String, 
-      isAdmin: Boolean): ConnectionIO[User] = {
+      isAdmin: Boolean)
+      (implicit db: DB): IO[User] = {
     val hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt())
     sql"""INSERT INTO users (name, password, email, isadmin) 
           VALUES ($name, $hashedPassword, $email, $isAdmin)"""
       .update
       .withUniqueGeneratedKeys[User]("id", "name", "email", "isadmin")
+      .transact(db.t)
     }
 
   implicit val rw = macroRW[User]

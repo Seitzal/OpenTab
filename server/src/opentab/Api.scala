@@ -22,6 +22,9 @@ final class Api(implicit conf: Config, db: DB) extends LazyLogging {
     case GET -> Root =>
       Ok("OpenTab 2 API server")
 
+    case GET -> Root / "user" / userId =>
+      Ok(IO.delay(userId.toInt).flatMap(User.apply))
+
   }
 
   implicit val jsonEE: EntityEncoder[IO, Obj] = new UPickleEntityEncoder
