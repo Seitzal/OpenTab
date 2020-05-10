@@ -9,7 +9,7 @@ import cats.implicits._
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 
-final class DB(conf: Config) extends LazyLogging {
+final class DB(implicit conf: Config) extends LazyLogging {
 
   implicit val cs = IO.contextShift(ExecutionContexts.synchronous)
 

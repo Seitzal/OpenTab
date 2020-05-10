@@ -11,14 +11,13 @@ import com.typesafe.scalalogging.LazyLogging
 
 object Server extends IOApp with LazyLogging {
 
-  val conf = ConfigFactory.parseFile(new File("config.json"))
-
-  val db = new DB(conf)
+  implicit val conf = ConfigFactory.parseFile(new File("config.json"))
+  implicit val db = new DB
 
   def host: IO[ExitCode] =
     BlazeServerBuilder[IO]
         .bindHttp(conf.getInt("server.port"), conf.getString("server.host"))
-        .withHttpApp(CORS(new Api(conf, db).toService))
+        .withHttpApp(CORS((new Api).toService))
         .serve
         .compile
         .drain

@@ -9,7 +9,6 @@
     "port": 5432,
     "name": "opentab",
     "user": "postgres",
-    "usepw": false,
     "pw": ""
   }
 }

@@ -6,16 +6,23 @@ import upickle.default._
 import eu.seitzal.http4s_upickle._
 import cats.effect.IO
 import cats.implicits._
+import org.mindrot.jbcrypt.BCrypt
 
 case class User (
+  id: Int,
   name: String,
-  password: String,
   email: String,
   isAdmin: Boolean
 ) {
 
+  def checkPassword(password: String): ConnectionIO[Boolean] =
+    sql"SELECT password FROM users WHERE id = $id"
+      .query[String]
+      .unique
+      .map(BCrypt.checkpw(password, _))
+
   def delete: ConnectionIO[Unit] =
-    sql"DELETE FROM users WHERE name = $name"
+    sql"DELETE FROM users WHERE id = $id"
       .update
       .run
       .map(_ => {})
@@ -24,9 +31,10 @@ case class User (
       newPassword: Option[String] = None, 
       newEmail: Option[String] = None,
       newIsAdmin: Option[Boolean] = None): ConnectionIO[User] = {
+    val hashedNewPassword = newPassword.map(BCrypt.hashpw(_, BCrypt.gensalt()))
     val queryString =
       fr"UPDATE users SET " ++ List(
-        newPassword match {
+        hashedNewPassword match {
           case Some(v) => List(fr"password = $v")
           case None => Nil
         },
@@ -42,19 +50,19 @@ case class User (
       fr"WHERE name = $name"
     queryString
       .update
-      .withUniqueGeneratedKeys[User]("name", "password", "email", "isadmin")
+      .withUniqueGeneratedKeys[User]("id", "name", "email", "isadmin")
   }
 }
 
 object User {
 
-  def apply(name: String): ConnectionIO[User] =
-    sql"SELECT * FROM users WHERE name = $name"
+  def apply(id: Int): ConnectionIO[User] =
+    sql"SELECT (id, name, email, isadmin) FROM users WHERE id = $id"
       .query[User]
       .unique
 
   def getAll: ConnectionIO[List[User]] =
-    sql"SELECT * FROM users"
+    sql"SELECT (id, name, email, isadmin) FROM users"
       .query[User]
       .to[List]
 
@@ -62,11 +70,14 @@ object User {
       name: String, 
       password: String, 
       email: String, 
-      isAdmin: Boolean): ConnectionIO[User] =
-    sql"INSERT INTO users VALUES ($name, $password, $email, $isAdmin)"
+      isAdmin: Boolean): ConnectionIO[User] = {
+    val hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt())
+    sql"""INSERT INTO users (name, password, email, isadmin) 
+          VALUES ($name, $hashedPassword, $email, $isAdmin)"""
       .update
-      .withUniqueGeneratedKeys[User]("name", "password", "email", "isadmin")
-      
+      .withUniqueGeneratedKeys[User]("id", "name", "email", "isadmin")
+    }
+
   implicit val rw = macroRW[User]
   implicit val ee = new UPickleEntityEncoder[IO, User]
   implicit val ed = new UPickleEntityDecoder[IO, User]

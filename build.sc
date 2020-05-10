@@ -5,6 +5,7 @@ object server extends ScalaModule {
   def ivyDeps = Agg(
     ivy"com.typesafe:config:1.4.0",
     ivy"ch.qos.logback:logback-classic:1.2.3",
+    ivy"de.svenkubiak:jBCrypt:0.4",
     ivy"com.typesafe.scala-logging::scala-logging:3.9.2",
     ivy"org.http4s::http4s-dsl:0.21.3",
     ivy"org.http4s::http4s-blaze-server:0.21.3",
