@@ -2,4 +2,7 @@
 .metals/
 .vscode/
 out/
+target
+project/target
 *.log
+*.http
