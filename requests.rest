@@ -2,3 +2,31 @@
 ###
 GET http://localhost:8080/token/verify
 Authorization: Bearer {{token}}
+###
+GET http://localhost:8080/tab
+###
+GET http://localhost:8080/tab
+Authorization: Bearer {{token}}
+###
+GET http://localhost:8080/tab/1
+###
+GET http://localhost:8080/tab/2
+###
+GET http://localhost:8080/tab/2
+Authorization: Bearer {{token}}
+###
+POST http://localhost:8080/tab
+###
+POST http://localhost:8080/tab
+Authorization: Bearer {{token}}
+
+{
+  "name": "New public tab",
+  "isPublic": true
+}
+###
+DELETE http://localhost:8080/tab/4
+###
+DELETE http://localhost:8080/tab/3
+Authorization: Bearer {{token}}
+###

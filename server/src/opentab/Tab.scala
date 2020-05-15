@@ -59,6 +59,14 @@ object Tab {
       .compile
       .toList
       .transact(xa)
+  
+  def getIds(implicit xa: Xa): IO[List[Int]] =
+    sql"SELECT id FROM tabs"
+      .query[Int]
+      .stream
+      .compile
+      .toList
+      .transact(xa)
 
   def create
       (name: String, owner: Int, isPublic: Boolean)
@@ -69,4 +77,13 @@ object Tab {
       .transact(xa)
 
   implicit val rw: ReadWriter[Tab] = macroRW
+}
+
+case class TabPartial (
+  name: String,
+  isPublic: Boolean
+)
+
+object TabPartial {
+  implicit val rw: ReadWriter[TabPartial] = macroRW
 }

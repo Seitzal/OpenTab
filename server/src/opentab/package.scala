@@ -1,6 +1,7 @@
 import doobie.util.transactor.Transactor
 import cats.effect.IO
 import org.http4s._
+import org.http4s.dsl.io._
 import fs2.Stream
 
 package object opentab {
@@ -10,5 +11,9 @@ package object opentab {
     status = Status.Unauthorized, 
     body = Stream.emits("Unauthorized".getBytes())
   ))
+
+  val unauthorized: IO[Response[IO]] = unauthorized("Unauthorized")
+  val denied: IO[Response[IO]] = Forbidden("Permission denied")
+  def badRequest(msg: String): IO[Response[IO]] = BadRequest(msg)
 
 }
