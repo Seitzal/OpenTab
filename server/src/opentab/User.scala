@@ -2,11 +2,11 @@ package opentab
 
 import doobie._
 import doobie.implicits._
-import upickle.default._
-import eu.seitzal.http4s_upickle._
-import cats.effect.IO
+import cats.effect._
 import cats.implicits._
 import org.mindrot.jbcrypt.BCrypt
+import upickle.default.macroRW
+import eu.seitzal.http4s_upickle.UPickleEntityCodec
 
 case class User (
   id: Int,
@@ -15,25 +15,25 @@ case class User (
   isAdmin: Boolean
 ) {
 
-  def checkPassword(password: String)(implicit db: DB): IO[Boolean] =
+  def checkPassword(password: String)(implicit xa: Xa): IO[Boolean] =
     sql"SELECT password FROM users WHERE id = $id"
       .query[String]
       .unique
       .map(BCrypt.checkpw(password, _))
-      .transact(db.t)
+      .transact(xa)
 
-  def delete(implicit db: DB): IO[Unit] =
+  def delete(implicit xa: Xa): IO[Unit] =
     sql"DELETE FROM users WHERE id = $id"
       .update
       .run
       .map(_ => {})
-      .transact(db.t)
+      .transact(xa)
 
   def update(
       newPassword: Option[String] = None, 
       newEmail: Option[String] = None,
       newIsAdmin: Option[Boolean] = None)
-      (implicit db: DB): IO[User] = {
+      (implicit xa: Xa): IO[User] = {
     val hashedNewPassword = newPassword.map(BCrypt.hashpw(_, BCrypt.gensalt()))
     val queryString =
       fr"UPDATE users SET " ++ List(
@@ -54,39 +54,38 @@ case class User (
     queryString
       .update
       .withUniqueGeneratedKeys[User]("id", "name", "email", "isadmin")
-      .transact(db.t)
+      .transact(xa)
   }
 }
 
 object User {
 
-  def apply(id: Int)(implicit db: DB): IO[User] =
+  def apply(id: Int)(implicit xa: Xa): IO[User] =
     sql"SELECT id, name, email, isadmin FROM users WHERE id = $id"
       .query[User]
       .unique
-      .transact(db.t)
+      .transact(xa)
 
-  def getAll(implicit db: DB): IO[List[User]] =
+  def getAll(implicit xa: Xa): IO[List[User]] =
     sql"SELECT id, name, email, isadmin FROM users"
       .query[User]
       .to[List]
-      .transact(db.t)
+      .transact(xa)
 
   def create(
       name: String, 
       password: String, 
       email: String, 
       isAdmin: Boolean)
-      (implicit db: DB): IO[User] = {
+      (implicit xa: Xa): IO[User] = {
     val hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt())
     sql"""INSERT INTO users (name, password, email, isadmin) 
           VALUES ($name, $hashedPassword, $email, $isAdmin)"""
       .update
       .withUniqueGeneratedKeys[User]("id", "name", "email", "isadmin")
-      .transact(db.t)
+      .transact(xa)
     }
 
   implicit val rw = macroRW[User]
-  implicit val ee = new UPickleEntityEncoder[IO, User]
-  implicit val ed = new UPickleEntityDecoder[IO, User]
+  implicit val ec = new UPickleEntityCodec[IO, User]
 }
