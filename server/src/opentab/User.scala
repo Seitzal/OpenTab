@@ -67,7 +67,7 @@ case class User (
           case None => Nil
         }
       ).flatten.intercalate(fr",") ++
-      fr"WHERE name = $name"
+      fr"WHERE id = $id"
     queryString
       .update
       .withUniqueGeneratedKeys[User]("id", "name", "email", "isadmin")

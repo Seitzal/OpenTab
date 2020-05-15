@@ -1,23 +1,24 @@
+DROP TABLE IF EXISTS permissions;
 DROP TABLE IF EXISTS tabs;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS instance;
 
 CREATE TABLE instance (
-  schemaVersion VARCHAR(10)
+  schemaversion VARCHAR(10)
 );
 
-INSERT INTO instance (schemaVersion) VALUES ('0.1.0');
+INSERT INTO instance (schemaversion) VALUES ('0.1.0');
 
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE users (
   id        SERIAL UNIQUE PRIMARY KEY,
   name      VARCHAR(30) UNIQUE,
   password  CHAR(60),
   email     VARCHAR(60) UNIQUE,
-  isAdmin   BOOLEAN
+  isadmin   BOOLEAN
 );
 
 INSERT INTO users
-  (name, password, email, isAdmin)
+  (name, password, email, isadmin)
   VALUES (
     'admin', 
     '$2a$10$bNhtvTwVUSAo4zwTVY8Gu.fU7vYPKc.VhCm3C0VHYDhSWiYyaSQ7m',
@@ -25,9 +26,35 @@ INSERT INTO users
     TRUE
   );
 
-CREATE TABLE IF NOT EXISTS tabs (
-  handle    VARCHAR(15) UNIQUE PRIMARY KEY,
+CREATE TABLE tabs (
+  id        SERIAL UNIQUE PRIMARY KEY,
   name      VARCHAR(50),
-  owner     VARCHAR(30) REFERENCES users(name),
-  isPublic  BOOLEAN
+  owner     INT REFERENCES users(id),
+  ispublic  BOOLEAN
+);
+
+INSERT INTO tabs
+  (name, owner, ispublic)
+  VALUES (
+    'Public Test',
+    1,
+    TRUE
+  );
+
+INSERT INTO tabs
+  (name, owner, ispublic)
+  VALUES (
+    'Private Test',
+    1,
+    FALSE
+  );
+
+CREATE TABLE permissions (
+  userid  INT REFERENCES users(id),
+  tabid   INT REFERENCES tabs(id),
+  view    BOOLEAN,
+  results BOOLEAN,
+  setup   BOOLEAN,
+  own     BOOLEAN,
+  PRIMARY KEY(userid, tabid)
 );
