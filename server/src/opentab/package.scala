@@ -14,6 +14,5 @@ package object opentab {
 
   val unauthorized: IO[Response[IO]] = unauthorized("Unauthorized")
   val denied: IO[Response[IO]] = Forbidden("Permission denied")
-  def badRequest(msg: String): IO[Response[IO]] = BadRequest(msg)
 
 }
