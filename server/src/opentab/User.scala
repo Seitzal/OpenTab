@@ -4,9 +4,11 @@ import doobie._
 import doobie.implicits._
 import cats.effect._
 import cats.implicits._
+import pdi.jwt._
+import upickle.default._
 import org.mindrot.jbcrypt.BCrypt
 import upickle.default.macroRW
-import eu.seitzal.http4s_upickle.UPickleEntityCodec
+import java.time.{Instant, Duration}
 
 case class User (
   id: Int,
@@ -14,6 +16,21 @@ case class User (
   email: String,
   isAdmin: Boolean
 ) {
+
+  def issueToken(duration: Option[Int], secret: String): String =
+    JwtUpickle.encode(
+      claim = JwtClaim(
+        content = write(this),
+        issuedAt = Some(Instant.now.getEpochSecond),
+        expiration = duration.map(seconds =>
+          Instant.now
+            .plus(Duration.ofSeconds(seconds))
+            .getEpochSecond
+        )
+      ),
+      key = secret,
+      algorithm = JwtAlgorithm.HS256
+    )
 
   def checkPassword(password: String)(implicit xa: Xa): IO[Boolean] =
     sql"SELECT password FROM users WHERE id = $id"
@@ -66,6 +83,12 @@ object User {
       .unique
       .transact(xa)
 
+  def apply(name: String)(implicit xa: Xa): IO[User] =
+    sql"SELECT id, name, email, isadmin FROM users WHERE name = $name"
+      .query[User]
+      .unique
+      .transact(xa)
+
   def getAll(implicit xa: Xa): IO[List[User]] =
     sql"SELECT id, name, email, isadmin FROM users"
       .query[User]
@@ -86,6 +109,5 @@ object User {
       .transact(xa)
     }
 
-  implicit val rw = macroRW[User]
-  implicit val ec = new UPickleEntityCodec[IO, User]
+  implicit val rw: ReadWriter[User] = macroRW[User]
 }

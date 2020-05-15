@@ -2,7 +2,9 @@
   "server": {
     "host": "localhost",
     "port": 8080,
-    "debug": true
+    "debug": true,
+    "tokenLife": 0,
+    "secret": "changeMe"
   },
   "db": {
     "host": "localhost",

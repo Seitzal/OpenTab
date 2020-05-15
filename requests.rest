@@ -1,20 +1,4 @@
-POST http://localhost:8080/user
-
-{
-  "name": "alex",
-  "password": "secretpw",
-  "email": "alex@seitzal.eu"
-}
+@token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1ODk1NTE4MTUsImlkIjoxLCJuYW1lIjoiYWRtaW4iLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUudGxkIiwiaXNBZG1pbiI6dHJ1ZX0.i00DlWgCJStkJFsPtiCd0udcH-7pcjBZWp0UByneqOo
 ###
-GET http://localhost:8080/user/alex
-###
-DELETE http://localhost:8080/user/alex
-###
-PATCH http://localhost:8080/user/alex
-
-{
-  "email": "test@seitzal.eu",
-  "password": 6547,
-  "isAdmin": 0,
-  "eralkgjhregg": "vkwrgrightksne"
-}
+GET http://localhost:8080/token/verify
+Authorization: Bearer {{token}}

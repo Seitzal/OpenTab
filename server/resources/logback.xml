@@ -13,12 +13,12 @@
       <file>server.log</file>
       <append>false</append>
       <encoder>
-         <pattern>%d{HH:mm:ss.SSS} [%thread] %level %logger{36} - %msg %ex%n</pattern>
+         <pattern>%d{HH:mm:ss.SSS} [%thread] %level %logger{36} - %msg %n %ex</pattern>
       </encoder>
    </appender>
 
   <root level="debug">
-    <appender-ref ref="STDOUT" />
+    <appender-ref ref="STDOUT" />
     <appender-ref ref="FILE" />
   </root>
 
