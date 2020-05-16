@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS teams;
 DROP TABLE IF EXISTS permissions;
 DROP TABLE IF EXISTS tabs;
 DROP TABLE IF EXISTS users;
@@ -57,4 +58,14 @@ CREATE TABLE permissions (
   setup   BOOLEAN,
   own     BOOLEAN,
   PRIMARY KEY(userid, tabid)
+);
+
+CREATE TABLE teams (
+  id          SERIAL UNIQUE PRIMARY KEY,
+  tabid       INT REFERENCES tabs(id),
+  name        VARCHAR(50),
+  delegation  VARCHAR(50),
+  status      INT CHECK(status > 0 AND status < 4),
+  isactive    BOOLEAN,
+  CONSTRAINT unique_name_per_tab UNIQUE(tabid, name)
 );
