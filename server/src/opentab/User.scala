@@ -50,29 +50,17 @@ case class User (
       newPassword: Option[String] = None, 
       newEmail: Option[String] = None,
       newIsAdmin: Option[Boolean] = None)
-      (implicit xa: Xa): IO[User] = {
-    val hashedNewPassword = newPassword.map(BCrypt.hashpw(_, BCrypt.gensalt()))
-    val queryString =
-      fr"UPDATE users SET " ++ List(
-        hashedNewPassword match {
-          case Some(v) => List(fr"password = $v")
-          case None => Nil
-        },
-        newEmail match {
-          case Some(v) => List(fr"email = $v")
-          case None => Nil
-        },
-        newIsAdmin match {
-          case Some(v) => List(fr"isadmin = $v")
-          case None => Nil
-        }
-      ).flatten.intercalate(fr",") ++
-      fr"WHERE id = $id"
-    queryString
+      (implicit xa: Xa): IO[User] =
+    updateSql("users")(
+      updateFragment("password", 
+        newPassword.map(BCrypt.hashpw(_, BCrypt.gensalt()))),
+      updateFragment("email", newEmail),
+      updateFragment("isadmin", newIsAdmin)
+    )(fr"WHERE id = $id")
       .update
       .withUniqueGeneratedKeys[User]("id", "name", "email", "isadmin")
       .transact(xa)
-  }
+
 }
 
 object User {

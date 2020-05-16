@@ -23,24 +23,14 @@ case class Tab(
   def update(
       newName: Option[String] = None, 
       newIsPublic: Option[Boolean] = None)
-      (implicit xa: Xa): IO[Tab] = {
-    val queryString =
-      fr"UPDATE tabs SET " ++ List(
-        newName match {
-          case Some(v) => List(fr"name = $v")
-          case None => Nil
-        },
-        newIsPublic match {
-          case Some(v) => List(fr"ispublic = $v")
-          case None => Nil
-        }
-      ).flatten.intercalate(fr",") ++
-      fr"WHERE id = $id"
-    queryString
+      (implicit xa: Xa): IO[Tab] =
+    updateSql("tabs")(
+      updateFragment("name", newName),
+      updateFragment("ispublic", newIsPublic)
+    )(fr"WHERE id = $id")
       .update
       .withUniqueGeneratedKeys[Tab]("id", "name", "owner", "ispublic")
       .transact(xa)
-  }
 
 }
 

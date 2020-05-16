@@ -4,8 +4,9 @@ import doobie._
 import doobie.implicits._
 import cats.implicits._
 import cats.effect.IO
+import com.typesafe.scalalogging.LazyLogging
 
-trait SQLHelpers {
+trait SQLHelpers extends LazyLogging {
 
   type Xa = Transactor[IO]
 
@@ -15,9 +16,9 @@ trait SQLHelpers {
       case None => Nil
     }
   
-  def updateSql(tableName: String, entryId: Int)(fragments: List[Fragment]*): Fragment =
-    fr"UPDATE $tableName SET " ++
+  def updateSql(tableName: String)(fragments: List[Fragment]*)(condition: Fragment): Fragment =
+    Fragment(s"UPDATE $tableName SET ", Nil) ++
       fragments.toList.flatten.intercalate(fr",") ++
-      fr"WHERE id = $entryId"
+      condition
 
 }

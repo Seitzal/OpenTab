@@ -28,12 +28,13 @@ case class Team(
       newStatus: Option[Int] = None,
       newIsActive: Option[Boolean] = None)
       (implicit xa: Xa): IO[Team] =
-    updateSql("teams", id)(
+    updateSql("teams")(
       updateFragment("name", newName),
       updateFragment("delegation", newDelegation),
       updateFragment("status", newStatus),
       updateFragment("isactive", newIsActive)
-    ).update
+    )(fr"WHERE id = $id")
+      .update
       .withUniqueGeneratedKeys[Team](
         "id", "tabid", "name", "delegation", "status", "isactive")
       .transact(xa)

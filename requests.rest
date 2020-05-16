@@ -12,7 +12,7 @@ GET http://localhost:8080/tab/1
 ###
 GET http://localhost:8080/tab/2
 ###
-GET http://localhost:8080/tab/2
+GET http://localhost:8080/tab/3
 Authorization: Bearer {{token}}
 ###
 POST http://localhost:8080/tab
@@ -30,3 +30,9 @@ DELETE http://localhost:8080/tab/4
 DELETE http://localhost:8080/tab/3
 Authorization: Bearer {{token}}
 ###
+PATCH http://localhost:8080/tab/3
+Authorization: Bearer {{token}}
+
+{
+  "name": "Renamed new public tab"
+}

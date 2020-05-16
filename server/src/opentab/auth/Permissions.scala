@@ -21,28 +21,13 @@ case class Permissions(
       newResults: Option[Boolean],
       newSetup: Option[Boolean],
       newOwn: Option[Boolean])
-      (implicit xa: Xa): IO[Permissions] = {
-    val queryString =
-      fr"UPDATE permissions SET " ++ List(
-        newView match {
-          case Some(v) => List(fr"view = $v")
-          case None => Nil
-        },
-        newResults match {
-          case Some(v) => List(fr"view = $v")
-          case None => Nil
-        },
-        newSetup match {
-          case Some(v) => List(fr"view = $v")
-          case None => Nil
-        },
-        newOwn match {
-          case Some(v) => List(fr"view = $v")
-          case None => Nil
-        }
-      ).flatten.intercalate(fr",") ++
-      fr"WHERE userid = $userId AND tabid = $tabId"
-    queryString
+      (implicit xa: Xa): IO[Permissions] =
+    updateSql("permissions")(
+      updateFragment("view", newView),
+      updateFragment("results", newResults),
+      updateFragment("setup", newSetup),
+      updateFragment("own", newOwn)
+    )(fr"WHERE userid = $userId AND tabid = $tabId")
       .update
       .withUniqueGeneratedKeys[Permissions](
         "userid", "tabid", "view", "results", "setup", "own")
@@ -62,7 +47,6 @@ case class Permissions(
           .withUniqueGeneratedKeys[Permissions](
             "userid", "tabid", "view", "results", "setup", "own")
       }.transact(xa)
-  }
 
 }
 
