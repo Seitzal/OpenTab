@@ -1,0 +1,22 @@
+.nav-link {
+  text-decoration: none;;
+  color: #ffffff !important;
+}
+
+.wsblock {
+  font-size: 0;
+}
+
+.sharpcorners {
+  border-radius: 0 !important;
+}
+
+.subheading {
+  font-size: 14pt;
+}
+
+.mobile_nav_tweak {
+  color: rgba(0, 0, 0, 0.87) !important;
+  caret-color: rgba(0, 0, 0, 0.87) !important;
+  background-color: transparent !important;
+}
