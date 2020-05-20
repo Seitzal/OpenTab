@@ -44,6 +44,16 @@ class TabActions(implicit xa: Xa, config: Config) {
     }
   }
 
+  def getPermissions(rq: Request[IO], tabId: Int) = withAuthOpt(rq) {
+    case Some(user) =>
+      Ok(Permissions(user.id, tabId))
+    case None =>
+      Tab(tabId).map(_.isPublic).flatMap {
+        case true  => Ok(Permissions(-1, tabId, true, false, false, false))
+        case false => Ok(Permissions(-1, tabId, false, false, false, false))
+      }
+  }
+
   def post(rq: Request[IO]) = withAuth(rq) { user =>
     rq.as[TabPartial]
       .flatMap(tp => Tab.create(tp.name, user.id, tp.isPublic))

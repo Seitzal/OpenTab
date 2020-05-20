@@ -37,6 +37,9 @@ object ApiService extends GenService {
       case rq @ DELETE -> Root / "tab" / IntVar(tabId) =>
         tab.delete(rq, tabId)
 
+      case rq @ GET -> Root / "tab" / IntVar(tabId) / "permissions" =>
+        tab.getPermissions(rq, tabId)
+
     }
   }
 
