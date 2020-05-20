@@ -24,6 +24,9 @@ object ApiService extends GenService {
 
       case rq @ GET -> Root / "tab" =>
         tab.getAll(rq)
+      
+      case rq @ GET -> Root / "tab" / "permissions" =>
+        tab.getAllPermissions(rq)
 
       case rq @ GET -> Root / "tab" / IntVar(tabId) =>
         tab.get(rq, tabId)

@@ -44,6 +44,21 @@ class TabActions(implicit xa: Xa, config: Config) {
     }
   }
 
+  def getAllPermissions(rq: Request[IO]) = withAuthOpt(rq) {
+    case Some(user) =>
+      Tab.getIds
+        .map(_.map(tabId => Permissions(user.id, tabId)))
+        .flatMap(_.sequence)
+        .map(_.filter(_.view))
+        .map(_.map(perms => (perms.tabId, perms)))
+        .flatMap(Ok(_))
+    case None =>
+      Tab.getAll
+        .map(_.filter(_.isPublic))
+        .map(_.map(tab => (tab.id, Permissions(-1, tab.id, true, false, false, false))))
+        .flatMap(Ok(_))
+  }
+
   def getPermissions(rq: Request[IO], tabId: Int) = withAuthOpt(rq) {
     case Some(user) =>
       Ok(Permissions(user.id, tabId))
