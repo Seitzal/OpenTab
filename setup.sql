@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS speakers;
 DROP TABLE IF EXISTS teams;
 DROP TABLE IF EXISTS permissions;
 DROP TABLE IF EXISTS tabs;
@@ -68,4 +69,14 @@ CREATE TABLE teams (
   status      INT CHECK(status > 0 AND status < 4),
   isactive    BOOLEAN,
   CONSTRAINT unique_name_per_tab UNIQUE(tabid, name)
+);
+
+CREATE TABLE speakers (
+  id        SERIAL UNIQUE PRIMARY KEY,
+  tabid     INT REFERENCES tabs(id),
+  teamid    INT REFERENCES teams(id),
+  firstname VARCHAR(100),
+  lastname  VARCHAR(100),
+  status    INT CHECK(status > 0 AND status < 4),
+  CONSTRAINT unique_name_per_team UNIQUE(teamid, firstname, lastname)
 );

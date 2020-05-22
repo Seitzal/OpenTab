@@ -31,9 +31,9 @@ class TeamActions(implicit xa: Xa, config: Config) {
 
   def post(rq: Request[IO], tabId: Int) = withAuth(rq) { user =>
     for {
-      data <- rq.as[TeamPartial]
+      data      <- rq.as[TeamPartial]
       permitted <- Permissions(user.id, tabId).map(_.setup)
-      re <- if (permitted)
+      re        <- if (permitted)
         Ok(Team.create(tabId, data.name, data.delegation, data.status.toInt))
         else denied
     } yield re
@@ -41,9 +41,9 @@ class TeamActions(implicit xa: Xa, config: Config) {
 
   def delete(rq: Request[IO], teamId: Int) = withAuth(rq) { user =>
     for {
-      team <- Team(teamId)
+      team      <- Team(teamId)
       permitted <- Permissions(user.id, team.tabId).map(_.setup)
-      re <- if (permitted) team.delete.flatMap(_ => NoContent()) else denied
+      re        <- if (permitted) team.delete.flatMap(_ => NoContent()) else denied
     } yield re
   }
 

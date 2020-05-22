@@ -15,6 +15,7 @@ object ApiService extends GenService {
     implicit val c = config
     val tab = new TabActions
     val team = new TeamActions
+    val speaker = new SpeakerActions
     ;{
 
       case GET -> Root =>
@@ -47,6 +48,9 @@ object ApiService extends GenService {
       case rq @ GET -> Root / "tab" / IntVar(tabId) / "teams" =>
         team.getAllForTab(rq, tabId)
 
+      case rq @ GET -> Root / "tab" / IntVar(tabId) / "speakers" =>
+        speaker.getAllForTab(rq, tabId)
+
       case rq @ POST -> Root / "tab" / IntVar(tabId) / "team" =>
         team.post(rq, tabId)
 
@@ -55,6 +59,18 @@ object ApiService extends GenService {
 
       case rq @ PATCH -> Root / "team" / IntVar(teamId) =>
         team.patch(rq, teamId)
+
+      case rq @ GET -> Root / "team" / IntVar(teamId) / "speakers" =>
+        speaker.getAllForTeam(rq, teamId)
+
+      case rq @ POST -> Root / "team" / IntVar(teamId) / "speaker" =>
+        speaker.post(rq, teamId)
+
+      case rq @ DELETE -> Root / "speaker" / IntVar(speakerId) =>
+        speaker.delete(rq, speakerId)
+
+      case rq @ PATCH -> Root / "speaker" / IntVar(speakerId) =>
+        speaker.patch(rq, speakerId)
 
     }
   }
