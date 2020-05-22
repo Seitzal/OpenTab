@@ -23,15 +23,15 @@ package object auth extends LazyLogging {
       .get(Authorization)
       .map(_.renderString)
       match {
-        case Some(s"Authorization: Basic $creds") => IO.delay(creds)
+        case Some(s"Authorization: Basic $creds") => IO(creds)
         case _ => IO.raiseError(new Error("Malformed or missing auth header"))
       }
 
   def decodeBasicCreds(creds: String): IO[(String, String)] =
-    IO.delay(new String(
+    IO(new String(
       Base64.getDecoder().decode(creds.getBytes("UTF-8"))
     )).flatMap {
-      case s"$username:$password" => IO.delay((username, password))
+      case s"$username:$password" => IO((username, password))
       case _ => IO.raiseError(new Error("Invalid base64"))
     }
 
@@ -53,7 +53,7 @@ package object auth extends LazyLogging {
       credsCorrect <- checkBasicCreds(credsDecoded)
       user         <- User(credsDecoded._1)
       result       <- credsCorrect match {
-        case true  => Ok(IO.delay(user.issueToken(duration, secret)))
+        case true  => Ok(IO(user.issueToken(duration, secret)))
         case false => IO.raiseError(new Error("Incorrect credentials"))}
     } yield result
     io.handleError{ e =>
@@ -78,7 +78,7 @@ package object auth extends LazyLogging {
           IO.fromTry(verifyToken(token))
             .map(Some(_))
         case Some(_) => IO.raiseError(new Error("Invalid authorization header."))
-        case None => IO.delay(None)
+        case None => IO(None)
       }
 
   def withAuth

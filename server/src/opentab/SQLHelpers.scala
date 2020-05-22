@@ -12,7 +12,7 @@ trait SQLHelpers extends LazyLogging {
 
   def updateFragment[A: Put](fieldName: String, newValueOpt: Option[A]) =
     newValueOpt match {
-      case Some(v) => List(fr"name = $v")
+      case Some(v) => List(Fragment(s"$fieldName = ", Nil) ++ fr"$v")
       case None => Nil
     }
   
@@ -20,5 +20,6 @@ trait SQLHelpers extends LazyLogging {
     Fragment(s"UPDATE $tableName SET ", Nil) ++
       fragments.toList.flatten.intercalate(fr",") ++
       condition
+
 
 }

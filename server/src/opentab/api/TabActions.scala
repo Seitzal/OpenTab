@@ -82,8 +82,8 @@ class TabActions(implicit xa: Xa, config: Config) {
         for {
           tab         <- Tab(tabId)
           data        <- rq.as[Obj]
-          newName     <- IO.delay(data.value.get("name").map(_.str))
-          newIsPublic <- IO.delay(data.value.get("isPublic").map(_.bool))
+          newName     <- IO(data.value.get("name").map(_.str))
+          newIsPublic <- IO(data.value.get("isPublic").map(_.bool))
           newTab      <- tab.update(newName, newIsPublic)
         } yield newTab
       )

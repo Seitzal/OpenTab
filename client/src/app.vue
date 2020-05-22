@@ -87,7 +87,7 @@
 <script>
 
 import loginDialog from './components/login.vue';
-import ajax from './ajax.js';
+import api from './api.js';
 import Cookies from 'js-cookie';
 
 export default {
@@ -103,7 +103,7 @@ export default {
     },
     signout: function() {
       this.drawer = false
-      ajax.signOut(function(){})
+      api.signOut(function(){})
     },
     signin: function() {
       this.drawer = false
@@ -116,13 +116,13 @@ export default {
   },
   watch: {
     signedIn: function(val) {
-      ajax.loadTabs()
-      ajax.loadPermissions()
+      api.loadTabs()
+      api.loadPermissions()
     }
   },
   mounted: function() {
-    ajax.loadTabs()
-    ajax.loadPermissions()
+    api.loadTabs()
+    api.loadPermissions()
   },
   components: {
     'login-dialog': loginDialog

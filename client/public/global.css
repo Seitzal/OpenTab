@@ -1,5 +1,8 @@
+a {
+  text-decoration: none !important;
+}
+
 .nav-link {
-  text-decoration: none;;
   color: #ffffff !important;
 }
 

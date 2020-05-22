@@ -8,7 +8,9 @@ const routes = [
   {path: '/',
     component: Home},
   {path: '/tab/:tabid',
-    component: () => import('./views/tab.vue')}
+    component: () => import('./views/tab.vue')},
+  {path: '/tab/:tabid/teams',
+    component: () => import('./views/teams.vue')}
 ]
 
 const router = new VueRouter({

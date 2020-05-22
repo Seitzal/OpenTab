@@ -28,7 +28,10 @@ window.tokenExpired = function() {
 
 window.bearerAuth = function() {
   if (store.getters.signedIn) {
-    return {"Authorization": "Bearer " + store.state.api_key}
+    return {
+      "Authorization": "Bearer " + store.state.api_key,
+      "Content-type": "application/json"
+    }
   } else {
     return {}
   }

@@ -35,7 +35,7 @@
 
 <script>
 
-import ajax from '../ajax.js'
+import api from '../api.js';
 
 export default {
   name: "login-dialog",
@@ -61,7 +61,7 @@ export default {
     },
     submit() {
       this.waiting = true
-      ajax.signIn(
+      api.signIn(
         this.username,
         this.password, 
         this.close,

@@ -7,7 +7,7 @@ import fs2.Stream
 
 trait HTTPHelpers {
 
-  def unauthorized(msg: String) = IO.delay(Response[IO](
+  def unauthorized(msg: String) = IO(Response[IO](
     status = Status.Unauthorized, 
     body = Stream.emits("Unauthorized".getBytes())
   ))

@@ -68,7 +68,7 @@ object Team {
   def create
       (tabId: Int, name: String, delegation: String, status: Int)
       (implicit xa: Xa): IO[Team] =
-    sql"INSERT INTO tabs (tabid, name, delegation, status, isactive) VALUES ($tabId, $name, $delegation, $status, TRUE)"
+    sql"INSERT INTO teams (tabid, name, delegation, status, isactive) VALUES ($tabId, $name, $delegation, $status, TRUE)"
       .update
       .withUniqueGeneratedKeys[Team](
         "id", "tabid", "name", "delegation", "status", "isactive")
@@ -81,7 +81,7 @@ object Team {
 case class TeamPartial(
   name: String,
   delegation: String,
-  status: Int
+  status: String
 )
 
 object TeamPartial {

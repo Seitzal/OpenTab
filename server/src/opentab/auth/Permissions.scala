@@ -58,7 +58,7 @@ object Permissions {
       tab  <- Tab(tabId)
     } yield {
       if (user.isAdmin || tab.owner == userId) 
-        IO.delay(Permissions(userId, tabId, true, true, true, true))
+        IO(Permissions(userId, tabId, true, true, true, true))
       else
         sql"SELECT * FROM permissions WHERE userid = $userId AND tabid = $tabId"
           .query[Permissions]

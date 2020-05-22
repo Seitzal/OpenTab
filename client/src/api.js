@@ -41,7 +41,7 @@ export default {
     store.commit("setTabsUpToDate", false)
     $.ajax({
       method: "GET",
-      url: `${conf.apiPath}/tab`,
+      url: `${conf.apiPath}/tabs`,
       headers: bearerAuth(),
       success: (data) => {
         store.commit("setTabs", data)
@@ -56,7 +56,7 @@ export default {
     if (tokenExpired()) return;
     $.ajax({
       method: "GET",
-      url: `${conf.apiPath}/tab/permissions`,
+      url: `${conf.apiPath}/tabs/permissions`,
       headers: bearerAuth(),
       success: (data) => {
         store.commit("setPermissions", data)
@@ -69,68 +69,65 @@ export default {
   loadTeams: function() {
     if (tokenExpired()) return;
     store.commit("setTeamsUpToDate", false)
-    let rq = rc.getAllTeams(store.state.tabid)
-    rq.headers = bearerAuth();
-    rq.success = (data) =>  {
-      store.commit("setTeams", data)
-      store.commit("setTeamsUpToDate", true)}
-    rq.error = ajaxFailure
-    $.ajax(rq)
+    $.ajax({
+      method: "GET",
+      url: `${conf.apiPath}/tab/${store.state.tabid}/teams`,
+      headers: bearerAuth(),
+      success: (data) =>  {
+        store.commit("setTeams", data)
+        store.commit("setTeamsUpToDate", true)
+      },
+      error: ajaxFailure
+    });
   },
 
   createTeam: function(team, then) {
     if (tokenExpired()) return;
-    let rq = rc.createTeam()
-    rq.headers = bearerAuth();
-    rq.data = {
-      tabid: store.state.tabid,
-      name: team.name,
-      delegation: team.delegation != "" ? team.delegation : team.name,
-      status: team.status
-    }
-    rq.success = (data) => {
-      then(data)
-    }
-    rq.error = ajaxFailure
-    $.ajax(rq)
+    if (team.delegation == "")
+      team.delegation = team.name;
+    $.ajax({
+      method: "POST",
+      url: `${conf.apiPath}/tab/${store.state.tabid}/team`,
+      headers: bearerAuth(),
+      data: JSON.stringify(team),
+      success: then,
+      error: ajaxFailure
+    });
   },
 
   updateTeam: function(team, then) {
     if (tokenExpired()) return;
-    let rq = rc.updateTeam(team.id)
-    rq.headers = bearerAuth();
-    rq.data = {
-      name: team.name,
-      delegation: team.delegation,
-      status: team.status
-    }
-    rq.success = (data) => {
-      then(data)
-    }
-    rq.error = ajaxFailure
-    $.ajax(rq)
+    $.ajax({
+      method: "PATCH",
+      url: `${conf.apiPath}/team/${team.id}`,
+      headers: bearerAuth(),
+      data: JSON.stringify(team),
+      success: then,
+      error: ajaxFailure
+    })
   },
 
   deleteTeam: function(team, then) {
     if (tokenExpired()) return;
-    let rq = rc.deleteTeam(team.id)
-    rq.headers = bearerAuth();
-    rq.success = (data) => {
-      then(data)
-    }
-    rq.error = ajaxFailure
-    $.ajax(rq)
+    $.ajax({
+      method: "DELETE",
+      url: `${conf.apiPath}/team/${team.id}`,
+      headers: bearerAuth(),
+      success: then,
+      error: ajaxFailure
+    });
   },
 
   toggleTeam: function(team, then) {
     if (tokenExpired()) return;
-    let rq = rc.toggleTeam(team.id)
-    rq.headers = bearerAuth();
-    rq.success = (data) => {
-      then(data)
-    }
-    rq.error = ajaxFailure
-    $.ajax(rq)
+    $.ajax({
+      method: "PATCH",
+      url: `${conf.apiPath}/team/${team.id}`,
+      headers: bearerAuth(),
+      data: JSON.stringify({isActive: !team.isActive}),
+      success: then,
+      error: ajaxFailure
+    })
   },
 
   loadSpeakers: function(then) {
