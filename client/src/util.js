@@ -1,7 +1,7 @@
-import Cookies from 'js-cookie'
+import Cookies from 'js-cookie';
 
 window.retrieveSession = function() {
-  const exp = Cookies.get("api_key.exp")
+  const exp = Cookies.get("api_key.exp");
   if (exp != undefined && timestamp() < exp) {
     return Cookies.get("api_key")
   } else {

@@ -6,7 +6,7 @@ Vue.use(Vuex)
 window.store = new Vuex.Store({
   state: {
     api_key: retrieveSession(),
-    exp: undefined, // retrieveSessionExp(),
+    exp: retrieveSessionExp(),
     tabs: [],
     tabid: undefined,
     tabsUpToDate: false,

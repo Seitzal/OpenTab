@@ -86,8 +86,9 @@
 
 <script>
 
-import loginDialog from './components/login.vue'
-import ajax from './ajax.js'
+import loginDialog from './components/login.vue';
+import ajax from './ajax.js';
+import Cookies from 'js-cookie';
 
 export default {
   name: 'App',

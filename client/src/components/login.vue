@@ -34,6 +34,9 @@
 </template>
 
 <script>
+
+import ajax from '../ajax.js'
+
 export default {
   name: "login-dialog",
   props: {
@@ -58,7 +61,7 @@ export default {
     },
     submit() {
       this.waiting = true
-      signIn(
+      ajax.signIn(
         this.username,
         this.password, 
         this.close,

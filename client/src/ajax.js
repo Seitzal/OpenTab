@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import Cookies from 'js-cookie';
 
 function ajaxFailure(jqXHR, textStatus, errorThrown) {
   console.error("AJAX failure: " + jqXHR.responseText + " (" + jqXHR.status + ")")
@@ -11,19 +12,21 @@ function ajaxFailure(jqXHR, textStatus, errorThrown) {
 export default {
 
   signIn: function(username, password, success, failure) {
-    let rq = ac.getToken(false);
-    rq.headers = {Authorization: "Basic " + btoa(username + ":" + password)};
-    rq.success = (data) => {
-      const exp = JSON.parse(atob(data.split(".")[1])).exp * 1000;
-      store.commit("setApiKey", data);
-      store.commit("setExp", exp);
-      Cookies.set("api_key", data);
-      Cookies.set("api_key.exp", exp);
-      Cookies.set("username", username);
-      success();
-    };
-    rq.error = failure;
-    $.ajax(rq);
+    $.ajax({
+      method: "GET",
+      url: `${conf.apiPath}/token`,
+      headers: {Authorization: "Basic " + btoa(username + ":" + password)},
+      success: (data) => {
+        const exp = JSON.parse(atob(data.split(".")[1])).exp * 1000;
+        store.commit("setApiKey", data);
+        store.commit("setExp", exp);
+        Cookies.set("api_key", data);
+        Cookies.set("api_key.exp", exp);
+        Cookies.set("username", username);
+        success();
+      },
+      error: failure
+    });
   },
 
   signOut: function(then) {

@@ -3,7 +3,7 @@
     "host": "localhost",
     "port": 8081,
     "debug": true,
-    "tokenLife": 0,
+    "tokenLife": 7200,
     "secret": "changeMe"
   },
   "db": {
