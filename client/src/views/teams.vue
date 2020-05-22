@@ -53,7 +53,7 @@
               </v-icon>
             </template><span>modify</span></v-tooltip>
             <v-tooltip bottom><template v-slot:activator="{ on }">
-              <router-link :to="`/tab/${item.id}/speakers`">
+              <router-link :to="`/tab/${tab.id}/speakers/${item.id}`">
                 <v-icon v-on="on">
                   mdi-account-multiple
                 </v-icon>

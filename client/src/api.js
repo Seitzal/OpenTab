@@ -133,48 +133,52 @@ export default {
   loadSpeakers: function(then) {
     if (tokenExpired()) return;
     store.commit("setSpeakersUpToDate", false)
-    let rq = rc.getAllSpeakers(store.state.tabid)
-    rq.headers = bearerAuth();
-    rq.success = (data) =>  {
-      store.commit("setSpeakers", data)
-      store.commit("setSpeakersUpToDate", true)}
-    rq.error = ajaxFailure
-    $.ajax(rq)
+    $.ajax({
+      method: "GET",
+      url: `${conf.apiPath}/tab/${store.state.tabid}/speakers`,
+      headers: bearerAuth(),
+      success: (data) => {
+        store.commit("setSpeakers", data)
+        store.commit("setSpeakersUpToDate", true)
+        // if (then != undefined) then(data)
+      },
+      error: ajaxFailure
+    });
   },
 
   createSpeaker: function(speaker, then) {
     if (tokenExpired()) return;
-    let rq = rc.createSpeaker()
-    rq.headers = bearerAuth();
-    rq.data = speaker
-    rq.success = (data) => {
-      then(data)
-    }
-    rq.error = ajaxFailure
-    $.ajax(rq)
+    $.ajax({
+      method: "POST",
+      url: `${conf.apiPath}/team/${speaker.teamId}/speaker`,
+      headers: bearerAuth(),
+      data: JSON.stringify(speaker),
+      success: then,
+      error: ajaxFailure
+    });
   },
 
   updateSpeaker: function(speaker, then) {
     if (tokenExpired()) return;
-    let rq = rc.updateSpeaker(speaker.id)
-    rq.headers = bearerAuth();
-    rq.data = speaker
-    rq.success = (data) => {
-      then(data)
-    }
-    rq.error = ajaxFailure
-    $.ajax(rq)
+    $.ajax({
+      method: "PATCH",
+      url: `${conf.apiPath}/speaker/${speaker.id}`,
+      headers: bearerAuth(),
+      data: JSON.stringify(speaker),
+      success: then,
+      error: ajaxFailure
+    });
   },
 
   deleteSpeaker: function(speaker, then) {
     if (tokenExpired()) return;
-    let rq = rc.deleteSpeaker(speaker.id)
-    rq.headers = bearerAuth();
-    rq.success = (data) => {
-      then(data)
-    }
-    rq.error = ajaxFailure
-    $.ajax(rq)
+    $.ajax({
+      method: "DELETE",
+      url: `${conf.apiPath}/speaker/${speaker.id}`,
+      headers: bearerAuth(),
+      success: then,
+      error: ajaxFailure
+    });
   },
 
   loadDelegations: function(then) {

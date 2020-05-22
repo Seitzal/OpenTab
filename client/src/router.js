@@ -10,7 +10,11 @@ const routes = [
   {path: '/tab/:tabid',
     component: () => import('./views/tab.vue')},
   {path: '/tab/:tabid/teams',
-    component: () => import('./views/teams.vue')}
+    component: () => import('./views/teams.vue')},
+  {path: '/tab/:tabid/speakers',
+    component: () => import('./views/speakers.vue')},
+  {path: '/tab/:tabid/speakers/:teamid',
+    component: () => import('./views/speakers.vue')}
 ]
 
 const router = new VueRouter({
