@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS judge_clashes;
+DROP TABLE IF EXISTS judges;
 DROP TABLE IF EXISTS speakers;
 DROP TABLE IF EXISTS teams;
 DROP TABLE IF EXISTS permissions;
@@ -68,7 +70,7 @@ CREATE TABLE teams (
   delegation  VARCHAR(50),
   status      INT CHECK(status > 0 AND status < 4),
   isactive    BOOLEAN,
-  CONSTRAINT unique_name_per_tab UNIQUE(tabid, name)
+  CONSTRAINT unique_team_name_per_tab UNIQUE(tabid, name)
 );
 
 CREATE TABLE speakers (
@@ -78,5 +80,21 @@ CREATE TABLE speakers (
   firstname VARCHAR(100),
   lastname  VARCHAR(100),
   status    INT CHECK(status > 0 AND status < 4),
-  CONSTRAINT unique_name_per_team UNIQUE(teamid, firstname, lastname)
+  CONSTRAINT unique_speaker_name_per_team UNIQUE(teamid, firstname, lastname)
+);
+
+CREATE TABLE judges (
+  id        SERIAL UNIQUE PRIMARY KEY,
+  tabid     INT REFERENCES tabs(id),
+  firstname VARCHAR(100),
+  lastname  VARCHAR(100),
+  rating    INT CHECK(rating > 0 AND rating < 11),
+  CONSTRAINT unique_judge_name_per_tab UNIQUE(tabid, firstname, lastname)
+);
+
+CREATE TABLE judge_clashes (
+  judgeid INT REFERENCES judges(id),
+  teamid  INT REFERENCES teams(id),
+  level   INT CHECK(level > -1 AND level < 11),
+  PRIMARY KEY(judgeid, teamid)
 );
