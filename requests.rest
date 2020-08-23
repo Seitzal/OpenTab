@@ -65,5 +65,8 @@ Authorization: Bearer {{token}}
 DELETE http://localhost:8081/team/1
 Authorization: Bearer {{token}}
 ###
-GET http://localhost:8081/judge/6/clashes
+GET http://localhost:8081/judge/5/clashes
+Authorization: Bearer {{token}}
+###
+POST http://localhost:8081/judge/5/clashes/1/7
 Authorization: Bearer {{token}}

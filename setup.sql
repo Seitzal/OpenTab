@@ -33,7 +33,7 @@ INSERT INTO users
 CREATE TABLE tabs (
   id        SERIAL UNIQUE PRIMARY KEY,
   name      VARCHAR(50),
-  owner     INT REFERENCES users(id),
+  owner     INT REFERENCES users(id) ON DELETE CASCADE,
   ispublic  BOOLEAN
 );
 
@@ -65,7 +65,7 @@ CREATE TABLE permissions (
 
 CREATE TABLE teams (
   id          SERIAL UNIQUE PRIMARY KEY,
-  tabid       INT REFERENCES tabs(id),
+  tabid       INT REFERENCES tabs(id) ON DELETE CASCADE,
   name        VARCHAR(50),
   delegation  VARCHAR(50),
   status      INT CHECK(status > 0 AND status < 4),
@@ -75,8 +75,8 @@ CREATE TABLE teams (
 
 CREATE TABLE speakers (
   id        SERIAL UNIQUE PRIMARY KEY,
-  tabid     INT REFERENCES tabs(id),
-  teamid    INT REFERENCES teams(id),
+  tabid     INT REFERENCES tabs(id) ON DELETE CASCADE,
+  teamid    INT REFERENCES teams(id) ON DELETE CASCADE,
   firstname VARCHAR(100),
   lastname  VARCHAR(100),
   status    INT CHECK(status > 0 AND status < 4),
@@ -85,7 +85,7 @@ CREATE TABLE speakers (
 
 CREATE TABLE judges (
   id        SERIAL UNIQUE PRIMARY KEY,
-  tabid     INT REFERENCES tabs(id),
+  tabid     INT REFERENCES tabs(id)  ON DELETE CASCADE,
   firstname VARCHAR(100),
   lastname  VARCHAR(100),
   rating    INT CHECK(rating > 0 AND rating < 11),
@@ -94,8 +94,8 @@ CREATE TABLE judges (
 );
 
 CREATE TABLE judge_clashes (
-  judgeid INT REFERENCES judges(id),
-  teamid  INT REFERENCES teams(id),
+  judgeid INT REFERENCES judges(id) ON DELETE CASCADE,
+  teamid  INT REFERENCES teams(id) ON DELETE CASCADE,
   level   INT CHECK(level > -1 AND level < 11),
   PRIMARY KEY(judgeid, teamid)
 );
