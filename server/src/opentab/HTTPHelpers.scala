@@ -9,7 +9,7 @@ trait HTTPHelpers {
 
   def unauthorized(msg: String) = IO(Response[IO](
     status = Status.Unauthorized, 
-    body = Stream.emits("Unauthorized".getBytes())
+    body = Stream.emits(msg.getBytes())
   ))
 
   val unauthorized: IO[Response[IO]] = unauthorized("Unauthorized")

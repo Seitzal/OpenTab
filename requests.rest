@@ -1,23 +1,23 @@
 @token = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1ODk1NTE4MTUsImlkIjoxLCJuYW1lIjoiYWRtaW4iLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUudGxkIiwiaXNBZG1pbiI6dHJ1ZX0.i00DlWgCJStkJFsPtiCd0udcH-7pcjBZWp0UByneqOo
 ###
-GET http://localhost:8080/token/verify
+GET http://localhost:8081/token/verify
 Authorization: Bearer {{token}}
 ###
-GET http://localhost:8080/tab
+GET http://localhost:8081/tabs
 ###
-GET http://localhost:8080/tab
+GET http://localhost:8081/tabs
 Authorization: Bearer {{token}}
 ###
-GET http://localhost:8080/tab/1
+GET http://localhost:8081/tab/1
 ###
-GET http://localhost:8080/tab/2
+GET http://localhost:8081/tab/2
 ###
-GET http://localhost:8080/tab/3
+GET http://localhost:8081/tab/3
 Authorization: Bearer {{token}}
 ###
-POST http://localhost:8080/tab
+POST http://localhost:8081/tab
 ###
-POST http://localhost:8080/tab
+POST http://localhost:8081/tab
 Authorization: Bearer {{token}}
 
 {
@@ -25,14 +25,45 @@ Authorization: Bearer {{token}}
   "isPublic": true
 }
 ###
-DELETE http://localhost:8080/tab/4
+DELETE http://localhost:8081/tab/4
 ###
-DELETE http://localhost:8080/tab/3
+DELETE http://localhost:8081/tab/3
 Authorization: Bearer {{token}}
 ###
-PATCH http://localhost:8080/tab/3
+PATCH http://localhost:8081/tab/3
 Authorization: Bearer {{token}}
 
 {
   "name": "Renamed new public tab"
 }
+###
+GET http://localhost:8081/tab/2/teams
+Authorization: Bearer {{token}}
+###
+GET http://localhost:8081/tab/2/judges
+Authorization: Bearer {{token}}
+###
+POST http://localhost:8081/tab/2/team
+Authorization: Bearer {{token}}
+
+{
+  "name": "Mordor A",
+  "delegation": "Mordor",
+  "status": "2"
+}
+###
+POST http://localhost:8081/tab/2/judge
+Authorization: Bearer {{token}}
+
+{
+  "firstName": "Sauron",
+  "lastName": "Gorthaur",
+  "rating": 7,
+  "delegation": ["Mordor"]
+}
+###
+DELETE http://localhost:8081/team/1
+Authorization: Bearer {{token}}
+###
+GET http://localhost:8081/judge/6/clashes
+Authorization: Bearer {{token}}

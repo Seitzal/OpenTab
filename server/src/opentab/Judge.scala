@@ -9,8 +9,8 @@ import upickle.default._
 case class Judge (
   id: Int,
   tabId: Int,
-  firstName: Int,
-  lastName: Int,
+  firstName: String,
+  lastName: String,
   rating: Int,
   isActive: Boolean
 ) {
@@ -32,12 +32,19 @@ case class Judge (
       updateFragment("firstname", newFirstName),
       updateFragment("lastname", newLastName),
       updateFragment("rating", newRating),
-      updateFragment("lastname", newLastName),
       updateFragment("isactive", newIsActive)
     )(fr"WHERE id = $id")
       .update
       .withUniqueGeneratedKeys[Judge](
         "id", "tabid", "firstname", "lastname", "rating", "isactive")
+      .transact(xa)
+
+  def getAllClashes(implicit xa: Transactor[IO]): IO[List[(Int, Int)]] =
+    sql"SELECT teamid, level FROM judge_clashes WHERE judgeid = $id"
+      .query[(Int, Int)]
+      .stream
+      .compile
+      .toList
       .transact(xa)
 
   private def getClashRaw(team: Team)(implicit xa: Transactor[IO]): IO[Option[Int]] =

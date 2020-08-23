@@ -16,6 +16,7 @@ object ApiService extends GenService {
     val tab = new TabActions
     val team = new TeamActions
     val speaker = new SpeakerActions
+    val judge = new JudgeActions
     ;{
 
       case GET -> Root =>
@@ -51,6 +52,9 @@ object ApiService extends GenService {
       case rq @ GET -> Root / "tab" / IntVar(tabId) / "speakers" =>
         speaker.getAllForTab(rq, tabId)
 
+      case rq @ GET -> Root / "tab" / IntVar(tabId) / "judges" =>
+        judge.getAllForTab(rq, tabId)
+
       case rq @ POST -> Root / "tab" / IntVar(tabId) / "team" =>
         team.post(rq, tabId)
 
@@ -72,6 +76,20 @@ object ApiService extends GenService {
       case rq @ PATCH -> Root / "speaker" / IntVar(speakerId) =>
         speaker.patch(rq, speakerId)
 
+      case rq @ POST -> Root / "tab" / IntVar(judgeId) / "judge" =>
+        judge.post(rq, judgeId)
+
+      case rq @ DELETE -> Root / "judge" / IntVar(judgeId) =>
+        judge.delete(rq, judgeId)
+
+      case rq @ PATCH -> Root / "judge" / IntVar(judgeId) =>
+        judge.patch(rq, judgeId)
+
+      case rq @ GET -> Root / "judge" / IntVar(judgeId) / "clashes" =>
+        judge.getClashes(rq, judgeId)
+
+      case rq @ POST -> Root / "judge" / IntVar(judgeId) / "clashes" / IntVar(teamId) / IntVar(level) =>
+        judge.setClash(rq, judgeId, teamId, level)
     }
   }
 
