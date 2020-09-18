@@ -14,7 +14,9 @@ const routes = [
   {path: '/tab/:tabid/speakers',
     component: () => import('./views/speakers.vue')},
   {path: '/tab/:tabid/speakers/:teamid',
-    component: () => import('./views/speakers.vue')}
+    component: () => import('./views/speakers.vue')},
+  {path: '/tab/:tabid/judges',
+    component: () => import('./views/judges.vue')},
 ]
 
 const router = new VueRouter({

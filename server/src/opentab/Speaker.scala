@@ -53,6 +53,7 @@ object Speaker {
       .stream
       .compile
       .toList
+      .map(_.sortBy(_.id))
       .transact(xa)
 
   def getAllForTab(tabId: Int)(implicit xa: Xa): IO[List[Speaker]] =
@@ -61,6 +62,7 @@ object Speaker {
       .stream
       .compile
       .toList
+      .map(_.sortBy(_.id))
       .transact(xa)
 
   def getAllForTeam(teamId: Int)(implicit xa: Xa): IO[List[Speaker]] =
@@ -69,6 +71,7 @@ object Speaker {
       .stream
       .compile
       .toList
+      .map(_.sortBy(_.id))
       .transact(xa)
 
   def create

@@ -21,6 +21,9 @@ window.store = new Vuex.Store({
     clashes: []
   },
   getters: {
+    teamName: state => teamId => {
+      return state.teams.find(team => team.id == teamId).name
+    },
     tab: state => {
       return state.tabs.find(tab => tab.id == state.tabid)
     },

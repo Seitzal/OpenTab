@@ -45,8 +45,8 @@ class JudgeActions(implicit xa: Xa, config: Config) {
       judge        <- Judge(judgeId)
       permitted    <- Permissions(user.id, judge.tabId).map(_.setup)
       data         <- rq.as[Obj]
-      newFirstName <- IO(data.value.get("firstname").map(_.str))
-      newLastName  <- IO(data.value.get("lastname").map(_.str))
+      newFirstName <- IO(data.value.get("firstName").map(_.str))
+      newLastName  <- IO(data.value.get("lastName").map(_.str))
       newRating    <- IO(data.value.get("rating").map(_.num.toInt))
       newIsActive  <- IO(data.value.get("isActive").map(_.bool))
       re           <- if(permitted)

@@ -66,11 +66,14 @@ case class Judge (
 
   def setClash(team: Team, level: Int)(implicit xa: Transactor[IO]): IO[Unit] =
     getClashRaw(team).flatMap { result => 
-      (result match {
-        case None => sql"""
+      ((result, level) match {
+        case (_, 0) => sql"""
+          DELETE FROM judge_clashes 
+          WHERE judgeid = $id AND teamid = ${team.id}"""
+        case (None, _) => sql"""
           INSERT INTO judge_clashes (judgeid, teamid, level)
           VALUES($id, ${team.id}, $level)"""
-        case Some(currentLevel) => sql"""
+        case (Some(currentLevel), _) => sql"""
           UPDATE judge_clashes SET level = $level 
           WHERE judgeid = $id AND teamid = ${team.id}"""
       }).update
@@ -102,6 +105,7 @@ object Judge {
       .stream
       .compile
       .toList
+      .map(_.sortBy(_.id))
       .transact(xa)
 
   def getAllForTab(tabId: Int)(implicit xa: Transactor[IO]): IO[List[Judge]] =
@@ -110,6 +114,7 @@ object Judge {
       .stream
       .compile
       .toList
+      .map(_.sortBy(_.id))
       .transact(xa)
 
   def create(

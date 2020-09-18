@@ -66,6 +66,19 @@ export default {
     });
   },
 
+  loadDelegations: function() {
+    if (tokenExpired()) return;
+    $.ajax({
+      method: "GET",
+      url: `${conf.apiPath}/tab/${store.state.tabid}/delegations`,
+      headers: bearerAuth(),
+      success: (data) =>  {
+        store.commit("setDelegations", data)
+      },
+      error: ajaxFailure
+    });
+  },
+
   loadTeams: function() {
     if (tokenExpired()) return;
     store.commit("setTeamsUpToDate", false)
@@ -181,102 +194,96 @@ export default {
     });
   },
 
-  loadDelegations: function(then) {
-    if (tokenExpired()) return;
-    let rq = rc.getAllDelegations(store.state.tabid)
-    rq.headers = bearerAuth();
-    rq.success = (data) =>  {
-      store.commit("setDelegations", data)}
-    rq.error = ajaxFailure
-    $.ajax(rq)
-  },
-
-  loadJudges: function(then) {
+  loadJudges: function() {
     if (tokenExpired()) return;
     store.commit("setJudgesUpToDate", false)
-    let rq = rc.getAllJudges(store.state.tabid)
-    rq.headers = bearerAuth();
-    rq.success = (data) =>  {
-      store.commit("setJudges", data)
-      store.commit("setJudgesUpToDate", true)}
-    rq.error = ajaxFailure
-    $.ajax(rq)
+    $.ajax({
+      method: "GET",
+      url: `${conf.apiPath}/tab/${store.state.tabid}/judges`,
+      headers: bearerAuth(),
+      success: (data) =>  {
+        store.commit("setJudges", data)
+        store.commit("setJudgesUpToDate", true)
+      },
+      error: ajaxFailure
+    });
   },
 
   createJudge: function(judge, then) {
     if (tokenExpired()) return;
-    let rq = rc.createJudge()
-    rq.headers = bearerAuth();
-    rq.data = {...judge, tabid: store.state.tabid}
-    rq.success = (data) => {
-      then(data)
-    }
-    rq.error = ajaxFailure
-    $.ajax(rq)
+    judge.delegation = (judge.delegation == "(undefined)") ? [] : [judge.delegation];
+    $.ajax({
+      method: "POST",
+      url: `${conf.apiPath}/tab/${store.state.tabid}/judge`,
+      headers: bearerAuth(),
+      data: JSON.stringify(judge),
+      success: then,
+      error: ajaxFailure
+    });
   },
 
   updateJudge: function(judge, ratingOnly = false, then) {
     if (tokenExpired()) return;
-    let rq = rc.updateJudge(judge.id)
-    rq.headers = bearerAuth();
-    rq.data = ratingOnly ? {rating: judge.rating} : judge
-    rq.success = (data) => {
-      then(data)
-    }
-    rq.error = ajaxFailure
-    $.ajax(rq)
+    $.ajax({
+      method: "PATCH",
+      url: `${conf.apiPath}/judge/${judge.id}`,
+      headers: bearerAuth(),
+      data: JSON.stringify(ratingOnly ? {rating: judge.rating} : judge),
+      success: then,
+      error: ajaxFailure
+    })
   },
 
   toggleJudge: function(judge, then) {
     if (tokenExpired()) return;
-    let rq = rc.toggleJudge(judge.id)
-    rq.headers = bearerAuth();
-    rq.success = (data) => {
-      then(data)
-    }
-    rq.error = ajaxFailure
-    $.ajax(rq)
+    $.ajax({
+      method: "PATCH",
+      url: `${conf.apiPath}/judge/${judge.id}`,
+      headers: bearerAuth(),
+      data: JSON.stringify({isActive: !judge.isActive}),
+      success: then,
+      error: ajaxFailure
+    })
   },
 
   deleteJudge: function(judge, then) {
     if (tokenExpired()) return;
-    let rq = rc.deleteJudge(judge.id)
-    rq.headers = bearerAuth();
-    rq.success = (data) => {
-      then(data)
-    }
-    rq.error = ajaxFailure
-    $.ajax(rq)
+    $.ajax({
+      method: "DELETE",
+      url: `${conf.apiPath}/judge/${judge.id}`,
+      headers: bearerAuth(),
+      success: then,
+      error: ajaxFailure
+    });
   },
 
   loadClashes: function(judge, then) {
     if (tokenExpired()) return;
-    let rq = rc.getClashesForJudge(judge.id)
-    rq.headers = bearerAuth();
-    rq.success = (data) => {
-      store.commit("setClashes", data)
-      then(data)
-    }
-    rq.error = ajaxFailure
-    $.ajax(rq)
-  },
-
-  deleteClash: function(judgeid, teamid, then) {
-    if (tokenExpired()) return;
-    let rq = rc.unsetClash(judgeid, teamid)
-    rq.headers = bearerAuth();
-    rq.success = then
-    rq.error = ajaxFailure
-    $.ajax(rq)
+    $.ajax({
+      method: "GET",
+      url: `${conf.apiPath}/judge/${judge.id}/clashes`,
+      headers: bearerAuth(),
+      success: (data) =>  {
+        store.commit("setClashes", data);
+        then();
+      },
+      error: ajaxFailure
+    });
   },
 
   setClash: function(judgeid, teamid, level, then) {
     if (tokenExpired()) return;
-    let rq = rc.setClash(judgeid, teamid, level)
-    rq.headers = bearerAuth();
-    rq.success = then
-    rq.error = ajaxFailure
-    $.ajax(rq)
+    $.ajax({
+      method: "POST",
+      url: `${conf.apiPath}/judge/${judgeid}/clashes/${teamid}/${level}`,
+      headers: bearerAuth(),
+      success: then,
+      error: ajaxFailure
+    });
+  },
+
+  deleteClash: function(judgeid, teamid, then) {
+    this.setClash(judgeid, teamid, 0, then);
   },
 
 }

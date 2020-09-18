@@ -55,6 +55,7 @@ object Team {
       .stream
       .compile
       .toList
+      .map(_.sortBy(_.id))
       .transact(xa)
 
   def getAllForTab(tabId: Int)(implicit xa: Xa): IO[List[Team]] =
@@ -63,6 +64,7 @@ object Team {
       .stream
       .compile
       .toList
+      .map(_.sortBy(_.id))
       .transact(xa)
   
   def create

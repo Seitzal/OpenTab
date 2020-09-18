@@ -29,6 +29,25 @@ class TeamActions(implicit xa: Xa, config: Config) {
         }
   }
 
+  def getAllDelegationsForTab(rq: Request[IO], tabId: Int) = withAuthOpt(rq) {
+    case Some(user) =>
+      Permissions(user.id, tabId)
+        .map(_.view)
+        .flatMap {
+          case false => denied
+          case true => 
+            Ok(Team.getAllForTab(tabId).map(_.map(_.delegation).distinct))
+        }
+    case None => 
+      Tab(tabId)
+        .map(_.isPublic)
+        .flatMap {
+          case false => unauthorized
+          case true =>
+            Ok(Team.getAllForTab(tabId).map(_.map(_.delegation).distinct))
+        }
+  }
+
   def post(rq: Request[IO], tabId: Int) = withAuth(rq) { user =>
     for {
       data      <- rq.as[TeamPartial]

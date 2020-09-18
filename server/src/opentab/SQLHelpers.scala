@@ -16,10 +16,13 @@ trait SQLHelpers extends LazyLogging {
       case None => Nil
     }
   
-  def updateSql(tableName: String)(fragments: List[Fragment]*)(condition: Fragment): Fragment =
-    Fragment(s"UPDATE $tableName SET ", Nil) ++
+  def updateSql(tableName: String)(fragments: List[Fragment]*)(condition: Fragment): Fragment = {
+    val fragment = Fragment(s"UPDATE $tableName SET ", Nil) ++
       fragments.toList.flatten.intercalate(fr",") ++
       condition
+    println(fragment)
+    fragment
+  }
 
 
 }

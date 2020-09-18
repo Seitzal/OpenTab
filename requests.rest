@@ -40,7 +40,10 @@ Authorization: Bearer {{token}}
 GET http://localhost:8081/tab/2/teams
 Authorization: Bearer {{token}}
 ###
-GET http://localhost:8081/tab/2/judges
+GET http://localhost:8081/tab/1/delegations
+Authorization: Bearer {{token}}
+###
+GET http://localhost:8081/tab/1/judges
 Authorization: Bearer {{token}}
 ###
 POST http://localhost:8081/tab/2/team
@@ -52,20 +55,30 @@ Authorization: Bearer {{token}}
   "status": "2"
 }
 ###
-POST http://localhost:8081/tab/2/judge
+POST http://localhost:8081/tab/1/judge
 Authorization: Bearer {{token}}
 
 {
-  "firstName": "Sauron",
-  "lastName": "Gorthaur",
-  "rating": 7,
-  "delegation": ["Mordor"]
+  "firstName": "Marcus",
+  "lastName": "Tullius Cicero",
+  "rating": 9,
+  "delegation": ["Rome"]
+}
+###
+PATCH http://localhost:8081/judge/3
+Authorization: Bearer {{token}}
+
+{
+  "rating": 4
 }
 ###
 DELETE http://localhost:8081/team/1
 Authorization: Bearer {{token}}
 ###
-GET http://localhost:8081/judge/5/clashes
+DELETE http://localhost:8081/judge/2
+Authorization: Bearer {{token}}
+###
+GET http://localhost:8081/judge/3/clashes
 Authorization: Bearer {{token}}
 ###
 POST http://localhost:8081/judge/5/clashes/1/7

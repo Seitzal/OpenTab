@@ -49,6 +49,9 @@ object ApiService extends GenService {
       case rq @ GET -> Root / "tab" / IntVar(tabId) / "teams" =>
         team.getAllForTab(rq, tabId)
 
+      case rq @ GET -> Root / "tab" / IntVar(tabId) / "delegations" =>
+        team.getAllDelegationsForTab(rq, tabId)
+
       case rq @ GET -> Root / "tab" / IntVar(tabId) / "speakers" =>
         speaker.getAllForTab(rq, tabId)
 
