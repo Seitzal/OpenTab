@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS debates;
+DROP TABLE IF EXISTS rounds;
 DROP TABLE IF EXISTS judge_clashes;
 DROP TABLE IF EXISTS judges;
 DROP TABLE IF EXISTS speakers;
@@ -85,7 +87,7 @@ CREATE TABLE speakers (
 
 CREATE TABLE judges (
   id        SERIAL UNIQUE PRIMARY KEY,
-  tabid     INT REFERENCES tabs(id)  ON DELETE CASCADE,
+  tabid     INT REFERENCES tabs(id) ON DELETE CASCADE,
   firstname VARCHAR(100),
   lastname  VARCHAR(100),
   rating    INT CHECK(rating > 0 AND rating < 11),
@@ -98,4 +100,22 @@ CREATE TABLE judge_clashes (
   teamid  INT REFERENCES teams(id) ON DELETE CASCADE,
   level   INT CHECK(level > -1 AND level < 11),
   PRIMARY KEY(judgeid, teamid)
+);
+
+CREATE TABLE rounds (
+  tabid       INT REFERENCES tabs(id) ON DELETE CASCADE,
+  roundno     INT,
+  islocked    BOOLEAN,
+  iscompleted BOOLEAN,
+  PRIMARY KEY(tabid, roundno)
+);
+
+CREATE TABLE debates (
+  id      SERIAL UNIQUE PRIMARY KEY,
+  tabid   INT,
+  roundno INT,
+  status  INT CHECK(status > 0 AND status < 5),
+  pro     INT REFERENCES teams(id) ON DELETE CASCADE,
+  opp     INT REFERENCES teams(id) ON DELETE CASCADE,
+  FOREIGN KEY (tabid, roundno) REFERENCES rounds (tabid, roundno) ON DELETE CASCADE
 );
