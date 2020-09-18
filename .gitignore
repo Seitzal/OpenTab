@@ -6,3 +6,4 @@ target
 project/target
 *.log
 *.http
+*.rest
