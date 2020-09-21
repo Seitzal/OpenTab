@@ -211,7 +211,8 @@ export default {
 
   createJudge: function(judge, then) {
     if (tokenExpired()) return;
-    judge.delegation = (judge.delegation == "(undefined)") ? [] : [judge.delegation];
+    judge.delegation = (judge.delegation == "(independent)") ? [] : [judge.delegation];
+    judge.rating = parseInt(judge.rating);
     $.ajax({
       method: "POST",
       url: `${conf.apiPath}/tab/${store.state.tabid}/judge`,
@@ -285,5 +286,15 @@ export default {
   deleteClash: function(judgeid, teamid, then) {
     this.setClash(judgeid, teamid, 0, then);
   },
+
+  verifyPersonalKey(judgeid, key, then) {
+    $.ajax({
+      method: "POST",
+      url: `${conf.apiPath}/judge/${judgeid}/verify-key`,
+      data: key,
+      success: then,
+      error: ajaxFailure
+    });
+  }
 
 }

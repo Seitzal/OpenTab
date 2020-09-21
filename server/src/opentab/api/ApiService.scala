@@ -93,6 +93,9 @@ object ApiService extends GenService {
 
       case rq @ POST -> Root / "judge" / IntVar(judgeId) / "clashes" / IntVar(teamId) / IntVar(level) =>
         judge.setClash(rq, judgeId, teamId, level)
+
+      case rq @ POST -> Root / "judge" / IntVar(judgeId) / "verify-key" =>
+        judge.verifyKey(rq, judgeId)
     }
   }
 

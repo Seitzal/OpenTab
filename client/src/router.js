@@ -17,6 +17,8 @@ const routes = [
     component: () => import('./views/speakers.vue')},
   {path: '/tab/:tabid/judges',
     component: () => import('./views/judges.vue')},
+  {path: '/personal/:judgeid/:key',
+    component: () => import('./views/personal.vue')}
 ]
 
 const router = new VueRouter({

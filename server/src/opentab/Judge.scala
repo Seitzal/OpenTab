@@ -5,6 +5,7 @@ import doobie.implicits._
 import cats.effect._
 import cats.implicits._
 import upickle.default._
+import scala.util.Random
 
 case class Judge (
   id: Int,
@@ -12,6 +13,7 @@ case class Judge (
   firstName: String,
   lastName: String,
   rating: Int,
+  key: Int,
   isActive: Boolean
 ) {
 
@@ -36,7 +38,7 @@ case class Judge (
     )(fr"WHERE id = $id")
       .update
       .withUniqueGeneratedKeys[Judge](
-        "id", "tabid", "firstname", "lastname", "rating", "isactive")
+        "id", "tabid", "firstname", "lastname", "rating", "urlkey", "isactive")
       .transact(xa)
 
   def getAllClashes(implicit xa: Transactor[IO]): IO[List[(Int, Int)]] =
@@ -93,6 +95,10 @@ case class Judge (
 
 object Judge {
 
+  implicit val rw: ReadWriter[Judge] = macroRW
+
+  private val keygen = new Random
+
   def apply(judgeId: Int)(implicit xa: Transactor[IO]): IO[Judge] =
     sql"SELECT * FROM judges WHERE id = $judgeId"
       .query[Judge]
@@ -125,12 +131,12 @@ object Judge {
       delegation: Option[String])
       (implicit xa: Transactor[IO]): IO[Judge] =
     sql"""
-      INSERT INTO judges (tabid, firstname, lastname, rating, isactive)
-      VALUES ($tabId, $firstName, $lastName, $rating, TRUE)
+      INSERT INTO judges (tabid, firstname, lastname, rating, urlkey, isactive)
+      VALUES ($tabId, $firstName, $lastName, $rating, ${keygen.nextInt(1000000000)}, TRUE)
     """
       .update
       .withUniqueGeneratedKeys[Judge](
-        "id", "tabid", "firstname", "lastname", "rating", "isactive")
+        "id", "tabid", "firstname", "lastname", "rating", "urlkey", "isactive")
       .transact(xa)
       .flatMap { judge => delegation match {
         case Some(delegation_) => Team.getAllForTab(tabId).flatMap { _
@@ -141,9 +147,6 @@ object Judge {
         }
         case None => IO(judge)
       }}
-
-  implicit val rw: ReadWriter[Judge] = macroRW
-
 }
 
 case class JudgePartial(

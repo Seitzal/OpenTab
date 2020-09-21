@@ -91,6 +91,7 @@ CREATE TABLE judges (
   firstname VARCHAR(100),
   lastname  VARCHAR(100),
   rating    INT CHECK(rating > 0 AND rating < 11),
+  urlkey    INT,
   isactive  BOOLEAN,
   CONSTRAINT unique_judge_name_per_tab UNIQUE(tabid, firstname, lastname)
 );

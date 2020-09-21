@@ -9,6 +9,7 @@ import org.http4s.dsl.io._
 import eu.seitzal.http4s_upickle._
 import com.typesafe.config.Config
 import ujson.Obj
+import doobie.util.invariant.UnexpectedEnd
 
 class JudgeActions(implicit xa: Xa, config: Config) {
 
@@ -77,5 +78,15 @@ class JudgeActions(implicit xa: Xa, config: Config) {
           else judge.setClash(team, level).flatMap(_ => NoContent())
       } yield re
     }
+
+  def verifyKey(rq: Request[IO], judgeId: Int) =
+    (for {
+      judge <- Judge(judgeId)
+      key   <- rq.as[Int]
+      re    <- if (judge.key == key) Ok(true) else Ok(false)
+    } yield re)
+      .recoverWith {
+        case UnexpectedEnd => Ok(false)
+      }
 
 }

@@ -59,6 +59,11 @@
               </v-icon>
             </template><span>Modify</span></v-tooltip>
             <v-tooltip bottom><template v-slot:activator="{ on }">
+              <v-icon @click="clipUrl(item)" v-on="on">
+                mdi-link-box-variant
+              </v-icon>
+            </template><span>Copy personal link</span></v-tooltip>
+            <v-tooltip bottom><template v-slot:activator="{ on }">
               <v-icon @click="editClashes(item)" v-on="on">
                 mdi-eye-off
               </v-icon>
@@ -158,6 +163,8 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+  <v-snackbar v-model="clipSuccess" color="success" timeout="1000">Copied to Clipboard.</v-snackbar>
+  <v-snackbar v-model="clipFailure" color="error" timeout="1000">Failed to copy to clipboard.</v-snackbar>
   </div>
 </template>
 
@@ -190,7 +197,9 @@ export default {
       {text: "Last Name", value: "lastName"},
       {text: "Rating", value: "rating"},
       {text: "Active", value: "isActive"},
-      {text: "Actions", value: "action", sortable: false}]
+      {text: "Actions", value: "action", sortable: false}],
+    clipSuccess: false,
+    clipFailure: false
   }},
   computed: {
     signedIn: function() { return this.$store.getters.signedIn },
@@ -249,6 +258,17 @@ export default {
     setClash(judgeid, teamid, level) {
       api.setClash(judgeid, teamid, level, 
         () => {api.loadClashes(this.editedJudge, () => {})})
+    },
+    clipUrl(judge) {
+      navigator.permissions.query({name: "clipboard-write"}).then(result => {
+        if (result.state == "granted" || result.state == "prompt") {
+          let url = `${conf.self}/personal/${judge.id}/${judge.key}`;
+          navigator.clipboard.writeText(url)
+            .then(() => this.clipSuccess = true);
+        } else {
+          this.clipFailure = true;
+        }
+      });
     }
   },
   watch: {
