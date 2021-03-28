@@ -100,4 +100,31 @@ class TabActions(implicit xa: Xa, config: Config) {
     }
   }
 
+  def getRounds(rq: Request[IO], tabId: Int) = withAuthOpt(rq) {
+    case Some(user) => Permissions(user.id, tabId).map(_.view).flatMap {
+      case false => denied
+      case true => Round.getAllForTab(tabId).flatMap(Ok(_))
+    }
+    case None =>
+      Tab(tabId).map(_.isPublic).flatMap {
+        case true  => Round.getAllForTab(tabId).flatMap(Ok(_))
+        case false => unauthorized
+      }
+  }
+
+  def postRound(rq: Request[IO], tabId: Int) = withAuth(rq) { user =>
+    Permissions(user.id, tabId).map(_.setup).flatMap {
+      case false => denied
+      case true => Round.add(tabId).flatMap(Ok(_))
+    }
+  }
+
+  def deleteRound(rq: Request[IO], tabId: Int, roundNo: Int) = withAuth(rq) {
+    user =>
+    Permissions(user.id, tabId).map(_.setup).flatMap {
+      case false => denied
+      case true => Round(tabId, roundNo).flatMap(_.delete).flatMap(_ => NoContent())
+    }
+  }
+
 }

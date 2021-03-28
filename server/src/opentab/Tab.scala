@@ -32,6 +32,11 @@ case class Tab(
       .withUniqueGeneratedKeys[Tab]("id", "name", "owner", "ispublic")
       .transact(xa)
 
+  def numberOfRounds(implicit xa: Xa): IO[Int] =
+    Round.getLastForTab(id).map(_.roundNo)
+
+  def rounds(implicit xa: Xa): IO[List[Round]] = Round.getAllForTab(id)
+
 }
 
 object Tab {
