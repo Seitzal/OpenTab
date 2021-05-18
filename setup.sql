@@ -89,7 +89,6 @@ CREATE TABLE rounds (
   tabid       INT     REFERENCES tabs(id) ON DELETE CASCADE,
   roundno     INT     ,
   islocked    BOOLEAN ,
-  iscompleted BOOLEAN ,
 
   PRIMARY KEY(tabid, roundno)
 );

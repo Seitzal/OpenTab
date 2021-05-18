@@ -17,6 +17,7 @@ object ApiService extends GenService {
     val team = new TeamActions
     val speaker = new SpeakerActions
     val judge = new JudgeActions
+    val round = new RoundActions
     ;{
 
       case GET -> Root =>
@@ -128,8 +129,29 @@ object ApiService extends GenService {
       // verify personal key for a judge
       case rq @ POST -> Root / "judge" / IntVar(judgeId) / "verify-key" =>
         judge.verifyKey(rq, judgeId)
+
+      // ROUND ACTIONS
+
+      // get rounds for a tab
+      case rq @ GET -> Root / "tab" / IntVar(tabId) / "rounds" =>
+        round.getAllForTab(rq, tabId)
+      
+      // add a round to a tab
+      case rq @ POST -> Root / "tab" / IntVar(tabId) / "round" =>
+        round.post(rq, tabId)
+      
+      // delete a round from a tab
+      case rq @ DELETE -> Root / "tab" / IntVar(tabId) / "round" / IntVar(roundNo) =>
+        round.delete(rq, tabId, roundNo)
+
+      // lock a round
+      case rq @ PATCH -> Root / "tab" / IntVar(tabId) / "round" / IntVar(roundNo) / "lock" =>
+        round.lock(rq, tabId, roundNo)
+      
+      // unlock a round
+      case rq @ PATCH -> Root / "tab" / IntVar(tabId) / "round" / IntVar(roundNo) / "unlock" =>
+        round.unlock(rq, tabId, roundNo)
     }
-  
   }
 
   // standard handling procedures / response codes for expected runtime errors
@@ -137,6 +159,7 @@ object ApiService extends GenService {
     case UnexpectedEnd => NotFound("Not found")
     case ex: MalformedMessageBodyFailure => BadRequest(ex.getMessage)
     case ex: InvalidMessageBodyFailure => BadRequest(ex.getMessage)
+    case ex: TabException => internalServerError(ex.getMessage)
   }
   
 }

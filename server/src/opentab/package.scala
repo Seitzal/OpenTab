@@ -1,4 +1,2 @@
 
-package object opentab extends SQLHelpers with HTTPHelpers {
-
-}
+package object opentab extends SQLHelpers with HTTPHelpers with Exceptions {}

@@ -12,6 +12,11 @@ trait HTTPHelpers {
     body = Stream.emits(msg.getBytes())
   ))
 
+  def internalServerError(msg: String) = IO(Response[IO](
+    status = Status.InternalServerError,
+    body = Stream.emits(msg.getBytes())
+  ))
+
   val unauthorized: IO[Response[IO]] = unauthorized("Unauthorized")
 
   val denied: IO[Response[IO]] = Forbidden("Permission denied")

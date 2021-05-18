@@ -5,44 +5,55 @@ import doobie.implicits._
 import cats.effect._
 import cats.implicits._
 import upickle.default._
+import doobie.util.invariant
 
 case class Round(
   tabId: Int,
   roundNo: Int,
-  isLocked: Boolean,
-  isCompleted: Boolean
+  isLocked: Boolean
 ) {
 
+  // Deleting a round should cascade forward, also deleting all subsequent rounds
   def delete(implicit xa: Xa): IO[Unit] =
-    sql"DELETE FROM rounds WHERE tabid = $tabId AND roundno = $roundNo"
+    sql"DELETE FROM rounds WHERE tabid = $tabId AND roundno >= $roundNo"
       .update
       .run
       .map(_ => {})
       .transact(xa)
 
+  // Unsafely updates round status *without checking prerequisites*
+  private def updateStatus(value: Boolean)(implicit xa: Xa): IO[Round] =
+    sql"UPDATE rounds SET isLocked = $value WHERE tabid = $tabId AND roundno = $roundNo"
+    .update
+    .withUniqueGeneratedKeys[Round]("tabid", "roundno", "islocked")
+    .transact(xa)
+
+  // Locking a round should only be possible if the round is unlocked and all previous rounds are locked
   def lock(implicit xa: Xa): IO[Round] =
-    sql"UPDATE rounds SET islocked = TRUE WHERE tabid = $tabId AND roundno = $roundNo"
-      .update
-      .withUniqueGeneratedKeys[Round]("tabid", "roundno", "islocked", "iscompleted")
-      .transact(xa)
+    if (isLocked) 
+      IO.raiseError(RoundStatusException("Round is already locked"))
+    else if (roundNo == 1) 
+      updateStatus(true)
+    else Round(tabId, roundNo - 1)
+      .map(_.isLocked)
+      .flatMap {
+        case true => updateStatus(true)
+        case false => 
+          IO.raiseError(RoundStatusException("Previous round is still unlocked"))
+      }
 
+  // Unlocking a round should be possible if it is locked.
+  // Unlocking a round should cascade forward, also unlocking all subsequent rounds.
   def unlock(implicit xa: Xa): IO[Round] =
-    sql"UPDATE rounds SET islocked = FALSE WHERE tabid = $tabId AND roundno = $roundNo"
-      .update
-      .withUniqueGeneratedKeys[Round]("tabid", "roundno", "islocked", "iscompleted")
-      .transact(xa)
-
-  def complete(implicit xa: Xa): IO[Round] =
-    sql"UPDATE rounds SET iscompleted = TRUE WHERE tabid = $tabId AND roundno = $roundNo"
-      .update
-      .withUniqueGeneratedKeys[Round]("tabid", "roundno", "islocked", "iscompleted")
-      .transact(xa)
-
-  def reopen(implicit xa: Xa): IO[Round] =
-    sql"UPDATE rounds SET iscompleted = FALSE WHERE tabid = $tabId AND roundno = $roundNo"
-      .update
-      .withUniqueGeneratedKeys[Round]("tabid", "roundno", "islocked", "iscompleted")
-      .transact(xa)
+    if (!isLocked) 
+      IO.raiseError(RoundStatusException("Round is already unlocked"))
+    else Round(tabId, roundNo + 1)
+      .flatMap { nextRound =>
+        if (nextRound.isLocked) nextRound.unlock *> updateStatus(false)
+        else updateStatus(false)
+      }.recoverWith {
+        case invariant.UnexpectedEnd => updateStatus(false)
+      }
 
 }
 
@@ -63,10 +74,10 @@ object Round {
       .map(_.sortBy(_.roundNo))
       .transact(xa)
 
-  def getLastForTab(tabId: Int)(implicit xa: Xa): IO[Round] =
+  def getLastForTab(tabId: Int)(implicit xa: Xa): IO[Option[Round]] =
     sql"SELECT * FROM rounds WHERE tabid = $tabId AND roundno = (SELECT MAX(roundno) FROM rounds WHERE tabid = $tabId)"
         .query[Round]
-        .unique
+        .option
         .transact(xa)
 
   def add(tabId: Int)(implicit xa: Xa): IO[Round] =
@@ -74,9 +85,9 @@ object Round {
       tab <- Tab(tabId)
       existingRounds <- tab.numberOfRounds
       round <-
-        sql"INSERT INTO ROUNDS (tabid, roundno, islocked, iscompleted) VALUES ($tabId, ${existingRounds + 1}, FALSE, FALSE)"
+        sql"INSERT INTO ROUNDS (tabid, roundno, islocked) VALUES ($tabId, ${existingRounds + 1}, FALSE)"
           .update
-          .withUniqueGeneratedKeys[Round]("tabid", "roundno", "islocked", "iscompleted")
+          .withUniqueGeneratedKeys[Round]("tabid", "roundno", "islocked")
           .transact(xa)
      } yield round
 
