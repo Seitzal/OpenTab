@@ -2,10 +2,10 @@ package opentab.api
 
 import opentab._
 import opentab.auth._
+import opentab.gensrv._
 import org.http4s._
 import org.http4s.dsl.io._
 import cats.effect.IO
-import gensrv.GenService
 import doobie.util.invariant.UnexpectedEnd
 
 object ApiService extends GenService {
