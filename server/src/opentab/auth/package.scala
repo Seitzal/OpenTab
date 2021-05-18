@@ -67,7 +67,7 @@ package object auth extends LazyLogging {
       token = token, 
       key = config.getString("server.secret"),
       algorithms = Seq(JwtAlgorithm.HS256))
-    .map(read[User])
+    .map(r => read[User](r, false))
 
   def checkToken(rq: Request[IO])(implicit config: Config): IO[Option[User]] =
     rq.headers
