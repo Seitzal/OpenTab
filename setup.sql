@@ -97,7 +97,6 @@ CREATE TABLE debates (
   id        SERIAL    UNIQUE PRIMARY KEY,
   tabid     INT       ,
   roundno   INT       ,
-  status    INT       CHECK(status > 0 AND status < 5),
   pro       INT       REFERENCES teams(id) ON DELETE CASCADE,
   pro_swing BOOLEAN   ,
   pro_adhoc BOOLEAN   ,
@@ -123,7 +122,6 @@ CREATE TABLE scores (
   speakerid         INT       REFERENCES speakers(id),
   ballotid          INT       REFERENCES ballots(id),
   is_reply          BOOLEAN   ,
-  side              BOOLEAN   ,                                     /* TRUE = Pro, FALSE = Opp */
   position          INT       CHECK(position > 0 AND position < 5), /* 4 = Reply */
   is_swing_or_adhoc BOOLEAN   ,
 
