@@ -1,6 +1,7 @@
 package opentab.api
 
 import opentab._
+import opentab.model._
 import opentab.auth._
 import cats.effect._
 import cats.implicits._

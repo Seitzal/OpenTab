@@ -1,5 +1,6 @@
-package opentab
+package opentab.model
 
+import opentab._
 import doobie._
 import doobie.implicits._
 import cats.effect._
