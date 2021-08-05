@@ -21,9 +21,9 @@ class TeamActions(implicit xa: Xa, config: Config) {
           case false => denied
           case true => Ok(Team.getAllForTab(tabId))
         }
-    case None => 
+    case None =>
       Tab(tabId)
-        .map(_.isPublic)
+        .flatMap(_.isPublic)
         .flatMap {
           case false => unauthorized
           case true => Ok(Team.getAllForTab(tabId))
@@ -36,12 +36,12 @@ class TeamActions(implicit xa: Xa, config: Config) {
         .map(_.view)
         .flatMap {
           case false => denied
-          case true => 
+          case true =>
             Ok(Team.getAllForTab(tabId).map(_.map(_.delegation).distinct))
         }
-    case None => 
+    case None =>
       Tab(tabId)
-        .map(_.isPublic)
+        .flatMap(_.isPublic)
         .flatMap {
           case false => unauthorized
           case true =>
@@ -67,7 +67,7 @@ class TeamActions(implicit xa: Xa, config: Config) {
     } yield re
   }
 
-  def patch(rq: Request[IO], teamId: Int) = withAuth(rq) { user => 
+  def patch(rq: Request[IO], teamId: Int) = withAuth(rq) { user =>
     for {
       team          <- Team(teamId)
       permitted     <- Permissions(user.id, team.tabId).map(_.setup)

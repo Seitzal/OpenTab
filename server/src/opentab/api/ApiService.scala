@@ -3,6 +3,7 @@ package opentab.api
 import opentab._
 import opentab.auth._
 import opentab.gensrv._
+import opentab.model._
 import org.http4s._
 import org.http4s.dsl.io._
 import cats.effect.IO
@@ -10,7 +11,7 @@ import doobie.util.invariant.UnexpectedEnd
 
 object ApiService extends GenService {
 
-  def routes = (xa, config) => { 
+  def routes = (xa, config) => {
     implicit val xa_ = xa
     implicit val c = config
     val tab = new TabActions
@@ -31,7 +32,7 @@ object ApiService extends GenService {
       // get all tabs
       case rq @ GET -> Root / "tabs" =>
         tab.getAll(rq)
-      
+
       // get permissions for all tabs
       case rq @ GET -> Root / "tabs" / "permissions" =>
         tab.getAllPermissions(rq)
@@ -44,17 +45,25 @@ object ApiService extends GenService {
       case rq @ POST -> Root / "tab" =>
         tab.post(rq)
 
-      // update properties for a tab
+      // rename a tab
       case rq @ PATCH -> Root / "tab" / IntVar(tabId) =>
-        tab.patch(rq, tabId)
+        tab.rename(rq, tabId)
 
       // delete a tab
       case rq @ DELETE -> Root / "tab" / IntVar(tabId) =>
         tab.delete(rq, tabId)
 
-      // get permissions for one tab
+      // get permissions for a tab
       case rq @ GET -> Root / "tab" / IntVar(tabId) / "permissions" =>
         tab.getPermissions(rq, tabId)
+
+      // get settings for a tab
+      case rq @ GET -> Root / "tab" / IntVar(tabId) / "settings" =>
+        tab.getSettings(rq, tabId)
+
+      // update settings for a tab
+      case rq @ PATCH -> Root / "tab" / IntVar(tabId) / "settings" =>
+        tab.updateSettings(rq, tabId)
 
       // TEAM ACTIONS
 
@@ -65,7 +74,7 @@ object ApiService extends GenService {
       // get delegations on a tab
       case rq @ GET -> Root / "tab" / IntVar(tabId) / "delegations" =>
         team.getAllDelegationsForTab(rq, tabId)
-      
+
       // register a new team
       case rq @ POST -> Root / "tab" / IntVar(tabId) / "team" =>
         team.post(rq, tabId)
@@ -135,11 +144,11 @@ object ApiService extends GenService {
       // get rounds for a tab
       case rq @ GET -> Root / "tab" / IntVar(tabId) / "rounds" =>
         round.getAllForTab(rq, tabId)
-      
+
       // add a round to a tab
       case rq @ POST -> Root / "tab" / IntVar(tabId) / "round" =>
         round.post(rq, tabId)
-      
+
       // delete a round from a tab
       case rq @ DELETE -> Root / "tab" / IntVar(tabId) / "round" / IntVar(roundNo) =>
         round.delete(rq, tabId, roundNo)
@@ -147,10 +156,11 @@ object ApiService extends GenService {
       // lock a round
       case rq @ PATCH -> Root / "tab" / IntVar(tabId) / "round" / IntVar(roundNo) / "lock" =>
         round.lock(rq, tabId, roundNo)
-      
+
       // unlock a round
       case rq @ PATCH -> Root / "tab" / IntVar(tabId) / "round" / IntVar(roundNo) / "unlock" =>
         round.unlock(rq, tabId, roundNo)
+
     }
   }
 
@@ -161,5 +171,5 @@ object ApiService extends GenService {
     case ex: InvalidMessageBodyFailure => BadRequest(ex.getMessage)
     case ex: TabException => internalServerError(ex.getMessage)
   }
-  
+
 }

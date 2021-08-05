@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS judges;
 DROP TABLE IF EXISTS speakers;
 DROP TABLE IF EXISTS teams;
 DROP TABLE IF EXISTS permissions;
+DROP TABLE IF EXISTS tabsettings;
 DROP TABLE IF EXISTS tabs;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS instance;
@@ -28,13 +29,19 @@ CREATE TABLE users (
 CREATE TABLE tabs (
   id        SERIAL      UNIQUE PRIMARY KEY,
   name      VARCHAR(50) ,
-  owner     INT         REFERENCES users(id) ON DELETE CASCADE,
-  ispublic  BOOLEAN
+  owner     INT         REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE tabsettings (
+  tabid     INT         REFERENCES tabs(id) ON DELETE CASCADE,
+  key       VARCHAR(40) ,
+  value     VARCHAR(100),
+  PRIMARY KEY (tabid, key)
 );
 
 CREATE TABLE permissions (
-  userid  INT     REFERENCES users(id),
-  tabid   INT     REFERENCES tabs(id),
+  userid  INT     REFERENCES users(id) ON DELETE CASCADE,
+  tabid   INT     REFERENCES tabs(id) ON DELETE CASCADE,
   view    BOOLEAN ,
   results BOOLEAN ,
   setup   BOOLEAN ,

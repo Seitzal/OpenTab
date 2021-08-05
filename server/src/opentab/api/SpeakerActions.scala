@@ -21,9 +21,9 @@ class SpeakerActions(implicit xa: Xa, config: Config) {
           case false => denied
           case true => Ok(Speaker.getAllForTab(tabId))
         }
-    case None => 
+    case None =>
       Tab(tabId)
-        .map(_.isPublic)
+        .flatMap(_.isPublic)
         .flatMap {
           case false => unauthorized
           case true => Ok(Speaker.getAllForTab(tabId))
@@ -39,10 +39,10 @@ class SpeakerActions(implicit xa: Xa, config: Config) {
           case false => denied
           case true => Ok(Speaker.getAllForTeam(teamId))
         }
-    case None => 
+    case None =>
       Team(teamId)
         .flatMap(team => Tab(team.tabId))
-        .map(_.isPublic)
+        .flatMap(_.isPublic)
         .flatMap {
           case false => unauthorized
           case true => Ok(Speaker.getAllForTeam(teamId))
@@ -68,7 +68,7 @@ class SpeakerActions(implicit xa: Xa, config: Config) {
     } yield re
   }
 
-  def patch(rq: Request[IO], speakerId: Int) = withAuth(rq) { user => 
+  def patch(rq: Request[IO], speakerId: Int) = withAuth(rq) { user =>
     for {
       speaker      <- Speaker(speakerId)
       permitted    <- Permissions(user.id, speaker.tabId).map(_.setup)

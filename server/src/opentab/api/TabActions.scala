@@ -14,10 +14,8 @@ import ujson.Obj
 class TabActions(implicit xa: Xa, config: Config) {
 
   def getAll(rq: Request[IO]) = withAuthOpt(rq) {
-    case None => 
-      Tab.getAll
-        .map(_.filter(_.isPublic))
-        .flatMap(Ok(_))
+    case None =>
+      Ok(Tab.getAllPublic)
     case Some(user) =>
       Tab.getIds
         .map(_.map(tabId => Permissions(user.id, tabId)))
@@ -38,7 +36,7 @@ class TabActions(implicit xa: Xa, config: Config) {
         }
     case None => {
       val tab = Tab(tabId)
-      tab.map(_.isPublic).flatMap {
+      tab.flatMap(_.isPublic).flatMap {
         case true => Ok(tab)
         case false => unauthorized
       }
@@ -54,8 +52,7 @@ class TabActions(implicit xa: Xa, config: Config) {
         .map(_.map(perms => (perms.tabId, perms)))
         .flatMap(Ok(_))
     case None =>
-      Tab.getAll
-        .map(_.filter(_.isPublic))
+      Tab.getAllPublic
         .map(_.map(tab => (tab.id, Permissions(-1, tab.id, true, false, false, false))))
         .flatMap(Ok(_))
   }
@@ -64,7 +61,7 @@ class TabActions(implicit xa: Xa, config: Config) {
     case Some(user) =>
       Ok(Permissions(user.id, tabId))
     case None =>
-      Tab(tabId).map(_.isPublic).flatMap {
+      Tab(tabId).flatMap(_.isPublic).flatMap {
         case true  => Ok(Permissions(-1, tabId, true, false, false, false))
         case false => Ok(Permissions(-1, tabId, false, false, false, false))
       }
@@ -72,11 +69,11 @@ class TabActions(implicit xa: Xa, config: Config) {
 
   def post(rq: Request[IO]) = withAuth(rq) { user =>
     rq.as[TabPartial]
-      .flatMap(tp => Tab.create(tp.name, user.id, tp.isPublic))
+      .flatMap(tp => Tab.create(tp.name, user.id))
       .flatMap(Ok(_))
   }
 
-  def patch(rq: Request[IO], tabId: Int) = withAuth(rq) { user =>
+  def rename(rq: Request[IO], tabId: Int) = withAuth(rq) { user =>
     Permissions(user.id, tabId).map(_.setup).flatMap {
       case false => denied
       case true => Ok(
@@ -84,8 +81,7 @@ class TabActions(implicit xa: Xa, config: Config) {
           tab         <- Tab(tabId)
           data        <- rq.as[Obj]
           newName     <- IO(data.value.get("name").map(_.str))
-          newIsPublic <- IO(data.value.get("isPublic").map(_.bool))
-          newTab      <- tab.update(newName, newIsPublic)
+          newTab      <- tab.rename(newName.get)
         } yield newTab
       )
     }
@@ -94,10 +90,30 @@ class TabActions(implicit xa: Xa, config: Config) {
   def delete(rq: Request[IO], tabId: Int) = withAuth(rq) { user =>
     Permissions(user.id, tabId).map(_.own).flatMap {
       case false => denied
-      case true => 
+      case true =>
         Tab(tabId)
           .flatMap(_.delete)
           .flatMap(_ => NoContent())
+    }
+  }
+
+  def getSettings(rq: Request[IO], tabId: Int) = withAuth(rq) { user =>
+    Permissions(user.id, tabId).map(_.setup).flatMap {
+      case false => denied
+      case true => Ok(Tab(tabId).flatMap(_.getSettings))
+    }
+  }
+
+  def updateSettings(rq: Request[IO], tabId: Int) = withAuth(rq) { user =>
+    Permissions(user.id, tabId).map(_.setup).flatMap {
+      case false => denied
+      case true => Ok(
+        for {
+          tab         <- Tab(tabId)
+          settingsObj <- rq.as[Obj]
+          newSettings <- tab.updateSettings(settingsObj.obj.map{case (k,v) => (k, v.str)}.toMap)
+        } yield newSettings
+      )
     }
   }
 

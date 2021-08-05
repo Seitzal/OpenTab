@@ -58,18 +58,19 @@ object Permissions {
       user <- User(userId)
       tab  <- Tab(tabId)
     } yield {
-      if (user.isAdmin || tab.owner == userId) 
+      if (user.isAdmin || tab.owner == userId)
         IO(Permissions(userId, tabId, true, true, true, true))
       else
         sql"SELECT * FROM permissions WHERE userid = $userId AND tabid = $tabId"
           .query[Permissions]
           .unique
           .transact(xa)
-          .handleError(_ =>
-            if (tab.isPublic)
-              Permissions(userId, tabId, true, false, false, false)
-            else 
-              Permissions(userId, tabId, false, false, false, false))
+          .handleErrorWith(_ =>
+            tab.isPublic.map {
+              case true => Permissions(userId, tabId, true, false, false, false)
+              case false => Permissions(userId, tabId, false, false, false, false)
+            }
+          )
      }).flatten
 
   implicit val rw: ReadWriter[Permissions] = macroRW

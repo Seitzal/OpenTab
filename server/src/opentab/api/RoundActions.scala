@@ -19,7 +19,7 @@ class RoundActions(implicit xa: Xa, config: Config) {
       case true => Round.getAllForTab(tabId).flatMap(Ok(_))
     }
     case None =>
-      Tab(tabId).map(_.isPublic).flatMap {
+      Tab(tabId).flatMap(_.isPublic).flatMap {
         case true  => Round.getAllForTab(tabId).flatMap(Ok(_))
         case false => unauthorized
       }

@@ -7,18 +7,7 @@ INSERT INTO users
     TRUE
   );
 
-INSERT INTO tabs
-  (name, owner, ispublic)
-  VALUES (
-    'Public Test',
-    1,
-    TRUE
-  );
+INSERT INTO tabs (name, owner) VALUES ('Public Test', 1);
+INSERT INTO tabsettings (tabid, key, value) VALUES (1, 'public', 'true');
 
-INSERT INTO tabs
-  (name, owner, ispublic)
-  VALUES (
-    'Private Test',
-    1,
-    FALSE
-  );
+INSERT INTO tabs (name, owner) VALUES ('Private Test', 1);
