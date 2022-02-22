@@ -85,7 +85,11 @@ abstract class Service extends IOApp with LazyLogging {
     transactorResource.use { xa =>
       BlazeServerBuilder[IO]
         .bindHttp(config.getInt("server.port"), config.getString("server.host"))
-        .withHttpApp(CORS(routesFinal(xa, config)))
+        .withHttpApp(
+          CORS.policy
+            .withAllowOriginAll
+            .withAllowCredentials(false)
+            .apply(routesFinal(xa, config)))
         .serve
         .compile
         .drain
