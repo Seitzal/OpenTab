@@ -9,7 +9,7 @@ import org.http4s.dsl.io._
 import cats.effect.IO
 import doobie.util.invariant.UnexpectedEnd
 
-object ApiService extends GenService {
+object ApiService extends Service {
 
   def routes = (xa, config) => {
     implicit val xa_ = xa

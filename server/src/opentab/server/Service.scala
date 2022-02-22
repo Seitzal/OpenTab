@@ -18,7 +18,7 @@ import com.typesafe.config.{ConfigFactory, Config}
 import scala.collection.mutable.ArrayBuffer
 import java.io.File
 
-abstract class GenService extends IOApp with LazyLogging {
+abstract class Service extends IOApp with LazyLogging {
 
   final lazy val defaultConfig =
     ConfigFactory.parseFile(new File("config.json"))
