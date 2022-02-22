@@ -30,7 +30,7 @@ case class Round(
   private def updateStatus(value: Boolean)(implicit xa: Xa): IO[Round] =
     sql"UPDATE rounds SET isLocked = $value WHERE tabid = $tabId AND roundno = $roundNo"
     .update
-    .withUniqueGeneratedKeys[Round]("tabid", "roundno", "islocked")
+    .withUniqueGeneratedKeys[Round]("tabid", "roundno", "isprepared", "islocked")
     .transact(xa)
 
   // Locking a round should only be possible if the round is unlocked and all previous rounds are locked

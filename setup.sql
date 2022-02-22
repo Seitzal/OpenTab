@@ -95,6 +95,7 @@ CREATE TABLE judge_clashes (
 CREATE TABLE rounds (
   tabid       INT     REFERENCES tabs(id) ON DELETE CASCADE,
   roundno     INT     ,
+  isprepared  BOOLEAN ,
   islocked    BOOLEAN ,
 
   PRIMARY KEY(tabid, roundno)
