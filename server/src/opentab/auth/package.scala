@@ -21,8 +21,8 @@ package object auth extends LazyLogging {
 
   def getBasicCreds(rq: Request[IO]): IO[String] =
     rq.headers
-      .get(Authorization)
-      .map(_.renderString)
+      .get[Authorization]
+      .map(_.toString)
       match {
         case Some(s"Authorization: Basic $creds") => IO(creds)
         case _ => IO.raiseError(new Error("Malformed or missing auth header"))
@@ -72,8 +72,8 @@ package object auth extends LazyLogging {
 
   def checkToken(rq: Request[IO])(implicit config: Config): IO[Option[User]] =
     rq.headers
-      .get(Authorization)
-      .map(_.renderString)
+      .get[Authorization]
+      .map(_.toString)
       match {
         case Some(s"Authorization: Bearer $token") => 
           IO.fromTry(verifyToken(token))

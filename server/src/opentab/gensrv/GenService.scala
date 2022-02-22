@@ -11,7 +11,7 @@ import org.http4s._
 import org.http4s.implicits._
 import org.http4s.dsl.io._
 import org.http4s.server.middleware.CORS
-import org.http4s.server.blaze.BlazeServerBuilder
+import org.http4s.blaze.server.BlazeServerBuilder
 import eu.seitzal.http4s_upickle._
 import com.typesafe.scalalogging.LazyLogging
 import com.typesafe.config.{ConfigFactory, Config}
@@ -32,7 +32,6 @@ abstract class GenService extends IOApp with LazyLogging {
   final def defaultTransactorResource: Resource[IO, HikariTransactor[IO]] =
     for {
       ce <- ExecutionContexts.fixedThreadPool[IO](config.getInt("db.connectPoolSize"))
-      be <- Blocker[IO]
       xa <- HikariTransactor.newHikariTransactor[IO](
               "org.postgresql.Driver",
               "jdbc:postgresql://" +
@@ -41,8 +40,7 @@ abstract class GenService extends IOApp with LazyLogging {
                 "/" + config.getString("db.name"),
               config.getString("db.user"),
               config.getString("db.pw"),
-              ce, 
-              be
+              ce
             )
     } yield xa
 
@@ -85,7 +83,7 @@ abstract class GenService extends IOApp with LazyLogging {
 
   override def run(args: List[String]): IO[ExitCode] =
     transactorResource.use { xa =>
-      BlazeServerBuilder[IO](this.executionContext)
+      BlazeServerBuilder[IO]
         .bindHttp(config.getInt("server.port"), config.getString("server.host"))
         .withHttpApp(CORS(routesFinal(xa, config)))
         .serve
