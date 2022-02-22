@@ -1,4 +1,4 @@
-package opentab
+package opentab.server
 
 import upickle.{default => json}
 import java.io.File

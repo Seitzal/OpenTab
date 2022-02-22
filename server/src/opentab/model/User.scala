@@ -2,15 +2,16 @@ package opentab.model
 
 import opentab._
 import opentab.server._
+
 import doobie._
 import doobie.implicits._
-import cats.effect._
+import cats.effect.IO
 import cats.implicits._
 import pdi.jwt._
 import upickle.default._
 import org.mindrot.jbcrypt.BCrypt
-import upickle.default.macroRW
-import java.time.{Instant, Duration}
+
+import java.time._
 
 case class User (
   id: Int,

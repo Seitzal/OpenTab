@@ -2,9 +2,10 @@ package opentab.model
 
 import opentab._
 import opentab.server._
+
 import doobie._
 import doobie.implicits._
-import cats.effect._
+import cats.effect.IO
 import cats.implicits._
 import upickle.default._
 

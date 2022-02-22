@@ -1,9 +1,9 @@
 package opentab.api
 
-import opentab._
 import opentab.auth._
 import opentab.server._
-import opentab.model._
+import opentab.exceptions._
+
 import org.http4s._
 import org.http4s.dsl.io._
 import cats.effect.IO

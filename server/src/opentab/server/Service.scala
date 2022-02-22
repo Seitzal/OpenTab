@@ -1,5 +1,6 @@
 package opentab.server
 
+import opentab.json._
 import ujson._
 import cats._
 import cats.effect._

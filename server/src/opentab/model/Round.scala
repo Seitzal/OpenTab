@@ -2,9 +2,11 @@ package opentab.model
 
 import opentab._
 import opentab.server._
+import opentab.exceptions._
+
 import doobie._
 import doobie.implicits._
-import cats.effect._
+import cats.effect.IO
 import cats.implicits._
 import upickle.default._
 import doobie.util.invariant
@@ -12,6 +14,7 @@ import doobie.util.invariant
 case class Round(
   tabId: Int,
   roundNo: Int,
+  isPrepared: Boolean,
   isLocked: Boolean
 ) {
 
@@ -82,14 +85,14 @@ object Round {
         .option
         .transact(xa)
 
-  def add(tabId: Int)(implicit xa: Xa): IO[Round] =
+  def add(tabId: Int, prepared: Boolean)(implicit xa: Xa): IO[Round] =
     for {
       tab <- Tab(tabId)
       existingRounds <- tab.numberOfRounds
       round <-
-        sql"INSERT INTO ROUNDS (tabid, roundno, islocked) VALUES ($tabId, ${existingRounds + 1}, FALSE)"
+        sql"INSERT INTO ROUNDS (tabid, roundno, isprepared, islocked) VALUES ($tabId, ${existingRounds + 1}, $prepared, FALSE)"
           .update
-          .withUniqueGeneratedKeys[Round]("tabid", "roundno", "islocked")
+          .withUniqueGeneratedKeys[Round]("tabid", "roundno", "isprepared", "islocked")
           .transact(xa)
      } yield round
 

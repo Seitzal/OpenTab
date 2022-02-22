@@ -2,6 +2,7 @@ package opentab.auth
 
 import opentab.model._
 import opentab.server._
+
 import doobie._
 import doobie.implicits._
 import cats.effect._

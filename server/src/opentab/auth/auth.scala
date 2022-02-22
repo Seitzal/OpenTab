@@ -2,21 +2,21 @@ package opentab
 
 import opentab.model._
 import opentab.server._
+
 import org.http4s._
 import org.http4s.headers._
 import org.http4s.dsl.io._
-import cats.effect._
+import cats.effect.IO
 import cats.implicits._
-import upickle.default._
 import pdi.jwt._
 import pdi.jwt.exceptions._
-import fs2.Stream
 import com.typesafe.config.Config
-import java.util.Base64
-import doobie.util.invariant.UnexpectedEnd
 import com.typesafe.scalalogging.LazyLogging
-import scala.util.Try
 import upickle.core.AbortException
+import upickle.default.read
+
+import java.util.Base64
+import scala.util.Try
 
 package object auth extends LazyLogging {
 

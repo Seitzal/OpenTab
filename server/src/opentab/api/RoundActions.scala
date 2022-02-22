@@ -1,13 +1,14 @@
 package opentab.api
 
-import opentab._
-import opentab.model._
 import opentab.auth._
-import cats.effect._
+import opentab.model._
+import opentab.json._
+import opentab.server._
+
+import cats.effect.IO
 import cats.implicits._
 import org.http4s._
 import org.http4s.dsl.io._
-import opentab.server._
 import com.typesafe.config.Config
 import ujson.Obj
 
@@ -26,10 +27,14 @@ class RoundActions(implicit xa: Xa, config: Config) {
   }
 
   def post(rq: Request[IO], tabId: Int) = withAuth(rq) { user =>
-    Permissions(user.id, tabId).map(_.setup).flatMap {
-      case false => denied
-      case true => Round.add(tabId).flatMap(Ok(_))
-    }
+    for {
+      data      <- rq.as[Obj]
+      prepared  <- IO(data.value.get("prepared").map(_.bool).get)
+      permitted <- Permissions(user.id, tabId).map(_.setup)
+      re        <- if (permitted)
+        Ok(Round.add(tabId, prepared))
+        else denied
+    } yield re
   }
 
   def delete(rq: Request[IO], tabId: Int, roundNo: Int) = withAuth(rq) {

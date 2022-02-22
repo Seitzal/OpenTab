@@ -1,4 +1,4 @@
-package opentab
+package opentab.server
 
 import doobie._
 import doobie.implicits._

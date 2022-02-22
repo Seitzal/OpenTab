@@ -1,13 +1,14 @@
 package opentab.api
 
-import opentab._
-import opentab.model._
 import opentab.auth._
-import cats.effect._
+import opentab.model._
+import opentab.json._
+import opentab.server._
+
+import cats.effect.IO
 import cats.implicits._
 import org.http4s._
 import org.http4s.dsl.io._
-import opentab.server._
 import com.typesafe.config.Config
 import ujson.Obj
 import doobie.util.invariant.UnexpectedEnd
