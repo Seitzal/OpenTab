@@ -2,7 +2,7 @@ package opentab.api
 
 import opentab._
 import opentab.auth._
-import opentab.gensrv._
+import opentab.server._
 import opentab.model._
 import org.http4s._
 import org.http4s.dsl.io._

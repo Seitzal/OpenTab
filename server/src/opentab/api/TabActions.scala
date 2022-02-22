@@ -7,7 +7,7 @@ import cats.effect._
 import cats.implicits._
 import org.http4s._
 import org.http4s.dsl.io._
-import eu.seitzal.http4s_upickle._
+import opentab.server._
 import com.typesafe.config.Config
 import ujson.Obj
 
@@ -70,7 +70,7 @@ class TabActions(implicit xa: Xa, config: Config) {
   def post(rq: Request[IO]) = withAuth(rq) { user =>
     rq.as[TabPartial]
       .flatMap(tp => Tab.create(tp.name, user.id))
-      .flatMap(Ok(_))
+      .flatMap((t: Tab) => Ok(t))
   }
 
   def rename(rq: Request[IO], tabId: Int) = withAuth(rq) { user =>

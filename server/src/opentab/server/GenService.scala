@@ -1,4 +1,4 @@
-package opentab.gensrv
+package opentab.server
 
 import ujson._
 import cats._
@@ -12,7 +12,7 @@ import org.http4s.implicits._
 import org.http4s.dsl.io._
 import org.http4s.server.middleware.CORS
 import org.http4s.blaze.server.BlazeServerBuilder
-import eu.seitzal.http4s_upickle._
+import upickle.default.{Writer, Reader}
 import com.typesafe.scalalogging.LazyLogging
 import com.typesafe.config.{ConfigFactory, Config}
 import scala.collection.mutable.ArrayBuffer
@@ -58,7 +58,7 @@ abstract class GenService extends IOApp with LazyLogging {
   def processUnexpected(io: IO[Response[IO]]) =
     io.handleErrorWith {
       ex: Throwable =>
-      logger.info(s"Uncaught error while processing request: ${ex.getClass.getName}: ${ex.getMessage}", ex)
+      logger.error(s"Uncaught error while processing request: ${ex.getClass.getName}: ${ex.getMessage}", ex)
       if (config.getBoolean("server.debug")) {
         InternalServerError(Obj(
           "message" -> 

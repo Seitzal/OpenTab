@@ -12,7 +12,6 @@ object server extends ScalaModule {
     ivy"org.tpolecat::doobie-postgres:1.0.0-RC2",
     ivy"org.tpolecat::doobie-hikari:1.0.0-RC2",
     ivy"com.lihaoyi::upickle:1.5.0",
-    ivy"eu.seitzal::http4s-upickle:0.2.2",
     ivy"de.svenkubiak:jBCrypt:0.4.3",
     ivy"com.pauldijou::jwt-upickle:5.0.0"
   )

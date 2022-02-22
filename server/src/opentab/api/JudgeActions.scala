@@ -7,7 +7,7 @@ import cats.effect._
 import cats.implicits._
 import org.http4s._
 import org.http4s.dsl.io._
-import eu.seitzal.http4s_upickle._
+import opentab.server._
 import com.typesafe.config.Config
 import ujson.Obj
 import doobie.util.invariant.UnexpectedEnd
